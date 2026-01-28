@@ -54,11 +54,30 @@ git branch basic-design-db-1
 ##作成しながら、ブランチ切り替え
 git checkout -b requirements-definition-1
 　or
-#Gitブランチ切り替え
+##Gitブランチ切り替え
 git checkout requirements-definition-1
 
-#現在のGitブランチ確認
+##現在のGitブランチ確認
 git branch
 
-#Gitブランチをリモートへ追加
+##Gitブランチをリモートへ追加
 git push -u origin requirements-definition-1
+
+--------------------------------------------
+mainへマージあとに、ローカルリポジトリを最新にするには
+##mainブランチへ切り替え
+git checkout main
+
+##リモートリポジトリの最新情報を取得（originはリモートの最新:git remote -v で確認できる）
+git fetch origin
+
+##リモートの main をローカルの main にマージ
+##リモート追跡ブランチ（origin/main）の最新状態をローカルの main ブランチにマージします。
+git merge origin/main
+
+以上で最新化が可能です。
+コンフリクトが起きると、マージできないです。
+ローカルのみのファイルは消されないが、一時退避「git stash」やローカルコミット「git add とgit commit」をしておくとよい
+
+
+
