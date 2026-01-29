@@ -45,10 +45,10 @@ git clone git@github.com:yoshi1414/inventory-management.git
 git branch requirements-definition-1
 
 ##設計ブランチ（画面）
-git branch basic-design-view-1
+git branch system-design-view-1
 
 ##設計ブランチ（DB）
-git branch basic-design-db-1
+git branch system-design-db-1
 
 ーーーーーーーーーーーーー
 ##作成しながら、ブランチ切り替え
@@ -78,6 +78,30 @@ git merge origin/main
 以上で最新化が可能です。
 コンフリクトが起きると、マージできないです。
 ローカルのみのファイルは消されないが、一時退避「git stash」やローカルコミット「git add とgit commit」をしておくとよい
+
+ーーーーーーーーーーーーーーーーーーーーーーーーーー
+#ローカルブランチの削除手順
+##現在のブランチを確認
+#削除対象のブランチでないことを確認する
+#削除対象の場合、mainブランチに切り替える
+
+git checkout main
+
+##ローカルブランチを削除
+#マージ済みのブランチを削除する
+
+git branch -d requirements-definition-1
+git branch -d requirements-definition-2
+
+##削除後、ローカルブランチ一覧を確認
+
+git branch
+
+#強制削除が必要な場合（マージされていないブランチ）
+#データが失われる可能性があるため注意
+
+git branch -D requirements-definition-1
+git branch -D requirements-definition-2
 
 
 
