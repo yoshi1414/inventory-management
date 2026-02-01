@@ -20,8 +20,7 @@ public class SecurityConfig {
            .authorizeHttpRequests((requests) -> requests
            .requestMatchers("/css/**", "/images/**", "/js/**", "/storage/**").permitAll()  // すべてのユーザーにアクセスを許可するURL
            .requestMatchers("/menu", "/admin/menu","/login", "/admin/login").permitAll() // メニュー画面へのアクセスを許可
-           .requestMatchers("/products").permitAll() // 一般ユーザー用商品一覧画面へのアクセスを許可
-           .requestMatchers("/admin/products").hasRole("ADMIN") // 管理者用商品管理画面はADMINロールのみ許可
+           .requestMatchers("/admin/products","/products").permitAll() // 一般ユーザー・管理者用商品一覧画面へのアクセスを許可
            .anyRequest().authenticated()  // 上記以外のURLはログインが必要（どのロールでもOK）
            );
 

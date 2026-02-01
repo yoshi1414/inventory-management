@@ -136,3 +136,86 @@ body.admin-login .form-control:focus {
 ::placeholder {
     color: #6c757d; /* Bootstrap muted text */
 }
+
+/* Navigation bar customization */
+.navbar-custom {
+    background-color: #343a40; /* Dark gray background */
+    color: white;
+    padding-top: 0.3rem; /* Reduce top padding */
+    padding-bottom: 0.3rem; /* Reduce bottom padding */
+}
+
+/* Admin navigation bar customization */
+.navbar-custom-admin {
+    background-color: #5a3d8f; /* Deep purple background for admin */
+    color: white;
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+}
+
+/* Admin badge styling */
+.admin-badge {
+    background-color: #ff6b35 !important; /* Bright orange background */
+    color: white !important;
+    font-weight: 600;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.75rem;
+}
+
+.navbar-custom .navbar-brand,
+.navbar-custom .nav-link {
+    color: white !important;
+}
+
+.navbar-custom-admin .navbar-brand,
+.navbar-custom-admin .nav-link {
+    color: white !important;
+}
+
+/* Adjust alignment and spacing for navbar items */
+.navbar-custom .nav-item,
+.navbar-custom-admin .nav-item {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 1rem; /* Add spacing between items */
+}
+
+.navbar-custom .nav-item:last-child,
+.navbar-custom-admin .nav-item:last-child {
+    margin-right: 0; /* Remove margin for the last item */
+}
+
+/* Adjust table border color to match input form */
+.table {
+    border-color: #E2E8F0;
+}
+
+.table th,
+.table td {
+    border-color: #E2E8F0;
+}
+
+/* Align search and clear buttons to the right */
+.search-panel .row .col-12 {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Add margin below the buttons */
+.search-panel .row.mt-3 {
+    margin-bottom: 1.5rem;
+}
+
+/* Tighten margin between search/clear buttons and sorting dropdown */
+.search-panel .row.g-3 {
+    margin-bottom: 0.1rem; /* Further reduced margin */
+}
+
+/* Add border around the search panel */
+.search-panel {
+    border: 1px solid #E2E8F0; /* Light gray border */
+    border-radius: 0.5rem; /* Rounded corners */
+    padding: 1rem; /* Inner spacing */
+    background-color: #ffffff; /* White background */
+    margin-bottom: 0.5rem; /* Add margin below the panel */
+}

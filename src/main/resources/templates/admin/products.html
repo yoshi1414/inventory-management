@@ -9,11 +9,11 @@
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Custom CSS -->
-    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <!-- ナビゲーションバー（管理者用） -->
-    <nav class="navbar navbar-expand-lg navbar-custom">
+    <nav class="navbar navbar-expand-lg navbar-custom-admin fixed-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="/admin/menu">
                 <i class="bi bi-shield-lock"></i> 商品在庫管理システム <span class="badge admin-badge">管理者</span>
@@ -56,7 +56,7 @@
     </nav>
 
     <!-- メインコンテンツ -->
-    <div class="container mt-4">
+    <div class="container mt-5 pt-4">
         <div class="row">
             <div class="col-12">
                 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -122,7 +122,7 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="row mt-3">
+                        <div class="row mb-1">
                             <div class="col-12">
                                 <button type="submit" class="btn btn-primary">
                                     <i class="bi bi-search"></i> 検索
@@ -148,14 +148,14 @@
                             <table class="table table-hover align-middle">
                                 <thead class="table-light">
                                     <tr>
-                                        <th style="width: 8%;">商品ID</th>
-                                        <th style="width: 15%;">商品名</th>
-                                        <th style="width: 10%;">カテゴリ</th>
-                                        <th style="width: 8%;">価格</th>
-                                        <th style="width: 8%;">在庫数</th>
+                                        <th style="width: 10%;">商品ID</th>
+                                        <th style="width: 20%;">商品名</th>
+                                        <th style="width: 12%;">カテゴリ</th>
+                                        <th style="width: 10%;">価格</th>
+                                        <th style="width: 10%;">在庫数</th>
                                         <th style="width: 10%;">ステータス</th>
                                         <th style="width: 10%;">更新日</th>
-                                        <th style="width: 31%;">操作</th>
+                                        <th style="width: 18%;">操作</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -165,7 +165,7 @@
                                         <td>Monitor XM4P4</td>
                                         <td><span class="badge bg-info">Clothing</span></td>
                                         <td>¥402</td>
-                                        <td><span class="stock-danger"><i class="bi bi-x-circle-fill"></i> 0</span></td>
+                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-danger text-decoration-underline"><i class="bi bi-x-circle-fill"></i> 0</a></td>
                                         <td><span class="badge badge-status-inactive">販売停止</span></td>
                                         <td>2026-01-30</td>
                                         <td class="action-buttons">
@@ -175,9 +175,6 @@
                                             <a href="/admin/products/JHQ82GFX/edit" class="btn btn-sm btn-outline-primary" title="編集">
                                                 <i class="bi bi-pencil"></i> 編集
                                             </a>
-                                            <button class="btn btn-sm btn-outline-success" title="入庫" onclick="handleStockIn('JHQ82GFX')">
-                                                <i class="bi bi-box-arrow-in-down"></i> 入庫
-                                            </button>
                                             <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('JHQ82GFX')">
                                                 <i class="bi bi-trash"></i> 削除
                                             </button>
@@ -189,7 +186,7 @@
                                         <td>Laptop XU5QX</td>
                                         <td><span class="badge bg-secondary">Home Appliances</span></td>
                                         <td>¥253</td>
-                                        <td><span class="stock-warning"><i class="bi bi-exclamation-triangle-fill"></i> 3</span></td>
+                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-warning text-decoration-underline"><i class="bi bi-exclamation-triangle-fill"></i> 3</a></td>
                                         <td><span class="badge badge-status-active">販売中</span></td>
                                         <td>2026-01-29</td>
                                         <td class="action-buttons">
@@ -199,12 +196,6 @@
                                             <a href="/admin/products/93TGNAY7/edit" class="btn btn-sm btn-outline-primary" title="編集">
                                                 <i class="bi bi-pencil"></i> 編集
                                             </a>
-                                            <button class="btn btn-sm btn-outline-success" title="入庫" onclick="handleStockIn('93TGNAY7')">
-                                                <i class="bi bi-box-arrow-in-down"></i> 入庫
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-warning" title="出庫" onclick="handleStockOut('93TGNAY7')">
-                                                <i class="bi bi-box-arrow-up"></i> 出庫
-                                            </button>
                                             <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('93TGNAY7')">
                                                 <i class="bi bi-trash"></i> 削除
                                             </button>
@@ -215,7 +206,7 @@
                                         <td>Smartphone XDVMX</td>
                                         <td><span class="badge bg-info">Clothing</span></td>
                                         <td>¥286</td>
-                                        <td><span class="stock-warning"><i class="bi bi-exclamation-triangle-fill"></i> 12</span></td>
+                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-warning text-decoration-underline"><i class="bi bi-exclamation-triangle-fill"></i> 12</a></td>
                                         <td><span class="badge badge-status-active">販売中</span></td>
                                         <td>2026-01-28</td>
                                         <td class="action-buttons">
@@ -225,12 +216,6 @@
                                             <a href="/admin/products/YTFM1TLG/edit" class="btn btn-sm btn-outline-primary" title="編集">
                                                 <i class="bi bi-pencil"></i> 編集
                                             </a>
-                                            <button class="btn btn-sm btn-outline-success" title="入庫" onclick="handleStockIn('YTFM1TLG')">
-                                                <i class="bi bi-box-arrow-in-down"></i> 入庫
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-warning" title="出庫" onclick="handleStockOut('YTFM1TLG')">
-                                                <i class="bi bi-box-arrow-up"></i> 出庫
-                                            </button>
                                             <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('YTFM1TLG')">
                                                 <i class="bi bi-trash"></i> 削除
                                             </button>
@@ -241,7 +226,7 @@
                                         <td>Headphones IT7HG</td>
                                         <td><span class="badge bg-info">Clothing</span></td>
                                         <td>¥475</td>
-                                        <td><span class="stock-warning"><i class="bi bi-exclamation-triangle-fill"></i> 19</span></td>
+                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-warning text-decoration-underline"><i class="bi bi-exclamation-triangle-fill"></i> 19</a></td>
                                         <td><span class="badge badge-status-active">販売中</span></td>
                                         <td>2026-01-27</td>
                                         <td class="action-buttons">
@@ -251,12 +236,6 @@
                                             <a href="/admin/products/5C94FGTQ/edit" class="btn btn-sm btn-outline-primary" title="編集">
                                                 <i class="bi bi-pencil"></i> 編集
                                             </a>
-                                            <button class="btn btn-sm btn-outline-success" title="入庫" onclick="handleStockIn('5C94FGTQ')">
-                                                <i class="bi bi-box-arrow-in-down"></i> 入庫
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-warning" title="出庫" onclick="handleStockOut('5C94FGTQ')">
-                                                <i class="bi bi-box-arrow-up"></i> 出庫
-                                            </button>
                                             <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('5C94FGTQ')">
                                                 <i class="bi bi-trash"></i> 削除
                                             </button>
@@ -268,7 +247,7 @@
                                         <td>Laptop 54FAF</td>
                                         <td><span class="badge bg-secondary">Home Appliances</span></td>
                                         <td>¥230</td>
-                                        <td><span class="stock-ok">32</span></td>
+                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">32</a></td>
                                         <td><span class="badge badge-status-active">販売中</span></td>
                                         <td>2026-01-26</td>
                                         <td class="action-buttons">
@@ -278,12 +257,6 @@
                                             <a href="/admin/products/728GCZFU/edit" class="btn btn-sm btn-outline-primary" title="編集">
                                                 <i class="bi bi-pencil"></i> 編集
                                             </a>
-                                            <button class="btn btn-sm btn-outline-success" title="入庫" onclick="handleStockIn('728GCZFU')">
-                                                <i class="bi bi-box-arrow-in-down"></i> 入庫
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-warning" title="出庫" onclick="handleStockOut('728GCZFU')">
-                                                <i class="bi bi-box-arrow-up"></i> 出庫
-                                            </button>
                                             <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('728GCZFU')">
                                                 <i class="bi bi-trash"></i> 削除
                                             </button>
@@ -294,7 +267,7 @@
                                         <td>Monitor 8SBDO</td>
                                         <td><span class="badge bg-info">Clothing</span></td>
                                         <td>¥403</td>
-                                        <td><span class="stock-ok">40</span></td>
+                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">40</a></td>
                                         <td><span class="badge badge-status-active">販売中</span></td>
                                         <td>2026-01-25</td>
                                         <td class="action-buttons">
@@ -304,12 +277,6 @@
                                             <a href="/admin/products/XBHKYPQB/edit" class="btn btn-sm btn-outline-primary" title="編集">
                                                 <i class="bi bi-pencil"></i> 編集
                                             </a>
-                                            <button class="btn btn-sm btn-outline-success" title="入庫" onclick="handleStockIn('XBHKYPQB')">
-                                                <i class="bi bi-box-arrow-in-down"></i> 入庫
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-warning" title="出庫" onclick="handleStockOut('XBHKYPQB')">
-                                                <i class="bi bi-box-arrow-up"></i> 出庫
-                                            </button>
                                             <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('XBHKYPQB')">
                                                 <i class="bi bi-trash"></i> 削除
                                             </button>
@@ -320,7 +287,7 @@
                                         <td>Monitor GFUOS</td>
                                         <td><span class="badge bg-secondary">Home Appliances</span></td>
                                         <td>¥21</td>
-                                        <td><span class="stock-ok">48</span></td>
+                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">48</a></td>
                                         <td><span class="badge badge-status-active">販売中</span></td>
                                         <td>2026-01-24</td>
                                         <td class="action-buttons">
@@ -330,12 +297,6 @@
                                             <a href="/admin/products/0KHFMXFN/edit" class="btn btn-sm btn-outline-primary" title="編集">
                                                 <i class="bi bi-pencil"></i> 編集
                                             </a>
-                                            <button class="btn btn-sm btn-outline-success" title="入庫" onclick="handleStockIn('0KHFMXFN')">
-                                                <i class="bi bi-box-arrow-in-down"></i> 入庫
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-warning" title="出庫" onclick="handleStockOut('0KHFMXFN')">
-                                                <i class="bi bi-box-arrow-up"></i> 出庫
-                                            </button>
                                             <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('0KHFMXFN')">
                                                 <i class="bi bi-trash"></i> 削除
                                             </button>
@@ -346,7 +307,7 @@
                                         <td>Smartphone NRUMS</td>
                                         <td><span class="badge bg-info">Clothing</span></td>
                                         <td>¥214</td>
-                                        <td><span class="stock-ok">92</span></td>
+                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">92</a></td>
                                         <td><span class="badge badge-status-active">販売中</span></td>
                                         <td>2026-01-23</td>
                                         <td class="action-buttons">
@@ -356,12 +317,6 @@
                                             <a href="/admin/products/TYYZ5AV7/edit" class="btn btn-sm btn-outline-primary" title="編集">
                                                 <i class="bi bi-pencil"></i> 編集
                                             </a>
-                                            <button class="btn btn-sm btn-outline-success" title="入庫" onclick="handleStockIn('TYYZ5AV7')">
-                                                <i class="bi bi-box-arrow-in-down"></i> 入庫
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-warning" title="出庫" onclick="handleStockOut('TYYZ5AV7')">
-                                                <i class="bi bi-box-arrow-up"></i> 出庫
-                                            </button>
                                             <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('TYYZ5AV7')">
                                                 <i class="bi bi-trash"></i> 削除
                                             </button>
@@ -372,7 +327,7 @@
                                         <td>Smartphone Z5CGR</td>
                                         <td><span class="badge bg-primary">Electronics</span></td>
                                         <td>¥19</td>
-                                        <td><span class="stock-ok">98</span></td>
+                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">98</a></td>
                                         <td><span class="badge badge-status-active">販売中</span></td>
                                         <td>2026-01-22</td>
                                         <td class="action-buttons">
@@ -382,12 +337,6 @@
                                             <a href="/admin/products/27R9M103/edit" class="btn btn-sm btn-outline-primary" title="編集">
                                                 <i class="bi bi-pencil"></i> 編集
                                             </a>
-                                            <button class="btn btn-sm btn-outline-success" title="入庫" onclick="handleStockIn('27R9M103')">
-                                                <i class="bi bi-box-arrow-in-down"></i> 入庫
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-warning" title="出庫" onclick="handleStockOut('27R9M103')">
-                                                <i class="bi bi-box-arrow-up"></i> 出庫
-                                            </button>
                                             <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('27R9M103')">
                                                 <i class="bi bi-trash"></i> 削除
                                             </button>
@@ -398,7 +347,7 @@
                                         <td>Monitor VSWHF</td>
                                         <td><span class="badge bg-secondary">Home Appliances</span></td>
                                         <td>¥229</td>
-                                        <td><span class="stock-ok">100</span></td>
+                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">100</a></td>
                                         <td><span class="badge badge-status-active">販売中</span></td>
                                         <td>2026-01-21</td>
                                         <td class="action-buttons">
@@ -408,12 +357,6 @@
                                             <a href="/admin/products/T4F2EW7G/edit" class="btn btn-sm btn-outline-primary" title="編集">
                                                 <i class="bi bi-pencil"></i> 編集
                                             </a>
-                                            <button class="btn btn-sm btn-outline-success" title="入庫" onclick="handleStockIn('T4F2EW7G')">
-                                                <i class="bi bi-box-arrow-in-down"></i> 入庫
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-warning" title="出庫" onclick="handleStockOut('T4F2EW7G')">
-                                                <i class="bi bi-box-arrow-up"></i> 出庫
-                                            </button>
                                             <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('T4F2EW7G')">
                                                 <i class="bi bi-trash"></i> 削除
                                             </button>
@@ -424,7 +367,7 @@
                                         <td>Smartphone HMH7Q</td>
                                         <td><span class="badge bg-info">Clothing</span></td>
                                         <td>¥446</td>
-                                        <td><span class="stock-ok">47</span></td>
+                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">47</a></td>
                                         <td><span class="badge badge-status-active">販売中</span></td>
                                         <td>2026-01-20</td>
                                         <td class="action-buttons">
@@ -434,12 +377,6 @@
                                             <a href="/admin/products/GL199BEL/edit" class="btn btn-sm btn-outline-primary" title="編集">
                                                 <i class="bi bi-pencil"></i> 編集
                                             </a>
-                                            <button class="btn btn-sm btn-outline-success" title="入庫" onclick="handleStockIn('GL199BEL')">
-                                                <i class="bi bi-box-arrow-in-down"></i> 入庫
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-warning" title="出庫" onclick="handleStockOut('GL199BEL')">
-                                                <i class="bi bi-box-arrow-up"></i> 出庫
-                                            </button>
                                             <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('GL199BEL')">
                                                 <i class="bi bi-trash"></i> 削除
                                             </button>
@@ -450,7 +387,7 @@
                                         <td>Monitor SM05O</td>
                                         <td><span class="badge bg-primary">Electronics</span></td>
                                         <td>¥322</td>
-                                        <td><span class="stock-ok">74</span></td>
+                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">74</a></td>
                                         <td><span class="badge badge-status-active">販売中</span></td>
                                         <td>2026-01-19</td>
                                         <td class="action-buttons">
@@ -460,12 +397,6 @@
                                             <a href="/admin/products/SX7HALUU/edit" class="btn btn-sm btn-outline-primary" title="編集">
                                                 <i class="bi bi-pencil"></i> 編集
                                             </a>
-                                            <button class="btn btn-sm btn-outline-success" title="入庫" onclick="handleStockIn('SX7HALUU')">
-                                                <i class="bi bi-box-arrow-in-down"></i> 入庫
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-warning" title="出庫" onclick="handleStockOut('SX7HALUU')">
-                                                <i class="bi bi-box-arrow-up"></i> 出庫
-                                            </button>
                                             <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('SX7HALUU')">
                                                 <i class="bi bi-trash"></i> 削除
                                             </button>
@@ -476,7 +407,7 @@
                                         <td>Headphones IXUWP</td>
                                         <td><span class="badge bg-info">Clothing</span></td>
                                         <td>¥372</td>
-                                        <td><span class="stock-ok">36</span></td>
+                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">36</a></td>
                                         <td><span class="badge badge-status-active">販売中</span></td>
                                         <td>2026-01-18</td>
                                         <td class="action-buttons">
@@ -486,12 +417,6 @@
                                             <a href="/admin/products/1AOXE5QW/edit" class="btn btn-sm btn-outline-primary" title="編集">
                                                 <i class="bi bi-pencil"></i> 編集
                                             </a>
-                                            <button class="btn btn-sm btn-outline-success" title="入庫" onclick="handleStockIn('1AOXE5QW')">
-                                                <i class="bi bi-box-arrow-in-down"></i> 入庫
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-warning" title="出庫" onclick="handleStockOut('1AOXE5QW')">
-                                                <i class="bi bi-box-arrow-up"></i> 出庫
-                                            </button>
                                             <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('1AOXE5QW')">
                                                 <i class="bi bi-trash"></i> 削除
                                             </button>
@@ -502,7 +427,7 @@
                                         <td>Smartphone 2SHT8</td>
                                         <td><span class="badge bg-secondary">Home Appliances</span></td>
                                         <td>¥452</td>
-                                        <td><span class="stock-ok">61</span></td>
+                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">61</a></td>
                                         <td><span class="badge badge-status-active">販売中</span></td>
                                         <td>2026-01-17</td>
                                         <td class="action-buttons">
@@ -512,12 +437,6 @@
                                             <a href="/admin/products/KOXR70B4/edit" class="btn btn-sm btn-outline-primary" title="編集">
                                                 <i class="bi bi-pencil"></i> 編集
                                             </a>
-                                            <button class="btn btn-sm btn-outline-success" title="入庫" onclick="handleStockIn('KOXR70B4')">
-                                                <i class="bi bi-box-arrow-in-down"></i> 入庫
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-warning" title="出庫" onclick="handleStockOut('KOXR70B4')">
-                                                <i class="bi bi-box-arrow-up"></i> 出庫
-                                            </button>
                                             <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('KOXR70B4')">
                                                 <i class="bi bi-trash"></i> 削除
                                             </button>
@@ -528,7 +447,7 @@
                                         <td>Monitor 5TYRK</td>
                                         <td><span class="badge bg-info">Clothing</span></td>
                                         <td>¥27</td>
-                                        <td><span class="stock-ok">40</span></td>
+                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">40</a></td>
                                         <td><span class="badge badge-status-active">販売中</span></td>
                                         <td>2026-01-16</td>
                                         <td class="action-buttons">
@@ -538,12 +457,6 @@
                                             <a href="/admin/products/X2D1GWO5/edit" class="btn btn-sm btn-outline-primary" title="編集">
                                                 <i class="bi bi-pencil"></i> 編集
                                             </a>
-                                            <button class="btn btn-sm btn-outline-success" title="入庫" onclick="handleStockIn('X2D1GWO5')">
-                                                <i class="bi bi-box-arrow-in-down"></i> 入庫
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-warning" title="出庫" onclick="handleStockOut('X2D1GWO5')">
-                                                <i class="bi bi-box-arrow-up"></i> 出庫
-                                            </button>
                                             <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('X2D1GWO5')">
                                                 <i class="bi bi-trash"></i> 削除
                                             </button>
@@ -554,7 +467,7 @@
                                         <td>Laptop 56JPR</td>
                                         <td><span class="badge bg-secondary">Home Appliances</span></td>
                                         <td>¥204</td>
-                                        <td><span class="stock-ok">91</span></td>
+                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">91</a></td>
                                         <td><span class="badge badge-status-active">販売中</span></td>
                                         <td>2026-01-15</td>
                                         <td class="action-buttons">
@@ -564,12 +477,6 @@
                                             <a href="/admin/products/ZKI2USNA/edit" class="btn btn-sm btn-outline-primary" title="編集">
                                                 <i class="bi bi-pencil"></i> 編集
                                             </a>
-                                            <button class="btn btn-sm btn-outline-success" title="入庫" onclick="handleStockIn('ZKI2USNA')">
-                                                <i class="bi bi-box-arrow-in-down"></i> 入庫
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-warning" title="出庫" onclick="handleStockOut('ZKI2USNA')">
-                                                <i class="bi bi-box-arrow-up"></i> 出庫
-                                            </button>
                                             <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('ZKI2USNA')">
                                                 <i class="bi bi-trash"></i> 削除
                                             </button>
@@ -580,7 +487,7 @@
                                         <td>Smartphone UPJGT</td>
                                         <td><span class="badge bg-info">Clothing</span></td>
                                         <td>¥176</td>
-                                        <td><span class="stock-ok">48</span></td>
+                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">48</a></td>
                                         <td><span class="badge badge-status-active">販売中</span></td>
                                         <td>2026-01-14</td>
                                         <td class="action-buttons">
@@ -590,12 +497,6 @@
                                             <a href="/admin/products/EPKS7ECS/edit" class="btn btn-sm btn-outline-primary" title="編集">
                                                 <i class="bi bi-pencil"></i> 編集
                                             </a>
-                                            <button class="btn btn-sm btn-outline-success" title="入庫" onclick="handleStockIn('EPKS7ECS')">
-                                                <i class="bi bi-box-arrow-in-down"></i> 入庫
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-warning" title="出庫" onclick="handleStockOut('EPKS7ECS')">
-                                                <i class="bi bi-box-arrow-up"></i> 出庫
-                                            </button>
                                             <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('EPKS7ECS')">
                                                 <i class="bi bi-trash"></i> 削除
                                             </button>
@@ -606,7 +507,7 @@
                                         <td>Monitor EFPA6</td>
                                         <td><span class="badge bg-primary">Electronics</span></td>
                                         <td>¥424</td>
-                                        <td><span class="stock-ok">31</span></td>
+                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">31</a></td>
                                         <td><span class="badge badge-status-active">販売中</span></td>
                                         <td>2026-01-13</td>
                                         <td class="action-buttons">
@@ -616,12 +517,6 @@
                                             <a href="/admin/products/UB8UO1PA/edit" class="btn btn-sm btn-outline-primary" title="編集">
                                                 <i class="bi bi-pencil"></i> 編集
                                             </a>
-                                            <button class="btn btn-sm btn-outline-success" title="入庫" onclick="handleStockIn('UB8UO1PA')">
-                                                <i class="bi bi-box-arrow-in-down"></i> 入庫
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-warning" title="出庫" onclick="handleStockOut('UB8UO1PA')">
-                                                <i class="bi bi-box-arrow-up"></i> 出庫
-                                            </button>
                                             <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('UB8UO1PA')">
                                                 <i class="bi bi-trash"></i> 削除
                                             </button>
@@ -632,7 +527,7 @@
                                         <td>Monitor 2N5R9</td>
                                         <td><span class="badge bg-info">Clothing</span></td>
                                         <td>¥331</td>
-                                        <td><span class="stock-ok">41</span></td>
+                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">41</a></td>
                                         <td><span class="badge badge-status-active">販売中</span></td>
                                         <td>2026-01-12</td>
                                         <td class="action-buttons">
@@ -642,12 +537,6 @@
                                             <a href="/admin/products/6ID782KK/edit" class="btn btn-sm btn-outline-primary" title="編集">
                                                 <i class="bi bi-pencil"></i> 編集
                                             </a>
-                                            <button class="btn btn-sm btn-outline-success" title="入庫" onclick="handleStockIn('6ID782KK')">
-                                                <i class="bi bi-box-arrow-in-down"></i> 入庫
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-warning" title="出庫" onclick="handleStockOut('6ID782KK')">
-                                                <i class="bi bi-box-arrow-up"></i> 出庫
-                                            </button>
                                             <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('6ID782KK')">
                                                 <i class="bi bi-trash"></i> 削除
                                             </button>
@@ -721,37 +610,38 @@
         </div>
     </div>
 
+    <!-- 在庫管理モーダル -->
+    <div class="modal fade" id="stockModal" tabindex="-1" aria-labelledby="stockModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="stockModalLabel">在庫管理</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- モーダルの内容 -->
+                    <form>
+                        <div class="mb-3">
+                            <label for="stockInput" class="form-label">在庫数を入力</label>
+                            <input type="number" class="form-control" id="stockInput" placeholder="在庫数">
+                        </div>
+                        <button type="submit" class="btn btn-primary">更新</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        let deleteTargetId = null;
-        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-
-        function handleStockIn(productId) {
-            // 入庫処理画面へ遷移（実装時）
-            window.location.href = `/admin/inventory/in?productId=${productId}`;
-        }
-
-        function handleStockOut(productId) {
-            // 出庫処理画面へ遷移（実装時）
-            window.location.href = `/admin/inventory/out?productId=${productId}`;
-        }
-
-        function handleDelete(productId) {
-            deleteTargetId = productId;
-            document.getElementById('deleteProductId').textContent = productId;
-            deleteModal.show();
-        }
-
-        function confirmDelete() {
-            if (deleteTargetId) {
-                // 削除処理を実行（実装時）
-                console.log('Deleting product:', deleteTargetId);
-                // window.location.href = `/admin/products/${deleteTargetId}/delete`;
-                deleteModal.hide();
-                alert(`商品 ${deleteTargetId} を削除しました。`);
-            }
-        }
-    </script>
+    
+    <!-- 共通JavaScript -->
+    <script src="/js/common.js"></script>
+    
+    <!-- 管理者用JavaScript -->
+    <script src="/js/admin-common.js"></script>
 </body>
 </html>
