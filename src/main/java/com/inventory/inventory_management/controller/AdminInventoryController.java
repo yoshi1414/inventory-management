@@ -6,10 +6,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
-public class ProductController {
+public class AdminInventoryController {
 
-    @GetMapping("/products")
-    public String showProducts(
+    @GetMapping("/admin/inventory")
+    public String showAdminProducts(
             @RequestParam(value = "search", required = false) String search,
             @RequestParam(value = "category", required = false) String category,
             @RequestParam(value = "status", required = false) String status,
@@ -24,7 +24,7 @@ public class ProductController {
         model.addAttribute("stock", stock);
         model.addAttribute("sort", sort);
 
-        return "products";
+        return "admin/inventory";
     }
 
     private Object mockProducts() {
