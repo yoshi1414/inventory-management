@@ -219,3 +219,8 @@ body.admin-login .form-control:focus {
     background-color: #ffffff; /* White background */
     margin-bottom: 0.5rem; /* Add margin below the panel */
 }
+
+/* モーダルの幅を調整 */
+.modal-dialog {
+    max-width: 30%;
+}
