@@ -147,170 +147,59 @@
                                         <th style="width: 10%;">更新日</th>
                                         <th style="width: 15%;">操作</th>
                                     </tr>
-                       明細カード一覧 -->
-                <div class="row row-cols-1 row-cols-md-2 g-4"      </button>
-                    <!-- 商品カード1 -->
-                    <div class="col">
-                        <div class="card h-100">
-                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>商品ID:</strong> <code>JHQ82GFX</code>
-                                </div>
-                                <span class="badge badge-status-inactive">販売停止</span>
-                            </div>
-                            <div class="card-body">
-                                <h5 class="card-title">Monitor XM4P4</h5>
-                                <div class="row mb-3">
-                                    <div class="col-6">
-                                        <small class="text-muted">カテゴリ</small>
-                                        <div><span class="badge bg-info">Clothing</span></div>
+                                </thead>
+                                <tbody>
+                                    <!-- 明細カード一覧 -->
+                                    <div class="row row-cols-1 row-cols-md-2 g-4">
+                                        <!-- 商品カード1 -->
+                                        <div class="col">
+                                            <div class="card h-100">
+                                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <strong>商品ID:</strong> <code>JHQ82GFX</code>
+                                                    </div>
+                                                    <span class="badge badge-status-inactive">販売停止</span>
+                                                </div>
+                                                <div class="card-body">
+                                                    <h5 class="card-title">Monitor XM4P4</h5>
+                                                    <div class="row mb-3">
+                                                        <div class="col-6">
+                                                            <small class="text-muted">カテゴリ</small>
+                                                            <div><span class="badge bg-info">Clothing</span></div>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <small class="text-muted">価格</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row mb-3">
+                                                        <div class="col-6">
+                                                            <small class="text-muted">現在の在庫数</small>
+                                                            <div><span class="stock-warning"><i class="bi bi-exclamation-triangle-fill"></i> 3個</span></div>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <small class="text-muted">最終更新日</small>
+                                                            <div>2026-01-29</div>
+                                                        </div>
+                                                    </div>
+                                                    <hr>
+                                                    <div class="d-grid gap-2">
+                                                        <a href="/admin/products/93TGNAY7/edit" class="btn btn-primary">
+                                                            <i class="bi bi-pencil"></i> 商品情報を編集
+                                                        </a>
+                                                        <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('93TGNAY7')">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="col-6">
-                                        <small class="text-muted">価格</small>
-                    <!-- 商品カード2 -->
-                    <div class="col">
-                        <div class="card h-100">
-                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>商品ID:</strong> <code>93TGNAY7</code>
-                                </div>
-                                <span class="badge badge-status-active">販売中</span>
-                            </div>
-                            <div class="card-body">
-                                <h5 class="card-title">Laptop XU5QX</h5>
-                                <div class="row mb-3">
-                                    <div class="col-6">
-                                        <small class="text-muted">カテゴリ</small>
-                                        <div><span class="badge bg-secondary">Home Appliances</span></div>
-                                    </div>
-                                    <div class="col-6">
-                                        <small class="text-muted">価格</small>
-                                        <div><strong class="text-primary">¥253</strong></div>
-                                    </div>
-                                </div>
-                                <div class="row mb-3">
-                                    <div class="col-6">
-                                        <small class="text-muted">現在の在庫数</small>
-                                        <div><span class="stock-warning"><i class="bi bi-exclamation-triangle-fill"></i> 3個</span></div>
-                                    </div>
-                                    <div class="col-6">
-                                        <small class="text-muted">最終更新日</small>
-                                        <div>2026-01-29</div>
-                                    </div>
-                                </div>
-                                <hr>
-                                <div class="d-grid gap-2">
-                                    <a href="/admin/products/93TGNAY7/edit" class="btn btn-primary">
-                                        <i class="bi bi-pencil"></i> 商品情報を編集
-                                    </a>
-                                    <button class="btn btn-outline-danger" onclick="handleDelete('93TGNAY7')">
-                                        <i class="bi bi-trash"></i> 商品を削除
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 商品カード3 -->
-                    <div class="col">
-                        <div class="card h-100">
-                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>商品ID:</strong> <code>YTFM1TLG</code>
-                                </div>
-                                <span class="badge badge-status-active">販売中</span>
-                            </div>
-                            <div class="card-body">
-                                <h5 class="card-title">Smartphone XDVMX</h5>
-                                <div class="row mb-3">
-                                    <div class="col-6">
-                                        <small class="text-muted">カテゴリ</small>
-                                        <div><span class="badge bg-info">Clothing</span></div>
-                                    </div>
-                                    <div class="col-6">
-                                        <small class="text-muted">価格</small>
-                                        <div><strong class="text-primary">¥286</strong></div>
-                                    </div>
-                                </div>
-                                <div class="row mb-3">
-                                    <div class="col-6">
-                                        <small class="text-muted">現在の在庫数</small>
-                                        <div><span class="stock-warning"><i class="bi bi-exclamation-triangle-fill"></i> 12個</span></div>
-                                    </div>
-                                    <div class="col-6">
-                                        <small class="text-muted">最終更新日</small>
-                                        <div>2026-01-28</div>
-                                    </div>
-                                </div>
-                                <hr>
-                                <div class="d-grid gap-2">
-                                    <a href="/admin/products/YTFM1TLG/edit" class="btn btn-primary">
-                                        <i class="bi bi-pencil"></i> 商品情報を編集
-                                    </a>
-                                    <button class="btn btn-outline-danger" onclick="handleDelete('YTFM1TLG')">
-                                        <i class="bi bi-trash"></i> 商品を削除
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 商品カード4 -->
-                    <div class="col">
-                        <div class="card h-100">
-                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>商品ID:</strong> <code>728GCZFU</code>
-                                </div>
-                                <span class="badge badge-status-active">販売中</span>
-                            </div>
-                            <div class="card-body">
-                                <h5 class="card-title">Laptop 54FAF</h5>
-                                <div class="row mb-3">
-                                    <div class="col-6">
-                                        <small class="text-muted">カテゴリ</small>
-                                        <div><span class="badge bg-secondary">Home Appliances</span></div>
-                                    </div>
-                                    <div class="col-6">
-                                        <small class="text-muted">価格</small>
-                                        <div><strong class="text-primary">¥230</strong></div>
-                                    </div>
-                                </div>
-                                <div class="row mb-3">
-                                    <div class="col-6">
-                                        <small class="text-muted">現在の在庫数</small>
-                                        <div><span class="stock-ok">32個</span></div>
-                                    </div>
-                                    <div class="col-6">
-                                        <small class="text-muted">最終更新日</small>
-                                        <div>2026-01-26</div>
-                                    </div>
-                                </div>
-                                <hr>
-                                <div class="d-grid gap-2">
-                                    <a href="/admin/products/728GCZFU/edit" class="btn btn-primary">
-                                        <i class="bi bi-pencil"></i> 商品情報を編集
-                                    </a>
-                                    <button class="btn btn-outline-danger" onclick="handleDelete('728GCZFU')">
-                                        <i class="bi bi-trash"></i> 商品を削除
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                                        <i class="bi bi-pencil"></i>
-                                            </a>
-                                            <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('NLTU9VGS')">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
                                 </tbody>
                             </table>
                         </div>
 
                         <!-- ページネーション -->
-                        <nav aria-label="商品ページネーション">
+                        <nav aria-label="商品ページネーション" class="mt-4">
                             <ul class="pagination justify-content-center">
                                 <li class="page-item disabled">
                                     <a class="page-link" href="#" tabindex="-1">
@@ -328,7 +217,7 @@
                                 <li class="page-item"><a class="page-link" href="#">4</a></li>
                                 <li class="page-item"><a class="page-link" href="#">5</a></li>
                                 <li class="page-item disabled"><a class="page-link" href="#">...</a></li>
-                                <li class="page-item"><a class="page-link" href="#">10</a></li>
+                                <li class="page-item"><a class="page-link" href="#">50</a></li>
                                 <li class="page-item">
                                     <a class="page-link" href="#">
                                         次へ <i class="bi bi-chevron-right"></i>
@@ -341,8 +230,8 @@
                                 </li>
                             </ul>
                         </nav>
-                        <div class="text-center text-muted">
-                            <small>全200件中 1-20件を表示 (ページ 1/10)</small>
+                        <div class="text-center text-muted mb-4">
+                            <small>全200件中 1-4件を表示 (ページ 1/50) ※1ページあたり4件表示</small>
                         </div>
                     </div>
                 </div>
@@ -401,38 +290,3 @@
     </script>
 </body>
 </html>
-
-                <!-- ページネーション -->
-                <nav aria-label="商品ページネーション" class="mt-4">
-                    <ul class="pagination justify-content-center">
-                        <li class="page-item disabled">
-                            <a class="page-link" href="#" tabindex="-1">
-                                <i class="bi bi-chevron-double-left"></i> 最初
-                            </a>
-                        </li>
-                        <li class="page-item disabled">
-                            <a class="page-link" href="#" tabindex="-1">
-                                <i class="bi bi-chevron-left"></i> 前へ
-                            </a>
-                        </li>
-                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                        <li class="page-item"><a class="page-link" href="#">4</a></li>
-                        <li class="page-item"><a class="page-link" href="#">5</a></li>
-                        <li class="page-item disabled"><a class="page-link" href="#">...</a></li>
-                        <li class="page-item"><a class="page-link" href="#">50</a></li>
-                        <li class="page-item">
-                            <a class="page-link" href="#">
-                                次へ <i class="bi bi-chevron-right"></i>
-                            </a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="#">
-                                最後 <i class="bi bi-chevron-double-right"></i>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
-                <div class="text-center text-muted mb-4">
-                    <small>全200件中 1-4件を表示 (ページ 1/50) ※1ページあたり4件表示</small
