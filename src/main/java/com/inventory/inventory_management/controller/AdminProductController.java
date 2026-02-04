@@ -30,6 +30,14 @@ public class AdminProductController {
         return "admin/products";
     }
 
+    @GetMapping("/admin/products/JHQ82GFX")
+    public String showProductDetailJHQ82GFX(Model model) {
+        // 商品詳細画面表示（固定ID: JHQ82GFX）
+        model.addAttribute("productId", "JHQ82GFX");
+        model.addAttribute("product", mockProductDetail("JHQ82GFX"));
+        return "admin/product-detail";
+    }
+
     @GetMapping("/admin/products/create")
     public String showCreateForm(Model model) {
         // 商品登録フォーム表示
@@ -40,14 +48,51 @@ public class AdminProductController {
     public String createProduct(
             @RequestParam String productName,
             @RequestParam String category,
-            @RequestParam int price,
-            @RequestParam int stock,
+            @RequestParam(required = false) String sku,
+            @RequestParam double price,
+            @RequestParam int stockQuantity,
             @RequestParam String status,
+            @RequestParam(required = false) String description,
+            @RequestParam(required = false) String warrantyPeriod,
+            @RequestParam(required = false) String dimensions,
+            @RequestParam(required = false) String variations,
+            @RequestParam(required = false) String manufacturingDate,
+            @RequestParam(required = false) String expirationDate,
+            @RequestParam(required = false) String tags,
             RedirectAttributes redirectAttributes) {
 
         // 商品登録処理（モック）
-        redirectAttributes.addFlashAttribute("message", "商品を登録しました。");
+        
+        // バリデーション例
+        if (productName == null || productName.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "商品名は必須です。");
+            return "redirect:/admin/products/create";
+        }
+        
+        if (price < 0) {
+            redirectAttributes.addFlashAttribute("error", "価格は0以上で入力してください。");
+            return "redirect:/admin/products/create";
+        }
+        
+        if (stockQuantity < 0) {
+            redirectAttributes.addFlashAttribute("error", "在庫数は0以上で入力してください。");
+            return "redirect:/admin/products/create";
+        }
+        
+        // 登録処理（実際にはサービス層で実装）
+        // productService.createProduct(productDto);
+        
+        redirectAttributes.addFlashAttribute("message", "商品「" + productName + "」を登録しました。");
         return "redirect:/admin/products";
+    }
+
+    @GetMapping("/admin/products/{productId}")
+    public String showProductDetail(@PathVariable String productId, Model model) {
+        // 商品詳細画面表示
+        // 実際にはサービス層から商品データを取得
+        model.addAttribute("productId", productId);
+        model.addAttribute("product", mockProductDetail(productId));
+        return "admin/product-detail";
     }
 
     @GetMapping("/admin/products/{productId}/edit")
@@ -107,6 +152,12 @@ public class AdminProductController {
 
     private Object mockProducts() {
         // モックデータ（後でサービス層から取得）
+        return null;
+    }
+
+    private Object mockProductDetail(String productId) {
+        // モックデータ（後でサービス層から取得）
+        // 実際には商品の詳細情報を返す
         return null;
     }
 }

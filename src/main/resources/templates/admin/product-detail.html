@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商品詳細 - 商品在庫管理システム</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <!-- ナビゲーションバー（管理者用） -->
+    <nav class="navbar navbar-expand-lg navbar-custom-admin fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/admin/menu">
+                <i class="bi bi-shield-lock"></i> 商品在庫管理システム <span class="badge admin-badge">管理者</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/inventory">
+                            <i class="bi bi-clipboard-data"></i> 在庫管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/admin/products">
+                            <i class="bi bi-box-seam"></i> 商品管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/users">
+                            <i class="bi bi-people"></i> ユーザー管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/menu">
+                            <i class="bi bi-house"></i> メニュー
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <form action="/logout" method="post" style="display: inline;">
+                            <button type="submit" class="btn btn-link nav-link" style="display: inline; padding: 0; border: none;">
+                                <i class="bi bi-box-arrow-right"></i> ログアウト
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- メインコンテンツ -->
+    <div class="container mt-5 pt-4">
+        <div class="row">
+            <div class="col-12">
+                <!-- パンくずリスト -->
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/admin/menu">ホーム</a></li>
+                        <li class="breadcrumb-item"><a href="/admin/products">商品管理</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">商品詳細</li>
+                    </ol>
+                </nav>
+
+                <!-- ヘッダー -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>
+                        <i class="bi bi-box-seam"></i> 商品詳細
+                    </h2>
+                    <div>
+                        <a href="/admin/products/93TGNAY7/edit" class="btn btn-primary me-2">
+                            <i class="bi bi-pencil"></i> 編集
+                        </a>
+                        <button class="btn btn-outline-danger" onclick="handleDelete('93TGNAY7')">
+                            <i class="bi bi-trash"></i> 削除
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 商品基本情報カード -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-info-circle"></i> 基本情報</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <th style="width: 40%;">商品ID (Product ID)</th>
+                                        <td><code>93TGNAY7</code></td>
+                                    </tr>
+                                    <tr>
+                                        <th>商品名 (Product Name)</th>
+                                        <td><strong>Laptop</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <th>カテゴリ (Product Category)</th>
+                                        <td><span class="badge bg-secondary">Home Appliances</span></td>
+                                    </tr>
+                                    <tr>
+                                        <th>SKU (在庫管理番号)</th>
+                                        <td><code>8NMFZ4</code></td>
+                                    </tr>
+                                    <tr>
+                                        <th>商品説明 (Product Description)</th>
+                                        <td>Product_XU5QX</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <th style="width: 40%;">価格 (Price)</th>
+                                        <td><strong class="text-primary">¥253.17</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <th>在庫数 (Stock Quantity)</th>
+                                        <td>
+                                            <span class="stock-warning">
+                                                <i class="bi bi-exclamation-triangle-fill"></i> 3個
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>ステータス</th>
+                                        <td><span class="badge badge-status-active">販売中</span></td>
+                                    </tr>
+                                    <tr>
+                                        <th>商品評価 (Product Ratings)</th>
+                                        <td>
+                                            <span class="text-warning">
+                                                <i class="bi bi-star-fill"></i>
+                                                <i class="bi bi-star-fill"></i>
+                                                <i class="bi bi-star-half"></i>
+                                                <i class="bi bi-star"></i>
+                                                <i class="bi bi-star"></i>
+                                            </span>
+                                            <span class="ms-2">2.0 / 5.0</span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 商品詳細情報カード -->
+                <div class="card mb-4">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0"><i class="bi bi-list-ul"></i> 詳細情報</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <th style="width: 50%;">保証期間 (Warranty Period)</th>
+                                        <td>2年</td>
+                                    </tr>
+                                    <tr>
+                                        <th>商品寸法 (Product Dimensions)</th>
+                                        <td>16x15x15 cm</td>
+                                    </tr>
+                                    <tr>
+                                        <th>色/サイズバリエーション (Color/Size Variations)</th>
+                                        <td><span class="badge bg-success">Green/Large</span></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <th style="width: 50%;">製造日 (Manufacturing Date)</th>
+                                        <td>2023-01-01</td>
+                                    </tr>
+                                    <tr>
+                                        <th>有効期限 (Expiration Date)</th>
+                                        <td>2026-01-01</td>
+                                    </tr>
+                                    <tr>
+                                        <th>商品タグ (Product Tags)</th>
+                                        <td>
+                                            <span class="badge bg-info me-1">VNU</span>
+                                            <span class="badge bg-info">NZ6</span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 入出庫履歴カード -->
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="bi bi-clock-history"></i> 入出庫履歴</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>日時</th>
+                                        <th>種別</th>
+                                        <th>数量</th>
+                                        <th>在庫数（変更後）</th>
+                                        <th>担当者</th>
+                                        <th>備考</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>2026-02-01 10:30</td>
+                                        <td><span class="badge bg-success">入庫</span></td>
+                                        <td>+50</td>
+                                        <td>53</td>
+                                        <td>山田太郎</td>
+                                        <td>定期補充</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2026-01-31 14:15</td>
+                                        <td><span class="badge bg-danger">出庫</span></td>
+                                        <td>-20</td>
+                                        <td>3</td>
+                                        <td>佐藤花子</td>
+                                        <td>販売</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2026-01-30 09:00</td>
+                                        <td><span class="badge bg-success">入庫</span></td>
+                                        <td>+23</td>
+                                        <td>23</td>
+                                        <td>山田太郎</td>
+                                        <td>初期在庫</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-end mt-3">
+                            <a href="/admin/products/93TGNAY7/transactions" class="btn btn-outline-primary">
+                                <i class="bi bi-list-task"></i> すべての履歴を表示
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- アクションボタン -->
+                <div class="d-flex justify-content-between mb-4">
+                    <a href="/admin/products" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> 商品一覧に戻る
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 削除確認モーダル -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="deleteModalLabel">
+                        <i class="bi bi-exclamation-triangle"></i> 削除確認
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>この商品を削除してもよろしいですか？</p>
+                    <p class="text-muted"><small>※論理削除されるため、データは保持されます。</small></p>
+                    <p><strong>商品ID:</strong> <span id="deleteProductId">93TGNAY7</span></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmDelete()">削除する</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- 共通JavaScript -->
+    <script src="/js/common.js"></script>
+    
+    <!-- 管理者用JavaScript -->
+    <script src="/js/admin-common.js"></script>
+    
+    <script>
+        // 削除処理
+        function handleDelete(productId) {
+            document.getElementById('deleteProductId').textContent = productId;
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            deleteModal.show();
+        }
+
+        function confirmDelete() {
+            const productId = document.getElementById('deleteProductId').textContent;
+            // 削除処理をここに実装
+            console.log('削除対象商品ID:', productId);
+            alert('商品 ' + productId + ' を削除しました。');
+            window.location.href = '/admin/products';
+        }
+    </script>
+</body>
+</html>

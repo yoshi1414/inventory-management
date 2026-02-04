@@ -77,14 +77,15 @@
                 <div class="alert alert-info mb-4">
                     <h5><i class="bi bi-info-circle"></i> 商品管理画面について</h5>
                     <p class="mb-0">
-                        この画面では、商品を1件ずつ詳細に表示・編集できます。
+                        この画面では、商品情報を1件ずつ入力・編集できます。
                         <strong>在庫数の確認や一括表示は<a href="/admin/inventory" class="alert-link">在庫管理画面</a></strong>をご利用ください。
                         <strong>複数商品の一括登録は<a href="/admin/products/import" class="alert-link">CSVインポート</a></strong>をご利用ください。
                     </p>
                 </div>
 
                 <!-- 検索パネル -->
-                <div class="search-panel">
+                <div class="search-panel mb-4">
+                    <h5 class="mb-3"><i class="bi bi-search"></i> 登録済み商品を検索</h5>
                     <form id="searchForm">
                         <div class="row g-3">
                             <div class="col-md-4">
@@ -131,69 +132,99 @@
                     </form>
                 </div>
 
-                <!-- 商品一覧テーブル（管理者用） -->
+                <!-- 登録済み商品一覧 -->
                 <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="bi bi-list-ul"></i> 登録済み商品一覧</h5>
+                    </div>
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table table-hover align-middle">
                                 <thead class="table-light">
                                     <tr>
                                         <th style="width: 10%;">商品ID</th>
-                                        <th style="width: 25%;">商品名</th>
+                                        <th style="width: 20%;">商品名</th>
                                         <th style="width: 12%;">カテゴリ</th>
                                         <th style="width: 10%;">価格</th>
                                         <th style="width: 8%;">在庫数</th>
                                         <th style="width: 10%;">ステータス</th>
-                                        <th style="width: 10%;">更新日</th>
+                                        <th style="width: 15%;">更新日</th>
                                         <th style="width: 15%;">操作</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <!-- 明細カード一覧 -->
-                                    <div class="row row-cols-1 row-cols-md-2 g-4">
-                                        <!-- 商品カード1 -->
-                                        <div class="col">
-                                            <div class="card h-100">
-                                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                                                    <div>
-                                                        <strong>商品ID:</strong> <code>JHQ82GFX</code>
-                                                    </div>
-                                                    <span class="badge badge-status-inactive">販売停止</span>
-                                                </div>
-                                                <div class="card-body">
-                                                    <h5 class="card-title">Monitor XM4P4</h5>
-                                                    <div class="row mb-3">
-                                                        <div class="col-6">
-                                                            <small class="text-muted">カテゴリ</small>
-                                                            <div><span class="badge bg-info">Clothing</span></div>
-                                                        </div>
-                                                        <div class="col-6">
-                                                            <small class="text-muted">価格</small>
-                                                        </div>
-                                                    </div>
-                                                    <div class="row mb-3">
-                                                        <div class="col-6">
-                                                            <small class="text-muted">現在の在庫数</small>
-                                                            <div><span class="stock-warning"><i class="bi bi-exclamation-triangle-fill"></i> 3個</span></div>
-                                                        </div>
-                                                        <div class="col-6">
-                                                            <small class="text-muted">最終更新日</small>
-                                                            <div>2026-01-29</div>
-                                                        </div>
-                                                    </div>
-                                                    <hr>
-                                                    <div class="d-grid gap-2">
-                                                        <a href="/admin/products/93TGNAY7/edit" class="btn btn-primary">
-                                                            <i class="bi bi-pencil"></i> 商品情報を編集
-                                                        </a>
-                                                        <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('93TGNAY7')">
-                                                            <i class="bi bi-trash"></i>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <!-- サンプルデータ1 -->
+                                    <tr>
+                                        <td><code>JHQ82GFX</code></td>
+                                        <td>Monitor XM4P4</td>
+                                        <td><span class="badge bg-info">Clothing</span></td>
+                                        <td>¥15,800</td>
+                                        <td><span class="stock-warning"><i class="bi bi-exclamation-triangle-fill"></i> 3</span></td>
+                                        <td><span class="badge badge-status-inactive">販売停止</span></td>
+                                        <td>2026-01-29</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary me-1" onclick="editProduct('JHQ82GFX')" title="編集">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="handleDelete('JHQ82GFX')" title="削除">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <!-- サンプルデータ2 -->
+                                    <tr>
+                                        <td><code>93TGNAY7</code></td>
+                                        <td>Laptop XU5QX</td>
+                                        <td><span class="badge bg-secondary">Home Appliances</span></td>
+                                        <td>¥253</td>
+                                        <td><span class="stock-warning"><i class="bi bi-exclamation-triangle-fill"></i> 3</span></td>
+                                        <td><span class="badge badge-status-active">販売中</span></td>
+                                        <td>2026-01-29</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary me-1" onclick="editProduct('93TGNAY7')" title="編集">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="handleDelete('93TGNAY7')" title="削除">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <!-- サンプルデータ3 -->
+                                    <tr>
+                                        <td><code>YTFM1TLG</code></td>
+                                        <td>Smartphone XDVMX</td>
+                                        <td><span class="badge bg-info">Clothing</span></td>
+                                        <td>¥286</td>
+                                        <td><span class="stock-warning"><i class="bi bi-exclamation-triangle-fill"></i> 12</span></td>
+                                        <td><span class="badge badge-status-active">販売中</span></td>
+                                        <td>2026-01-28</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary me-1" onclick="editProduct('YTFM1TLG')" title="編集">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="handleDelete('YTFM1TLG')" title="削除">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <!-- サンプルデータ4 -->
+                                    <tr>
+                                        <td><code>728GCZFU</code></td>
+                                        <td>Laptop 54FAF</td>
+                                        <td><span class="badge bg-secondary">Home Appliances</span></td>
+                                        <td>¥230</td>
+                                        <td><span class="stock-ok">32</span></td>
+                                        <td><span class="badge badge-status-active">販売中</span></td>
+                                        <td>2026-01-26</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary me-1" onclick="editProduct('728GCZFU')" title="編集">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="handleDelete('728GCZFU')" title="削除">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -235,6 +266,70 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- 商品入力フォーム -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-pencil-square"></i> 商品情報入力</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="productForm">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="productId" class="form-label">商品ID</label>
+                                    <input type="text" class="form-control" id="productId" name="productId" placeholder="自動生成または手動入力">
+                                    <small class="text-muted">※空欄の場合、自動生成されます</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="productName" class="form-label">商品名 <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="productName" name="productName" placeholder="商品名を入力" required>
+                                </div>
+                            </div>
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-4">
+                                    <label for="category" class="form-label">カテゴリ <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="category" name="category" required>
+                                        <option value="">選択してください</option>
+                                        <option value="Electronics">Electronics</option>
+                                        <option value="Clothing">Clothing</option>
+                                        <option value="Home Appliances">Home Appliances</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="price" class="form-label">価格（円） <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="price" name="price" placeholder="価格を入力" min="0" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="stock" class="form-label">在庫数 <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="stock" name="stock" placeholder="在庫数を入力" min="0" required>
+                                </div>
+                            </div>
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-6">
+                                    <label for="status" class="form-label">ステータス <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="status" name="status" required>
+                                        <option value="active">販売中</option>
+                                        <option value="inactive">販売停止</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="description" class="form-label">商品説明</label>
+                                    <input type="text" class="form-control" id="description" name="description" placeholder="商品の説明（任意）">
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-success btn-lg me-2">
+                                        <i class="bi bi-check-circle"></i> 登録
+                                    </button>
+                                    <button type="reset" class="btn btn-secondary btn-lg">
+                                        <i class="bi bi-x-circle"></i> クリア
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -272,6 +367,33 @@
     <script src="/js/admin-common.js"></script>
     
     <script>
+        // 商品編集処理
+        function editProduct(productId) {
+            // 商品データをフォームに読み込む（実際にはサーバーからデータを取得）
+            console.log('編集対象商品ID:', productId);
+            
+            // サンプルデータをフォームにセット
+            const sampleData = {
+                'JHQ82GFX': { name: 'Monitor XM4P4', category: 'Clothing', price: 15800, stock: 3, status: 'inactive' },
+                '93TGNAY7': { name: 'Laptop XU5QX', category: 'Home Appliances', price: 253, stock: 3, status: 'active' },
+                'YTFM1TLG': { name: 'Smartphone XDVMX', category: 'Clothing', price: 286, stock: 12, status: 'active' },
+                '728GCZFU': { name: 'Laptop 54FAF', category: 'Home Appliances', price: 230, stock: 32, status: 'active' }
+            };
+            
+            const data = sampleData[productId];
+            if (data) {
+                document.getElementById('productId').value = productId;
+                document.getElementById('productName').value = data.name;
+                document.getElementById('category').value = data.category;
+                document.getElementById('price').value = data.price;
+                document.getElementById('stock').value = data.stock;
+                document.getElementById('status').value = data.status;
+                
+                // フォームまでスクロール
+                document.getElementById('productForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
         // 削除処理
         function handleDelete(productId) {
             document.getElementById('deleteProductId').textContent = productId;
@@ -287,6 +409,27 @@
             const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
             deleteModal.hide();
         }
+
+        // フォーム送信処理
+        document.getElementById('productForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                productId: document.getElementById('productId').value || '自動生成',
+                productName: document.getElementById('productName').value,
+                category: document.getElementById('category').value,
+                price: document.getElementById('price').value,
+                stock: document.getElementById('stock').value,
+                status: document.getElementById('status').value,
+                description: document.getElementById('description').value
+            };
+            
+            console.log('商品情報:', formData);
+            alert('商品を登録しました：' + formData.productName);
+            
+            // フォームをクリア
+            this.reset();
+        });
     </script>
 </body>
 </html>
