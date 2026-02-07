@@ -50,6 +50,9 @@ git branch system-design-view-1
 ##設計ブランチ（DB）
 git branch system-design-db-1
 
+##開発ブランチ
+git checkout -b feature/login-screen
+
 ーーーーーーーーーーーーー
 ##作成しながら、ブランチ切り替え
 git checkout -b requirements-definition-1
@@ -134,7 +137,6 @@ git checkout main
 
 3.リモートの main をローカルの main にマージ
 git merge origin/main
-
 
 ーーーーーーーーーーーーー
 コミットコメント例
