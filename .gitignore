@@ -33,3 +33,4 @@ build/
 .vscode/
 src/main/resources/application.properties
 Doc/諸々情報.txt
+src/main/resources/schema.sql.sample
