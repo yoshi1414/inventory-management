@@ -59,7 +59,8 @@
 erDiagram
     products ||--o{ stock_transactions : "has"
     products {
-        varchar product_id PK
+        int id PK
+        varchar product_code UK
         varchar product_name
         varchar category
         varchar sku UK
@@ -80,13 +81,13 @@ erDiagram
     }
     
     stock_transactions {
-        bigint transaction_id PK
-        varchar product_id FK
+        int id PK
+        int product_id FK
         varchar transaction_type
         integer quantity
         integer before_stock
         integer after_stock
-        bigint user_id FK
+        int user_id FK
         varchar user_name
         varchar note
         timestamp transaction_date
@@ -95,7 +96,7 @@ erDiagram
     users ||--o{ stock_transactions : "executes"
     users ||--o{ user_roles : "has"
     users {
-        bigint user_id PK
+        int id PK
         varchar username UK
         varchar password
         varchar email UK
@@ -107,21 +108,21 @@ erDiagram
     
     roles ||--o{ user_roles : "has"
     roles {
-        bigint role_id PK
+        int id PK
         varchar role_name UK
         varchar description
         timestamp created_at
     }
     
     user_roles {
-        bigint user_role_id PK
-        bigint user_id FK
-        bigint role_id FK
+        int id PK
+        int user_id FK
+        int role_id FK
         timestamp assigned_at
     }
     
     system_settings {
-        bigint setting_id PK
+        int id PK
         varchar setting_key UK
         varchar setting_value
         varchar description
@@ -130,11 +131,11 @@ erDiagram
     }
     
     audit_logs {
-        bigint log_id PK
+        int id PK
         varchar action_type
         varchar table_name
         varchar record_id
-        bigint user_id FK
+        int user_id FK
         varchar username
         text old_value
         text new_value
@@ -210,30 +211,30 @@ erDiagram
 
 ### 5.1 products（商品マスタ）
 
-| No | カラム名 | データ型 | NULL | デフォルト値 | 制約 | 説明 |
-|----|---------|---------|------|------------|------|------|
-| 1 | product_id | VARCHAR(8) | NOT NULL | - | PK | 商品ID、8文字の英数字 |
-| 2 | product_name | VARCHAR(100) | NOT NULL | - | | 商品名 |
-| 3 | category | VARCHAR(50) | NOT NULL | - | | カテゴリ（Electronics/Clothing/Home Appliances） |
-| 4 | sku | VARCHAR(50) | NULL | NULL | UNIQUE | SKU（在庫管理番号） |
-| 5 | price | DECIMAL(12,2) | NOT NULL | 0.00 | CHECK (price >= 0) | 価格（円） |
-| 6 | stock | INTEGER | NOT NULL | 0 | CHECK (stock >= 0) | 在庫数 |
-| 7 | status | VARCHAR(20) | NOT NULL | 'active' | | ステータス（active/inactive/deleted） |
-| 8 | description | TEXT | NULL | NULL | | 商品説明 |
-| 9 | rating | DECIMAL(2,1) | NULL | NULL | CHECK (rating >= 0 AND rating <= 5) | 商品評価（0.0〜5.0） |
-| 10 | warranty_months | INTEGER | NULL | NULL | CHECK (warranty_months >= 0) | 保証期間（ヶ月） |
-| 11 | dimensions | VARCHAR(100) | NULL | NULL | | 商品寸法 |
-| 12 | variations | VARCHAR(200) | NULL | NULL | | 色/サイズバリエーション |
-| 13 | manufacturing_date | DATE | NULL | NULL | | 製造日 |
-| 14 | expiration_date | DATE | NULL | NULL | | 有効期限 |
-| 15 | tags | VARCHAR(200) | NULL | NULL | | 商品タグ（カンマ区切り） |
-| 16 | created_at | TIMESTAMP | NOT NULL | CURRENT_TIMESTAMP | | 登録日時 |
-| 17 | updated_at | TIMESTAMP | NOT NULL | CURRENT_TIMESTAMP | | 更新日時 |
-| 18 | deleted_at | TIMESTAMP | NULL | NULL | | 削除日時（論理削除） |
+| No | カラム名            | データ型       | NULL     | デフォルト値       | 制約               | 説明                     |
+|----|---------------------|---------------|----------|--------------------|--------------------|--------------------------|
+| 1  | id                  | INT           | NOT NULL | AUTO_INCREMENT     | PK                | AutoIncrement ID（主キー）|
+| 2  | product_code        | VARCHAR(8)    | NOT NULL | -                  | UNIQUE            | 商品コード、8文字の英数字  |
+| 3  | product_name        | VARCHAR(100)  | NOT NULL | -                  |                    | 商品名                   |
+| 4  | category            | VARCHAR(50)   | NOT NULL | -                  |                    | カテゴリ（Electronics/Clothing/Home Appliances） |
+| 5  | sku                 | VARCHAR(50)   | NULL     | NULL               | UNIQUE            | SKU（在庫管理番号）      |
+| 6  | price               | DECIMAL(12,2) | NOT NULL | 0.00               | CHECK (price >= 0)| 価格（円）               |
+| 7  | stock               | INTEGER       | NOT NULL | 0                  | CHECK (stock >= 0)| 在庫数                   |
+| 8  | status              | VARCHAR(20)   | NOT NULL | 'active'           |                    | ステータス（active/inactive/deleted） |
+| 9  | description         | TEXT          | NULL     | NULL               |                    | 商品説明                 |
+| 10 | rating              | DECIMAL(2,1)  | NULL     | NULL               | CHECK (rating >= 0 AND rating <= 5) | 商品評価（0.0〜5.0） |
+| 11 | warranty_months     | INTEGER       | NULL     | NULL               | CHECK (warranty_months >= 0) | 保証期間（ヶ月） |
+| 12 | dimensions          | VARCHAR(100)  | NULL     | NULL               |                    | 商品寸法                 |
+| 13 | variations          | VARCHAR(200)  | NULL     | NULL               |                    | 色/サイズバリエーション   |
+| 14 | manufacturing_date  | DATE          | NULL     | NULL               |                    | 製造日                   |
+| 15 | expiration_date     | DATE          | NULL     | NULL               |                    | 有効期限                 |
+| 16 | tags                | VARCHAR(200)  | NULL     | NULL               |                    | 商品タグ（カンマ区切り） |
+| 17 | created_at          | TIMESTAMP     | NOT NULL | CURRENT_TIMESTAMP  |                    | 登録日時                 |
+| 18 | updated_at          | TIMESTAMP     | NOT NULL | CURRENT_TIMESTAMP  |                    | 更新日時                 |
 
-**主キー**：product_id  
-**ユニークキー**：sku  
-**インデックス**：category, status, deleted_at, sku
+**主キー**：id  
+**ユニークキー**：product_code  
+**インデックス**：sku, category, status, deleted_at, sku
 
 ---
 
@@ -241,21 +242,21 @@ erDiagram
 
 | No | カラム名 | データ型 | NULL | デフォルト値 | 制約 | 説明 |
 |----|---------|---------|------|------------|------|------|
-| 1 | transaction_id | BIGINT | NOT NULL | AUTO_INCREMENT | PK | 取引ID |
-| 2 | product_id | VARCHAR(8) | NOT NULL | - | FK → products.product_id | 商品ID |
+| 1 | id | INT | NOT NULL | AUTO_INCREMENT | PK | AutoIncrement ID（主キー） |
+| 2 | product_id | INT | NOT NULL | - | FK → products.id | 商品の内部ID（productsテーブルの外部キー） |
 | 3 | transaction_type | VARCHAR(20) | NOT NULL | - | CHECK (IN ('IN','OUT','ADJUST')) | 取引種別（入庫/出庫/調整） |
 | 4 | quantity | INTEGER | NOT NULL | - | | 数量 |
 | 5 | before_stock | INTEGER | NOT NULL | - | CHECK (before_stock >= 0) | 変更前在庫数 |
 | 6 | after_stock | INTEGER | NOT NULL | - | CHECK (after_stock >= 0) | 変更後在庫数 |
-| 7 | user_id | BIGINT | NOT NULL | - | FK → users.user_id | 実行ユーザーID |
+| 7 | user_id | INT | NOT NULL | - | FK → users.id | 実行ユーザーID |
 | 8 | user_name | VARCHAR(100) | NOT NULL | - | | 実行ユーザー名（非正規化） |
 | 9 | note | VARCHAR(255) | NULL | NULL | | 備考 |
 | 10 | transaction_date | TIMESTAMP | NOT NULL | CURRENT_TIMESTAMP | | 取引日時 |
 
-**主キー**：transaction_id  
+**主キー**：id  
 **外部キー**：
-- product_id → products.product_id
-- user_id → users.user_id
+- product_id → products.id
+- user_id → users.id
 
 **インデックス**：product_id, user_id, transaction_date, transaction_type
 
@@ -265,7 +266,7 @@ erDiagram
 
 | No | カラム名 | データ型 | NULL | デフォルト値 | 制約 | 説明 |
 |----|---------|---------|------|------------|------|------|
-| 1 | user_id | BIGINT | NOT NULL | AUTO_INCREMENT | PK | ユーザーID |
+| 1 | id | INT | NOT NULL | AUTO_INCREMENT | PK | ユーザーID |
 | 2 | username | VARCHAR(50) | NOT NULL | - | UNIQUE | ユーザー名（ログインID） |
 | 3 | password | VARCHAR(255) | NOT NULL | - | | パスワード（BCrypt暗号化） |
 | 4 | email | VARCHAR(100) | NOT NULL | - | UNIQUE | メールアドレス |
@@ -274,7 +275,7 @@ erDiagram
 | 7 | created_at | TIMESTAMP | NOT NULL | CURRENT_TIMESTAMP | | 登録日時 |
 | 8 | updated_at | TIMESTAMP | NOT NULL | CURRENT_TIMESTAMP | | 更新日時 |
 
-**主キー**：user_id  
+**主キー**：id  
 **ユニークキー**：username, email  
 **インデックス**：username, email, is_active
 
@@ -284,18 +285,18 @@ erDiagram
 
 | No | カラム名 | データ型 | NULL | デフォルト値 | 制約 | 説明 |
 |----|---------|---------|------|------------|------|------|
-| 1 | role_id | BIGINT | NOT NULL | AUTO_INCREMENT | PK | ロールID |
+| 1 | id | INT | NOT NULL | AUTO_INCREMENT | PK | ロールID |
 | 2 | role_name | VARCHAR(50) | NOT NULL | - | UNIQUE | ロール名（ROLE_USER/ROLE_ADMIN） |
 | 3 | description | VARCHAR(200) | NULL | NULL | | ロールの説明 |
 | 4 | created_at | TIMESTAMP | NOT NULL | CURRENT_TIMESTAMP | | 登録日時 |
 
-**主キー**：role_id  
+**主キー**：id  
 **ユニークキー**：role_name  
 **インデックス**：role_name
 
 **初期データ**：
 
-| role_id | role_name | description |
+| id | role_name | description |
 |---------|-----------|-------------|
 | 1 | ROLE_USER | 一般ユーザー |
 | 2 | ROLE_ADMIN | 管理者 |
@@ -306,16 +307,16 @@ erDiagram
 
 | No | カラム名 | データ型 | NULL | デフォルト値 | 制約 | 説明 |
 |----|---------|---------|------|------------|------|------|
-| 1 | user_role_id | BIGINT | NOT NULL | AUTO_INCREMENT | PK | ユーザーロールID |
-| 2 | user_id | BIGINT | NOT NULL | - | FK → users.user_id | ユーザーID |
-| 3 | role_id | BIGINT | NOT NULL | - | FK → roles.role_id | ロールID |
+| 1 | id | INT | NOT NULL | AUTO_INCREMENT | PK | ユーザーロールID |
+| 2 | user_id | INT | NOT NULL | - | FK → users.id | ユーザーID |
+| 3 | role_id | INT | NOT NULL | - | FK → roles.id | ロールID |
 | 4 | assigned_at | TIMESTAMP | NOT NULL | CURRENT_TIMESTAMP | | 割り当て日時 |
 
-**主キー**：user_role_id  
+**主キー**：id  
 **ユニークキー**：(user_id, role_id) - 複合ユニークキー  
 **外部キー**：
-- user_id → users.user_id
-- role_id → roles.role_id
+- user_id → users.id
+- role_id → roles.id
 
 **インデックス**：user_id, role_id
 
@@ -325,14 +326,14 @@ erDiagram
 
 | No | カラム名 | データ型 | NULL | デフォルト値 | 制約 | 説明 |
 |----|---------|---------|------|------------|------|------|
-| 1 | setting_id | BIGINT | NOT NULL | AUTO_INCREMENT | PK | 設定ID |
+| 1 | id | INT | NOT NULL | AUTO_INCREMENT | PK | 設定ID |
 | 2 | setting_key | VARCHAR(100) | NOT NULL | - | UNIQUE | 設定キー |
 | 3 | setting_value | VARCHAR(500) | NOT NULL | - | | 設定値 |
 | 4 | description | VARCHAR(200) | NULL | NULL | | 説明 |
 | 5 | data_type | VARCHAR(20) | NOT NULL | 'STRING' | CHECK (IN ('STRING','INTEGER','BOOLEAN','DECIMAL')) | データ型 |
 | 6 | updated_at | TIMESTAMP | NOT NULL | CURRENT_TIMESTAMP | | 更新日時 |
 
-**主キー**：setting_id  
+**主キー**：id  
 **ユニークキー**：setting_key  
 **インデックス**：setting_key
 
@@ -351,11 +352,11 @@ erDiagram
 
 | No | カラム名 | データ型 | NULL | デフォルト値 | 制約 | 説明 |
 |----|---------|---------|------|------------|------|------|
-| 1 | log_id | BIGINT | NOT NULL | AUTO_INCREMENT | PK | ログID |
+| 1 | id | INT | NOT NULL | AUTO_INCREMENT | PK | ログID |
 | 2 | action_type | VARCHAR(50) | NOT NULL | - | | アクション種別（CREATE/UPDATE/DELETE/LOGIN） |
 | 3 | table_name | VARCHAR(50) | NOT NULL | - | | 対象テーブル名 |
 | 4 | record_id | VARCHAR(50) | NOT NULL | - | | 対象レコードID |
-| 5 | user_id | BIGINT | NULL | NULL | FK → users.user_id | 実行ユーザーID |
+| 5 | user_id | INT | NULL | NULL | FK → users.id | 実行ユーザーID |
 | 6 | username | VARCHAR(50) | NOT NULL | - | | 実行ユーザー名（非正規化） |
 | 7 | old_value | TEXT | NULL | NULL | | 変更前の値（JSON形式） |
 | 8 | new_value | TEXT | NULL | NULL | | 変更後の値（JSON形式） |
@@ -363,9 +364,9 @@ erDiagram
 | 10 | user_agent | TEXT | NULL | NULL | | ユーザーエージェント |
 | 11 | created_at | TIMESTAMP | NOT NULL | CURRENT_TIMESTAMP | | 実行日時 |
 
-**主キー**：log_id  
+**主キー**：id  
 **外部キー**：
-- user_id → users.user_id（NULLを許可）
+- user_id → users.id（NULLを許可）
 
 **インデックス**：action_type, table_name, record_id, user_id, created_at
 
@@ -391,7 +392,7 @@ erDiagram
 |------|------|
 | 親テーブル | products |
 | 子テーブル | stock_transactions |
-| 親カラム | product_id |
+| 親カラム | id |
 | 子カラム | product_id |
 | リレーション種別 | 1:N（一対多） |
 | ON DELETE | RESTRICT（削除時エラー） |
@@ -404,7 +405,7 @@ erDiagram
 |------|------|
 | 親テーブル | users |
 | 子テーブル | stock_transactions |
-| 親カラム | user_id |
+| 親カラム | id |
 | 子カラム | user_id |
 | リレーション種別 | 1:N（一対多） |
 | ON DELETE | RESTRICT（削除時エラー） |
@@ -417,7 +418,7 @@ erDiagram
 |------|------|
 | 親テーブル | users |
 | 子テーブル | user_roles |
-| 親カラム | user_id |
+| 親カラム | id |
 | 子カラム | user_id |
 | リレーション種別 | 1:N（一対多） |
 | ON DELETE | CASCADE（連動削除） |
@@ -430,7 +431,7 @@ erDiagram
 |------|------|
 | 親テーブル | roles |
 | 子テーブル | user_roles |
-| 親カラム | role_id |
+| 親カラム | id |
 | 子カラム | role_id |
 | リレーション種別 | 1:N（一対多） |
 | ON DELETE | RESTRICT（削除時エラー） |
@@ -443,7 +444,7 @@ erDiagram
 |------|------|
 | 親テーブル | users |
 | 子テーブル | audit_logs |
-| 親カラム | user_id |
+| 親カラム | id |
 | 子カラム | user_id |
 | リレーション種別 | 1:N（一対多） |
 | ON DELETE | SET NULL（NULL設定） |
@@ -458,29 +459,29 @@ erDiagram
 
 | No | テーブル名 | インデックス名 | カラム | 種別 | 説明 |
 |----|-----------|---------------|--------|------|------|
-| 1 | products | pk_products | product_id | PRIMARY | 主キー |
+| 1 | products | pk_products | id | PRIMARY | 主キー |
 | 2 | products | uk_products_sku | sku | UNIQUE | SKUの一意性保証 |
 | 3 | products | idx_products_category | category | INDEX | カテゴリ検索用 |
 | 4 | products | idx_products_status | status | INDEX | ステータス検索用 |
 | 5 | products | idx_products_deleted | deleted_at | INDEX | 論理削除フィルタ用 |
-| 6 | stock_transactions | pk_stock_trans | transaction_id | PRIMARY | 主キー |
+| 6 | stock_transactions | pk_stock_trans | id | PRIMARY | 主キー |
 | 7 | stock_transactions | fk_stock_trans_product | product_id | INDEX | 商品別履歴検索用 |
 | 8 | stock_transactions | fk_stock_trans_user | user_id | INDEX | ユーザー別履歴検索用 |
 | 9 | stock_transactions | idx_stock_trans_date | transaction_date | INDEX | 日付範囲検索用 |
 | 10 | stock_transactions | idx_stock_trans_type | transaction_type | INDEX | 種別検索用 |
-| 11 | users | pk_users | user_id | PRIMARY | 主キー |
+| 11 | users | pk_users | id | PRIMARY | 主キー |
 | 12 | users | uk_users_username | username | UNIQUE | ユーザー名の一意性保証 |
 | 13 | users | uk_users_email | email | UNIQUE | メールアドレスの一意性保証 |
 | 14 | users | idx_users_active | is_active | INDEX | アクティブユーザー検索用 |
-| 15 | roles | pk_roles | role_id | PRIMARY | 主キー |
+| 15 | roles | pk_roles | id | PRIMARY | 主キー |
 | 16 | roles | uk_roles_name | role_name | UNIQUE | ロール名の一意性保証 |
-| 17 | user_roles | pk_user_roles | user_role_id | PRIMARY | 主キー |
+| 17 | user_roles | pk_user_roles | id | PRIMARY | 主キー |
 | 18 | user_roles | uk_user_roles | (user_id, role_id) | UNIQUE | ユーザー・ロールの組み合わせ一意性 |
 | 19 | user_roles | fk_user_roles_user | user_id | INDEX | ユーザー別ロール検索用 |
 | 20 | user_roles | fk_user_roles_role | role_id | INDEX | ロール別ユーザー検索用 |
-| 21 | system_settings | pk_settings | setting_id | PRIMARY | 主キー |
+| 21 | system_settings | pk_settings | id | PRIMARY | 主キー |
 | 22 | system_settings | uk_settings_key | setting_key | UNIQUE | 設定キーの一意性保証 |
-| 23 | audit_logs | pk_audit_logs | log_id | PRIMARY | 主キー |
+| 23 | audit_logs | pk_audit_logs | id | PRIMARY | 主キー |
 | 24 | audit_logs | idx_audit_action | action_type | INDEX | アクション種別検索用 |
 | 25 | audit_logs | idx_audit_table | table_name | INDEX | テーブル別ログ検索用 |
 | 26 | audit_logs | idx_audit_record | record_id | INDEX | レコード別ログ検索用 |
@@ -517,13 +518,13 @@ erDiagram
 
 | テーブル | 必須カラム | 説明 |
 |---------|-----------|------|
-| products | product_id, product_name, category, price, stock, status | 商品の基本情報は必須 |
-| stock_transactions | transaction_id, product_id, transaction_type, quantity, before_stock, after_stock, user_id, user_name, transaction_date | 在庫履歴の全項目（noteを除く）は必須 |
-| users | user_id, username, password, email, full_name, is_active | ユーザーの全項目（削除関連を除く）は必須 |
-| roles | role_id, role_name | ロールの基本項目は必須 |
-| user_roles | user_role_id, user_id, role_id | ユーザーロール関連の全項目は必須 |
-| system_settings | setting_id, setting_key, setting_value, data_type | 設定の基本項目は必須 |
-| audit_logs | log_id, action_type, table_name, record_id, username, created_at | ログの基本項目は必須 |
+| products | id, product_code, product_name, category, price, stock, status | 商品の基本情報は必須 |
+| stock_transactions | id, product_id, transaction_type, quantity, before_stock, after_stock, user_id, user_name, transaction_date | 在庫履歴の全項目（noteを除く）は必須 |
+| users | id, username, password, email, full_name, is_active | ユーザーの全項目（削除関連を除く）は必須 |
+| roles | id, role_name | ロールの基本項目は必須 |
+| user_roles | id, user_id, role_id | ユーザーロール関連の全項目は必須 |
+| system_settings | id, setting_key, setting_value, data_type | 設定の基本項目は必須 |
+| audit_logs | id, action_type, table_name, record_id, username, created_at | ログの基本項目は必須 |
 
 ### 8.3 UNIQUE制約
 
@@ -540,11 +541,11 @@ erDiagram
 
 | 子テーブル | 子カラム | 親テーブル | 親カラム | ON DELETE | ON UPDATE |
 |-----------|---------|-----------|---------|-----------|-----------|
-| stock_transactions | product_id | products | product_id | RESTRICT | CASCADE |
-| stock_transactions | user_id | users | user_id | RESTRICT | CASCADE |
-| user_roles | user_id | users | user_id | CASCADE | CASCADE |
-| user_roles | role_id | roles | role_id | RESTRICT | CASCADE |
-| audit_logs | user_id | users | user_id | SET NULL | CASCADE |
+| stock_transactions | product_id | products | id | RESTRICT | CASCADE |
+| stock_transactions | user_id | users | id | RESTRICT | CASCADE |
+| user_roles | user_id | users | id | CASCADE | CASCADE |
+| user_roles | role_id | roles | id | RESTRICT | CASCADE |
+| audit_logs | user_id | users | id | SET NULL | CASCADE |
 
 ---
 
