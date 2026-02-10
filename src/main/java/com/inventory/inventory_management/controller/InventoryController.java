@@ -1,13 +1,30 @@
 package com.inventory.inventory_management.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+/**
+ * 一般ユーザー用在庫一覧画面のコントローラー
+ */
 @Controller
 public class InventoryController {
 
+    private static final Logger logger = LoggerFactory.getLogger(InventoryController.class);
+
+    /**
+     * 一般ユーザー用在庫一覧画面を表示
+     * @param search 検索キーワード
+     * @param category カテゴリー
+     * @param status ステータス
+     * @param stock 在庫状況
+     * @param sort ソート順
+     * @param model モデル
+     * @return inventory.html
+     */
     @GetMapping("/inventory")
     public String showProducts(
             @RequestParam(value = "search", required = false) String search,
@@ -17,16 +34,27 @@ public class InventoryController {
             @RequestParam(value = "sort", required = false) String sort,
             Model model) {
 
-        model.addAttribute("products", mockProducts());
-        model.addAttribute("search", search);
-        model.addAttribute("category", category);
-        model.addAttribute("status", status);
-        model.addAttribute("stock", stock);
-        model.addAttribute("sort", sort);
+        try {
+            logger.debug("在庫一覧画面を表示: search={}, category={}, status={}, stock={}, sort={}", 
+                        search, category, status, stock, sort);
+            model.addAttribute("products", mockProducts());
+            model.addAttribute("search", search);
+            model.addAttribute("category", category);
+            model.addAttribute("status", status);
+            model.addAttribute("stock", stock);
+            model.addAttribute("sort", sort);
 
-        return "inventory";
+            return "inventory";
+        } catch (Exception e) {
+            logger.error("在庫一覧画面表示時にエラーが発生: error={}", e.getMessage());
+            throw e;
+        }
     }
 
+    /**
+     * モック商品データを返す（開発中）
+     * @return モック商品データ
+     */
     private Object mockProducts() {
         return null;
     }

@@ -1,0 +1,40 @@
+{
+  "properties": [
+    {
+      "name": "security.remember-me.key",
+      "type": "java.lang.String",
+      "description": "Remember-Meトークン署名に利用する秘密鍵。prodでは環境変数SECURITY_REMEMBER_ME_KEYで設定する。",
+      "defaultValue": ""
+    },
+    {
+      "name": "security.remember-me.use-secure-cookie",
+      "type": "java.lang.Boolean",
+      "description": "Remember-MeクッキーをHTTPSでのみ送信するかどうか。devではfalse、prodではtrueに設定する。",
+      "defaultValue": true
+    },
+    {
+      "name": "security.remember-me.token-validity-seconds",
+      "type": "java.lang.Integer",
+      "description": "Remember-Meトークンの有効期限（秒単位）。デフォルトは86400秒（24時間）。",
+      "defaultValue": 86400
+    },
+    {
+      "name": "security.remember-me.parameter",
+      "type": "java.lang.String",
+      "description": "Remember-Meチェックボックスのパラメータ名。",
+      "defaultValue": "remember-me"
+    },
+    {
+      "name": "security.session.maximum-sessions",
+      "type": "java.lang.Integer",
+      "description": "同時ログイン可能なセッション数。devでは5、prodでは1に設定する。",
+      "defaultValue": 1
+    },
+    {
+      "name": "security.hsts.max-age-seconds",
+      "type": "java.lang.Long",
+      "description": "HTTP Strict Transport Security (HSTS) の有効期限（秒単位）。本番環境では31536000秒（1年間）を推奨。",
+      "defaultValue": 31536000
+    }
+  ]
+}
