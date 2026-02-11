@@ -1,19 +1,18 @@
 package com.inventory.inventory_management.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * 一般ユーザー用在庫一覧画面のコントローラー
  */
+@Slf4j
 @Controller
 public class InventoryController {
-
-    private static final Logger logger = LoggerFactory.getLogger(InventoryController.class);
 
     /**
      * 一般ユーザー用在庫一覧画面を表示
@@ -35,7 +34,7 @@ public class InventoryController {
             Model model) {
 
         try {
-            logger.debug("在庫一覧画面を表示: search={}, category={}, status={}, stock={}, sort={}", 
+            log.debug("在庫一覧画面を表示: search={}, category={}, status={}, stock={}, sort={}", 
                         search, category, status, stock, sort);
             model.addAttribute("products", mockProducts());
             model.addAttribute("search", search);
@@ -46,7 +45,7 @@ public class InventoryController {
 
             return "inventory";
         } catch (Exception e) {
-            logger.error("在庫一覧画面表示時にエラーが発生: error={}", e.getMessage());
+            log.error("在庫一覧画面表示時にエラーが発生: error={}", e.getMessage());
             throw e;
         }
     }

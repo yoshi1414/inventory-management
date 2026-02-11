@@ -1,17 +1,16 @@
 package com.inventory.inventory_management.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 一般ユーザー用ログイン画面のコントローラー
  */
+@Slf4j
 @Controller
 public class UserLoginController {
-
-    private static final Logger logger = LoggerFactory.getLogger(UserLoginController.class);
 
     /**
      * 一般ユーザー用ログイン画面を表示
@@ -19,7 +18,7 @@ public class UserLoginController {
      */
     @GetMapping("/login")
     public String showLoginPage() {
-        logger.debug("一般ユーザー用ログイン画面を表示");
+        log.debug("一般ユーザー用ログイン画面を表示");
         return "login";
     }
 }

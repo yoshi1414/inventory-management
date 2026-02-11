@@ -53,6 +53,9 @@ git branch system-design-db-1
 ##開発ブランチ
 git checkout -b feature/login-screen
 
+##そのほかブランチ
+git checkout -b feature/other
+
 ーーーーーーーーーーーーー
 ##作成しながら、ブランチ切り替え
 git checkout -b requirements-definition-1
@@ -146,3 +149,9 @@ git merge origin/main
 - 管理者用在庫管理画面設計書を作成
 - 商品管理画面設計書を作成
 - 商品詳細画面設計書を作成
+
+コミットコメント例を参考にして、添付内容のコミットコメントを考えて
+ーーーーーーーーーーーーー
+
+
+

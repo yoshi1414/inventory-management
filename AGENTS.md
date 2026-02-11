@@ -67,4 +67,5 @@ Write-Utf8NoBom -Path $file -Content ($old+"`nYOUR_TEXT_HERE`n")
 - デバックコメントには、loggerをいれる
 - セキュリティチェックを行う
 - 戻り値はOptionalでnull対応を行う
-
+- ログアノテーションを利用する
+- エラーハンドラーを利用して、エラー処理を行う
