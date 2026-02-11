@@ -1,7 +1,5 @@
 package com.inventory.inventory_management.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,13 +8,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * 管理者用商品管理のコントローラー
  */
+@Slf4j
 @Controller
 public class AdminProductController {
-
-    private static final Logger logger = LoggerFactory.getLogger(AdminProductController.class);
 
     /**
      * 管理者用商品一覧画面を表示
@@ -38,7 +37,7 @@ public class AdminProductController {
             Model model) {
 
         try {
-            logger.debug("管理者用商品一覧画面を表示: search={}, category={}, status={}, price={}, sort={}", 
+            log.debug("管理者用商品一覧画面を表示: search={}, category={}, status={}, price={}, sort={}", 
                         search, category, status, price, sort);
             model.addAttribute("products", mockProducts());
             model.addAttribute("search", search);
@@ -49,7 +48,7 @@ public class AdminProductController {
 
             return "admin/products";
         } catch (Exception e) {
-            logger.error("管理者用商品一覧画面表示時にエラーが発生: error={}", e.getMessage());
+            log.error("管理者用商品一覧画面表示時にエラーが発生: error={}", e.getMessage());
             throw e;
         }
     }
@@ -62,13 +61,13 @@ public class AdminProductController {
     @GetMapping("/admin/products/JHQ82GFX")
     public String showProductDetailJHQ82GFX(Model model) {
         try {
-            logger.debug("商品詳細画面を表示: productId=JHQ82GFX");
+            log.debug("商品詳細画面を表示: productId=JHQ82GFX");
             // 商品詳細画面表示（固定ID: JHQ82GFX）
             model.addAttribute("productId", "JHQ82GFX");
             model.addAttribute("product", mockProductDetail("JHQ82GFX"));
             return "admin/product-detail";
         } catch (Exception e) {
-            logger.error("商品詳細画面表示時にエラーが発生: productId=JHQ82GFX, error={}", e.getMessage());
+            log.error("商品詳細画面表示時にエラーが発生: productId=JHQ82GFX, error={}", e.getMessage());
             throw e;
         }
     }
@@ -121,26 +120,26 @@ public class AdminProductController {
             RedirectAttributes redirectAttributes) {
 
         try {
-            logger.info("商品登録開始: productName={}, category={}, price={}, stockQuantity={}", 
+            log.info("商品登録開始: productName={}, category={}, price={}, stockQuantity={}", 
                        productName, category, price, stockQuantity);
             
             // 商品登録処理（モック）
             
             // バリデーション例
             if (productName == null || productName.trim().isEmpty()) {
-                logger.warn("商品登録バリデーションエラー: 商品名が未入力");
+                log.warn("商品登録バリデーションエラー: 商品名が未入力");
                 redirectAttributes.addFlashAttribute("error", "商品名は必須です。");
                 return "redirect:/admin/products/create";
             }
             
             if (price < 0) {
-                logger.warn("商品登録バリデーションエラー: 価格が負の値, price={}", price);
+                log.warn("商品登録バリデーションエラー: 価格が負の値, price={}", price);
                 redirectAttributes.addFlashAttribute("error", "価格は0以上で入力してください。");
                 return "redirect:/admin/products/create";
             }
             
             if (stockQuantity < 0) {
-                logger.warn("商品登録バリデーションエラー: 在庫数が負の値, stockQuantity={}", stockQuantity);
+                log.warn("商品登録バリデーションエラー: 在庫数が負の値, stockQuantity={}", stockQuantity);
                 redirectAttributes.addFlashAttribute("error", "在庫数は0以上で入力してください。");
                 return "redirect:/admin/products/create";
             }
@@ -148,11 +147,11 @@ public class AdminProductController {
             // 登録処理（実際にはサービス層で実装）
             // productService.createProduct(productDto);
             
-            logger.info("商品登録完了: productName={}", productName);
+            log.info("商品登録完了: productName={}", productName);
             redirectAttributes.addFlashAttribute("message", "商品「" + productName + "」を登録しました。");
             return "redirect:/admin/products";
         } catch (Exception e) {
-            logger.error("商品登録時にエラーが発生: productName={}, error={}", productName, e.getMessage());
+            log.error("商品登録時にエラーが発生: productName={}, error={}", productName, e.getMessage());
             redirectAttributes.addFlashAttribute("error", "商品登録時にエラーが発生しました。");
             return "redirect:/admin/products/create";
         }
@@ -167,14 +166,14 @@ public class AdminProductController {
     @GetMapping("/admin/products/{productId}")
     public String showProductDetail(@PathVariable String productId, Model model) {
         try {
-            logger.debug("商品詳細画面を表示: productId={}", productId);
+            log.debug("商品詳細画面を表示: productId={}", productId);
             // 商品詳細画面表示
             // 実際にはサービス層から商品データを取得
             model.addAttribute("productId", productId);
             model.addAttribute("product", mockProductDetail(productId));
             return "admin/product-detail";
         } catch (Exception e) {
-            logger.error("商品詳細画面表示時にエラーが発生: productId={}, error={}", productId, e.getMessage());
+            log.error("商品詳細画面表示時にエラーが発生: productId={}, error={}", productId, e.getMessage());
             throw e;
         }
     }

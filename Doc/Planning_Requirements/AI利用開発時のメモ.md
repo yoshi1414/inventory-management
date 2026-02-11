@@ -41,3 +41,9 @@ UserDetails
 ・店舗数
 ・総予約数
 ・ユーザからの月間売り上げ
+
+＃ログアノテーションを利用
+@Slf4j
+
+＃エラーハンドラーは
+GlobalExceptionHandlerを利用

@@ -224,3 +224,14 @@ body.admin-login .form-control:focus {
 .modal-dialog {
     max-width: 30%;
 }
+
+/* エラーページ専用スタイル */
+body.error-page .login-container {
+    max-width: 800px;
+    width: 90%;
+}
+
+/* エラーアイコンのサイズ */
+.error-icon {
+    font-size: 4rem;
+}
