@@ -8,6 +8,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -42,6 +44,16 @@ public class SecurityConfig {
     
     @Autowired
     private CsrfTokenRepository csrfTokenRepository;
+
+    /**
+     * SessionRegistryのBean定義
+     * セッション管理に使用されるSessionRegistryを提供します。
+     * @return SessionRegistry
+     */
+    @Bean
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
 
     /**
      * セキュリティフィルターチェーンの設定
@@ -93,7 +105,8 @@ public class SecurityConfig {
                    .invalidSessionUrl("/login?invalid")  // 無効なセッション時のリダイレクト先
                    .maximumSessions(maximumSessions)  // 同時ログイン数の制限（プロパティから取得）
                    .maxSessionsPreventsLogin(false)  // 新しいログインを許可（古いセッションを無効化）
-                   .expiredUrl("/login?expired");  // セッション期限切れ時のリダイレクト先
+                   .expiredUrl("/login?expired")  // セッション期限切れ時のリダイレクト先
+                   .sessionRegistry(sessionRegistry());  // SessionRegistryを明示的に指定
                logger.info("セッション管理設定: maximumSessions={}", maximumSessions);
            })
            .headers((headers) -> headers

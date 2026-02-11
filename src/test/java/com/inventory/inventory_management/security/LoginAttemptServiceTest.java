@@ -215,4 +215,103 @@ class LoginAttemptServiceTest {
         assertDoesNotThrow(() -> loginAttemptService.loginSucceeded(username));
         assertFalse(loginAttemptService.isBlocked(username));
     }
+
+    /**
+     * 正常系：getAttemptsで現在の試行回数を取得できる
+     */
+    @Test
+    @DisplayName("正常系：getAttemptsで現在の試行回数を取得できる")
+    void testGetAttempts() {
+        // given
+        String username = "testuser";
+        loginAttemptService.loginFailed(username);
+        loginAttemptService.loginFailed(username);
+        loginAttemptService.loginFailed(username);
+
+        // when
+        int attempts = loginAttemptService.getAttempts(username);
+
+        // then
+        assertEquals(3, attempts);
+    }
+
+    /**
+     * 正常系：試行履歴がない場合、getAttemptsは0を返す
+     */
+    @Test
+    @DisplayName("正常系：試行履歴がない場合、getAttemptsは0を返す")
+    void testGetAttempts_NoAttempts() {
+        // given
+        String username = "testuser";
+
+        // when
+        int attempts = loginAttemptService.getAttempts(username);
+
+        // then
+        assertEquals(0, attempts);
+    }
+
+    /**
+     * 正常系：isBlockedで期限切れエントリが解除される
+     */
+    @Test
+    @DisplayName("正常系：isBlockedで期限切れエントリが解除される")
+    @SuppressWarnings("unchecked")
+    void testIsBlocked_ExpiredEntryIsCleared() throws Exception {
+        // given
+        String username = "testuser";
+        loginAttemptService.loginFailed(username);
+
+        java.lang.reflect.Field field = LoginAttemptService.class.getDeclaredField("attemptsCache");
+        field.setAccessible(true);
+        java.util.concurrent.ConcurrentHashMap<String, Object> cache =
+            (java.util.concurrent.ConcurrentHashMap<String, Object>) field.get(loginAttemptService);
+
+        Class<?> loginAttemptClass = Class.forName(
+            "com.inventory.inventory_management.security.LoginAttemptService$LoginAttempt");
+        java.lang.reflect.Constructor<?> constructor =
+            loginAttemptClass.getDeclaredConstructor(int.class, java.time.LocalDateTime.class);
+        constructor.setAccessible(true);
+        Object expiredAttempt = constructor.newInstance(5, java.time.LocalDateTime.now().minusHours(25));
+        cache.put(username, expiredAttempt);
+
+        // when
+        boolean blocked = loginAttemptService.isBlocked(username);
+
+        // then
+        assertFalse(blocked);
+        assertEquals(0, loginAttemptService.getAttempts(username));
+    }
+
+    /**
+     * 正常系：cleanupExpiredEntriesで期限切れエントリが削除される
+     */
+    @Test
+    @DisplayName("正常系：cleanupExpiredEntriesで期限切れエントリが削除される")
+    @SuppressWarnings("unchecked")
+    void testCleanupExpiredEntries() throws Exception {
+        // given
+        String username = "testuser";
+        loginAttemptService.loginFailed(username);
+        
+        // 24時間以上前のエントリをシミュレートするため、Reflectionを使用
+        java.lang.reflect.Field field = LoginAttemptService.class.getDeclaredField("attemptsCache");
+        field.setAccessible(true);
+        java.util.concurrent.ConcurrentHashMap<String, Object> cache = 
+            (java.util.concurrent.ConcurrentHashMap<String, Object>) field.get(loginAttemptService);
+        
+        // 内部クラスのインスタンスを作成（24時間以上前の時刻）
+        Class<?> loginAttemptClass = Class.forName("com.inventory.inventory_management.security.LoginAttemptService$LoginAttempt");
+        java.lang.reflect.Constructor<?> constructor = loginAttemptClass.getDeclaredConstructor(int.class, java.time.LocalDateTime.class);
+        constructor.setAccessible(true);
+        Object expiredAttempt = constructor.newInstance(3, java.time.LocalDateTime.now().minusHours(25));
+        cache.put(username, expiredAttempt);
+
+        // when
+        loginAttemptService.cleanupExpiredEntries();
+
+        // then
+        assertEquals(0, loginAttemptService.getAttempts(username));
+        assertFalse(loginAttemptService.isBlocked(username));
+    }
 }

@@ -320,4 +320,127 @@ class UserRepositoryTest {
         assertTrue(result.isPresent());
         assertFalse(result.get().getIsActive());
     }
+
+    /**
+     * 正常系：IDでユーザーを検索できる
+     */
+    @Test
+    @DisplayName("正常系：findById()でユーザーを取得できる")
+    void testFindById_Success() {
+        // given
+        Integer userId = testUser.getId();
+
+        // when
+        Optional<User> result = userRepository.findById(userId);
+
+        // then
+        assertTrue(result.isPresent());
+        assertEquals("testuser", result.get().getUsername());
+        assertEquals("testuser@example.com", result.get().getEmail());
+        assertEquals("テストユーザー", result.get().getFullName());
+    }
+
+    /**
+     * 正常系：存在しないIDで検索すると空のOptionalが返る
+     */
+    @Test
+    @DisplayName("正常系：存在しないIDで検索するとOptional.emptyが返る")
+    void testFindById_NotFound() {
+        // when
+        Optional<User> result = userRepository.findById(999999);
+
+        // then
+        assertFalse(result.isPresent());
+    }
+
+    /**
+     * 正常系：ユーザー情報を更新できる
+     */
+    @Test
+    @DisplayName("正常系：ユーザー情報を更新できる")
+    void testUpdate_Success() {
+        // given
+        User user = userRepository.findByUsername("testuser").get();
+        String originalEmail = user.getEmail();
+
+        // when
+        user.setFullName("更新後の名前");
+        user.setEmail("updated@example.com");
+        user.setUpdatedAt(LocalDateTime.now());
+        User updatedUser = userRepository.save(user);
+
+        // then
+        assertEquals("更新後の名前", updatedUser.getFullName());
+        assertEquals("updated@example.com", updatedUser.getEmail());
+        
+        // データベースから取得して確認
+        Optional<User> found = userRepository.findById(updatedUser.getId());
+        assertTrue(found.isPresent());
+        assertEquals("更新後の名前", found.get().getFullName());
+        assertEquals("updated@example.com", found.get().getEmail());
+        assertNotEquals(originalEmail, found.get().getEmail());
+    }
+
+    /**
+     * 正常系：すべてのユーザーを取得できる
+     */
+    @Test
+    @DisplayName("正常系：findAll()ですべてのユーザーを取得できる")
+    void testFindAll_Success() {
+        // given
+        User user1 = new User();
+        user1.setUsername("findalluser1");
+        user1.setPassword("password");
+        user1.setEmail("findall1@example.com");
+        user1.setFullName("検索テストユーザー1");
+        user1.setIsActive(true);
+        user1.setCreatedAt(LocalDateTime.now());
+        user1.setUpdatedAt(LocalDateTime.now());
+        userRepository.save(user1);
+
+        User user2 = new User();
+        user2.setUsername("findalluser2");
+        user2.setPassword("password");
+        user2.setEmail("findall2@example.com");
+        user2.setFullName("検索テストユーザー2");
+        user2.setIsActive(true);
+        user2.setCreatedAt(LocalDateTime.now());
+        user2.setUpdatedAt(LocalDateTime.now());
+        userRepository.save(user2);
+
+        // when
+        var users = userRepository.findAll();
+
+        // then
+        assertNotNull(users);
+        assertTrue(users.size() >= 2);
+        assertTrue(users.stream().anyMatch(u -> u.getUsername().equals("findalluser1")));
+        assertTrue(users.stream().anyMatch(u -> u.getUsername().equals("findalluser2")));
+    }
+
+    /**
+     * 正常系：ユーザー数をカウントできる
+     */
+    @Test
+    @DisplayName("正常系：count()でユーザー数を取得できる")
+    void testCount_Success() {
+        // given
+        long beforeCount = userRepository.count();
+        
+        User newUser = new User();
+        newUser.setUsername("countuser");
+        newUser.setPassword("password");
+        newUser.setEmail("count@example.com");
+        newUser.setFullName("カウントテストユーザー");
+        newUser.setIsActive(true);
+        newUser.setCreatedAt(LocalDateTime.now());
+        newUser.setUpdatedAt(LocalDateTime.now());
+        userRepository.save(newUser);
+
+        // when
+        long afterCount = userRepository.count();
+
+        // then
+        assertEquals(beforeCount + 1, afterCount);
+    }
 }
