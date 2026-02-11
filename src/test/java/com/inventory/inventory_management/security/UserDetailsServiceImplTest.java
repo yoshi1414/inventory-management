@@ -210,6 +210,29 @@ class UserDetailsServiceImplTest {
     }
 
     /**
+     * 異常系：リポジトリ例外発生時、UsernameNotFoundExceptionに変換される
+     */
+    @Test
+    @DisplayName("異常系：リポジトリ例外発生時、UsernameNotFoundExceptionに変換される")
+    void testLoadUserByUsername_RepositoryThrowsException() {
+        // given
+        when(loginAttemptService.isBlocked(anyString())).thenReturn(false);
+        when(userRepository.findByUsernameWithRoles("testuser"))
+            .thenThrow(new RuntimeException("DB error"));
+
+        // when & then
+        UsernameNotFoundException exception = assertThrows(
+                UsernameNotFoundException.class,
+                () -> userDetailsService.loadUserByUsername("testuser")
+        );
+
+        assertEquals("ログインに失敗しました。ユーザー名またはパスワードが正しくありません。", exception.getMessage());
+
+        verify(loginAttemptService, times(1)).isBlocked("testuser");
+        verify(userRepository, times(1)).findByUsernameWithRoles("testuser");
+    }
+
+    /**
      * 異常系：ブロックされているユーザーの場合、UsernameNotFoundExceptionをスロー
      */
     @Test
