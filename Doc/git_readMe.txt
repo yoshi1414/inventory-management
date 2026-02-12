@@ -53,6 +53,9 @@ git branch system-design-db-1
 ##開発ブランチ
 git checkout -b feature/login-screen
 
+##開発ブランチ 在庫
+git checkout -b feature/inventory
+
 ##そのほかブランチ
 git checkout -b feature/other
 
