@@ -33,11 +33,9 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <form action="/logout" method="post" style="display: inline;">
-                            <button type="submit" class="btn btn-link nav-link" style="display: inline; padding: 0; border: none;">
-                                <i class="bi bi-box-arrow-right"></i> ログアウト
-                            </button>
-                        </form>
+                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                            <i class="bi bi-box-arrow-right"></i> ログアウト
+                        </a>
                     </li>
                 </ul>
             </div>
@@ -53,53 +51,57 @@
                 </h2>
 
                 <!-- 在庫不足アラート -->
-                <div class="alert alert-warning alert-stock-shortage d-flex align-items-center" role="alert">
+                <div th:if="${lowStockCount > 0 or outOfStockCount > 0}" 
+                     class="alert alert-warning alert-stock-shortage d-flex align-items-center" role="alert">
                     <i class="bi bi-exclamation-triangle-fill me-2"></i>
                     <div>
-                        <strong>在庫不足の商品があります:</strong> 15商品が在庫不足（20個以下）、3商品が在庫切れです。
+                        <strong>在庫不足の商品があります:</strong> 
+                        <span th:text="${lowStockCount}">15</span>商品が在庫不足（20個以下）、
+                        <span th:text="${outOfStockCount}">3</span>商品が在庫切れです。
                     </div>
                 </div>
 
                 <!-- 検索・フィルタリングパネル -->
                 <div class="search-panel">
-                    <form id="searchForm">
+                    <form id="searchForm" method="get" action="/inventory">
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <label for="searchKeyword" class="form-label">商品名検索</label>
-                                <input type="text" class="form-control" id="searchKeyword" placeholder="商品名を入力">
+                                <input type="text" class="form-control" id="searchKeyword" name="search" 
+                                       th:value="${search}" placeholder="商品名を入力">
                             </div>
                             <div class="col-md-2">
                                 <label for="categoryFilter" class="form-label">カテゴリ</label>
-                                <select class="form-select" id="categoryFilter">
+                                <select class="form-select" id="categoryFilter" name="category">
                                     <option value="">全て</option>
-                                    <option value="Electronics">Electronics</option>
-                                    <option value="Clothing">Clothing</option>
-                                    <option value="Home Appliances">Home Appliances</option>
+                                    <option value="Electronics" th:selected="${category == 'Electronics'}">Electronics</option>
+                                    <option value="Clothing" th:selected="${category == 'Clothing'}">Clothing</option>
+                                    <option value="Home Appliances" th:selected="${category == 'Home Appliances'}">Home Appliances</option>
                                 </select>
                             </div>
                             <div class="col-md-2">
                                 <label for="statusFilter" class="form-label">ステータス</label>
-                                <select class="form-select" id="statusFilter">
+                                <select class="form-select" id="statusFilter" name="status">
                                     <option value="">全て</option>
-                                    <option value="active">販売中</option>
-                                    <option value="inactive">販売停止</option>
+                                    <option value="active" th:selected="${status == 'active'}">販売中</option>
+                                    <option value="inactive" th:selected="${status == 'inactive'}">販売停止</option>
                                 </select>
                             </div>
                             <div class="col-md-2">
                                 <label for="stockFilter" class="form-label">在庫状態</label>
-                                <select class="form-select" id="stockFilter">
+                                <select class="form-select" id="stockFilter" name="stock">
                                     <option value="">全て</option>
-                                    <option value="sufficient">在庫あり(21個以上)</option>
-                                    <option value="low">在庫不足(1-20個)</option>
-                                    <option value="out">在庫なし(0個)</option>
+                                    <option value="sufficient" th:selected="${stock == 'sufficient'}">在庫あり(21個以上)</option>
+                                    <option value="low" th:selected="${stock == 'low'}">在庫不足(1-20個)</option>
+                                    <option value="out" th:selected="${stock == 'out'}">在庫なし(0個)</option>
                                 </select>
                             </div>
                             <div class="col-md-2">
                                 <label for="sortBy" class="form-label">並び順</label>
-                                <select class="form-select" id="sortBy">
-                                    <option value="name">商品名順</option>
-                                    <option value="stock">在庫数順</option>
-                                    <option value="updated">更新日順</option>
+                                <select class="form-select" id="sortBy" name="sort">
+                                    <option value="name" th:selected="${sort == 'name' or sort == null}">商品名順</option>
+                                    <option value="stock" th:selected="${sort == 'stock'}">在庫数順</option>
+                                    <option value="updated" th:selected="${sort == 'updated'}">更新日順</option>
                                 </select>
                             </div>
                         </div>
@@ -108,9 +110,9 @@
                                 <button type="submit" class="btn btn-primary">
                                     <i class="bi bi-search"></i> 検索
                                 </button>
-                                <button type="reset" class="btn btn-secondary ms-2">
+                                <a href="/inventory" class="btn btn-secondary ms-2">
                                     <i class="bi bi-x-circle"></i> クリア
-                                </button>
+                                </a>
                             </div>
                         </div>
                     </form>
@@ -134,287 +136,49 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <!-- 在庫切れ商品 -->
-                                    <tr class="product-row" onclick="location.href='/products/JHQ82GFX'">
-                                        <td><code>JHQ82GFX</code></td>
-                                        <td>Monitor XM4P4</td>
-                                        <td><span class="badge bg-info">Clothing</span></td>
-                                        <td>¥402</td>
-                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="text-decoration-underline">0</a></td>
-                                        <td><span class="badge badge-status-inactive">販売停止</span></td>
-                                        <td>2026-01-30</td>
+                                    <!-- 商品データループ -->
+                                    <tr th:each="product : ${products}" 
+                                        class="product-row" 
+                                        th:onclick="'location.href=\'/products/' + ${product.id} + '\''">
+                                        <td><code th:text="${product.productCode}">PRD001</code></td>
+                                        <td th:text="${product.productName}">商品名</td>
                                         <td>
-                                            <a href="/products/JHQ82GFX" class="btn btn-sm btn-outline-primary">
+                                            <span th:class="${'badge ' + 
+                                                (product.category == 'Electronics' ? 'bg-primary' : 
+                                                 product.category == 'Clothing' ? 'bg-info' : 'bg-secondary')}"
+                                                  th:text="${product.category}">カテゴリ</span>
+                                        </td>
+                                        <td>¥<span th:text="${#numbers.formatInteger(product.price, 0, 'COMMA')}">0</span></td>
+                                        <td>
+                                            <!-- 在庫切れ・在庫不足の場合はリンク表示 -->
+                                            <a th:if="${product.stock <= 20}" 
+                                               href="javascript:void(0);" 
+                                               data-bs-toggle="modal" 
+                                               data-bs-target="#stockModal" 
+                                               class="text-decoration-underline"
+                                               th:text="${product.stock}">0</a>
+                                            <!-- 在庫十分の場合は通常テキスト -->
+                                            <span th:if="${product.stock > 20}" 
+                                                  class="stock-ok"
+                                                  th:text="${product.stock}">21</span>
+                                        </td>
+                                        <td>
+                                            <span th:class="${'badge badge-status-' + product.status}"
+                                                  th:text="${product.status == 'active' ? '販売中' : '販売停止'}">販売中</span>
+                                        </td>
+                                        <td th:text="${#temporals.format(product.updatedAt, 'yyyy-MM-dd')}">2026-01-01</td>
+                                        <td>
+                                            <a th:href="@{/products/{id}(id=${product.id})}" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               onclick="event.stopPropagation();">
                                                 <i class="bi bi-eye"></i> 詳細
                                             </a>
                                         </td>
                                     </tr>
-                                    <!-- 在庫不足商品 -->
-                                    <tr class="product-row" onclick="location.href='/products/93TGNAY7'">
-                                        <td><code>93TGNAY7</code></td>
-                                        <td>Laptop XU5QX</td>
-                                        <td><span class="badge bg-secondary">Home Appliances</span></td>
-                                        <td>¥253</td>
-                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="text-decoration-underline">3</a></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-29</td>
-                                        <td>
-                                            <a href="/products/93TGNAY7" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    <tr class="product-row" onclick="location.href='/products/YTFM1TLG'">
-                                        <td><code>YTFM1TLG</code></td>
-                                        <td>Smartphone XDVMX</td>
-                                        <td><span class="badge bg-info">Clothing</span></td>
-                                        <td>¥286</td>
-                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="text-decoration-underline">12</a></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-28</td>
-                                        <td>
-                                            <a href="/products/YTFM1TLG" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    <tr class="product-row" onclick="location.href='/products/5C94FGTQ'">
-                                        <td><code>5C94FGTQ</code></td>
-                                        <td>Headphones IT7HG</td>
-                                        <td><span class="badge bg-info">Clothing</span></td>
-                                        <td>¥475</td>
-                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="text-decoration-underline">19</a></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-27</td>
-                                        <td>
-                                            <a href="/products/5C94FGTQ" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    <!-- 在庫十分 -->
-                                    <tr class="product-row" onclick="location.href='/products/728GCZFU'">
-                                        <td><code>728GCZFU</code></td>
-                                        <td>Laptop 54FAF</td>
-                                        <td><span class="badge bg-secondary">Home Appliances</span></td>
-                                        <td>¥230</td>
-                                        <td><span class="stock-ok">32</span></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-26</td>
-                                        <td>
-                                            <a href="/products/728GCZFU" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    <tr class="product-row" onclick="location.href='/products/XBHKYPQB'">
-                                        <td><code>XBHKYPQB</code></td>
-                                        <td>Monitor 8SBDO</td>
-                                        <td><span class="badge bg-info">Clothing</span></td>
-                                        <td>¥403</td>
-                                        <td><span class="stock-ok">40</span></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-25</td>
-                                        <td>
-                                            <a href="/products/XBHKYPQB" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    <tr class="product-row" onclick="location.href='/products/0KHFMXFN'">
-                                        <td><code>0KHFMXFN</code></td>
-                                        <td>Monitor GFUOS</td>
-                                        <td><span class="badge bg-secondary">Home Appliances</span></td>
-                                        <td>¥21</td>
-                                        <td><span class="stock-ok">48</span></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-24</td>
-                                        <td>
-                                            <a href="/products/0KHFMXFN" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    <tr class="product-row" onclick="location.href='/products/TYYZ5AV7'">
-                                        <td><code>TYYZ5AV7</code></td>
-                                        <td>Smartphone NRUMS</td>
-                                        <td><span class="badge bg-info">Clothing</span></td>
-                                        <td>¥214</td>
-                                        <td><span class="stock-ok">92</span></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-23</td>
-                                        <td>
-                                            <a href="/products/TYYZ5AV7" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    <tr class="product-row" onclick="location.href='/products/27R9M103'">
-                                        <td><code>27R9M103</code></td>
-                                        <td>Smartphone Z5CGR</td>
-                                        <td><span class="badge bg-primary">Electronics</span></td>
-                                        <td>¥19</td>
-                                        <td><span class="stock-ok">98</span></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-22</td>
-                                        <td>
-                                            <a href="/products/27R9M103" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    <tr class="product-row" onclick="location.href='/products/T4F2EW7G'">
-                                        <td><code>T4F2EW7G</code></td>
-                                        <td>Monitor VSWHF</td>
-                                        <td><span class="badge bg-secondary">Home Appliances</span></td>
-                                        <td>¥229</td>
-                                        <td><span class="stock-ok">100</span></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-21</td>
-                                        <td>
-                                            <a href="/products/T4F2EW7G" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    <tr class="product-row" onclick="location.href='/products/GL199BEL'">
-                                        <td><code>GL199BEL</code></td>
-                                        <td>Smartphone HMH7Q</td>
-                                        <td><span class="badge bg-info">Clothing</span></td>
-                                        <td>¥446</td>
-                                        <td><span class="stock-ok">47</span></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-20</td>
-                                        <td>
-                                            <a href="/products/GL199BEL" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    <tr class="product-row" onclick="location.href='/products/SX7HALUU'">
-                                        <td><code>SX7HALUU</code></td>
-                                        <td>Monitor SM05O</td>
-                                        <td><span class="badge bg-primary">Electronics</span></td>
-                                        <td>¥322</td>
-                                        <td><span class="stock-ok">74</span></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-19</td>
-                                        <td>
-                                            <a href="/products/SX7HALUU" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    <tr class="product-row" onclick="location.href='/products/1AOXE5QW'">
-                                        <td><code>1AOXE5QW</code></td>
-                                        <td>Headphones IXUWP</td>
-                                        <td><span class="badge bg-info">Clothing</span></td>
-                                        <td>¥372</td>
-                                        <td><span class="stock-ok">36</span></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-18</td>
-                                        <td>
-                                            <a href="/products/1AOXE5QW" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    <tr class="product-row" onclick="location.href='/products/KOXR70B4'">
-                                        <td><code>KOXR70B4</code></td>
-                                        <td>Smartphone 2SHT8</td>
-                                        <td><span class="badge bg-secondary">Home Appliances</span></td>
-                                        <td>¥452</td>
-                                        <td><span class="stock-ok">61</span></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-17</td>
-                                        <td>
-                                            <a href="/products/KOXR70B4" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    <tr class="product-row" onclick="location.href='/products/X2D1GWO5'">
-                                        <td><code>X2D1GWO5</code></td>
-                                        <td>Monitor 5TYRK</td>
-                                        <td><span class="badge bg-info">Clothing</span></td>
-                                        <td>¥27</td>
-                                        <td><span class="stock-ok">40</span></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-16</td>
-                                        <td>
-                                            <a href="/products/X2D1GWO5" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    <tr class="product-row" onclick="location.href='/products/ZKI2USNA'">
-                                        <td><code>ZKI2USNA</code></td>
-                                        <td>Laptop 56JPR</td>
-                                        <td><span class="badge bg-secondary">Home Appliances</span></td>
-                                        <td>¥204</td>
-                                        <td><span class="stock-ok">91</span></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-15</td>
-                                        <td>
-                                            <a href="/products/ZKI2USNA" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    <tr class="product-row" onclick="location.href='/products/EPKS7ECS'">
-                                        <td><code>EPKS7ECS</code></td>
-                                        <td>Smartphone UPJGT</td>
-                                        <td><span class="badge bg-info">Clothing</span></td>
-                                        <td>¥176</td>
-                                        <td><span class="stock-ok">48</span></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-14</td>
-                                        <td>
-                                            <a href="/products/EPKS7ECS" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    <tr class="product-row" onclick="location.href='/products/UB8UO1PA'">
-                                        <td><code>UB8UO1PA</code></td>
-                                        <td>Monitor EFPA6</td>
-                                        <td><span class="badge bg-primary">Electronics</span></td>
-                                        <td>¥424</td>
-                                        <td><span class="stock-ok">31</span></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-13</td>
-                                        <td>
-                                            <a href="/products/UB8UO1PA" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    <tr class="product-row" onclick="location.href='/products/6ID782KK'">
-                                        <td><code>6ID782KK</code></td>
-                                        <td>Monitor 2N5R9</td>
-                                        <td><span class="badge bg-info">Clothing</span></td>
-                                        <td>¥331</td>
-                                        <td><span class="stock-ok">41</span></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-12</td>
-                                        <td>
-                                            <a href="/products/6ID782KK" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    <tr class="product-row" onclick="location.href='/products/YWJW03Z5'">
-                                        <td><code>YWJW03Z5</code></td>
-                                        <td>Headphones QMM8Y</td>
-                                        <td><span class="badge bg-primary">Electronics</span></td>
-                                        <td>¥471</td>
-                                        <td><span class="stock-ok">95</span></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-11</td>
-                                        <td>
-                                            <a href="/products/YWJW03Z5" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
+                                    <!-- データが0件の場合 -->
+                                    <tr th:if="${#lists.isEmpty(products)}">
+                                        <td colspan="8" class="text-center text-muted">
+                                            該当する商品がありません。
                                         </td>
                                     </tr>
                                 </tbody>
@@ -422,39 +186,61 @@
                         </div>
 
                         <!-- ページネーション -->
-                        <nav aria-label="商品ページネーション">
+                        <nav aria-label="商品ページネーション" th:if="${totalPages > 0}">
                             <ul class="pagination justify-content-center">
-                                <li class="page-item disabled">
-                                    <a class="page-link" href="#" tabindex="-1">
+                                <!-- 最初のページ -->
+                                <li th:class="${currentPage == 0 ? 'page-item disabled' : 'page-item'}">
+                                    <a class="page-link" 
+                                       th:href="@{/inventory(search=${search}, category=${category}, status=${status}, stock=${stock}, sort=${sort}, page=0)}" 
+                                       tabindex="-1">
                                         <i class="bi bi-chevron-double-left"></i> 最初
                                     </a>
                                 </li>
-                                <li class="page-item disabled">
-                                    <a class="page-link" href="#" tabindex="-1">
+                                <!-- 前のページ -->
+                                <li th:class="${currentPage == 0 ? 'page-item disabled' : 'page-item'}">
+                                    <a class="page-link" 
+                                       th:href="@{/inventory(search=${search}, category=${category}, status=${status}, stock=${stock}, sort=${sort}, page=${currentPage - 1})}" 
+                                       tabindex="-1">
                                         <i class="bi bi-chevron-left"></i> 前へ
                                     </a>
                                 </li>
-                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                <li class="page-item"><a class="page-link" href="#">4</a></li>
-                                <li class="page-item"><a class="page-link" href="#">5</a></li>
-                                <li class="page-item disabled"><a class="page-link" href="#">...</a></li>
-                                <li class="page-item"><a class="page-link" href="#">10</a></li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">
+                                <!-- ページ番号 -->
+                                <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                                    <li th:if="${i == currentPage}" class="page-item active">
+                                        <a class="page-link" href="javascript:void(0);" th:text="${i + 1}">1</a>
+                                    </li>
+                                    <li th:if="${i != currentPage and (i < 3 or i > totalPages - 4 or (i >= currentPage - 2 and i <= currentPage + 2))}" 
+                                        class="page-item">
+                                        <a class="page-link" 
+                                           th:href="@{/inventory(search=${search}, category=${category}, status=${status}, stock=${stock}, sort=${sort}, page=${i})}" 
+                                           th:text="${i + 1}">1</a>
+                                    </li>
+                                    <li th:if="${i != currentPage and ((i == 3 and currentPage > 5) or (i == totalPages - 4 and currentPage < totalPages - 6))}" 
+                                        class="page-item disabled">
+                                        <a class="page-link" href="javascript:void(0);">...</a>
+                                    </li>
+                                </th:block>
+                                <!-- 次のページ -->
+                                <li th:class="${currentPage >= totalPages - 1 ? 'page-item disabled' : 'page-item'}">
+                                    <a class="page-link" 
+                                       th:href="@{/inventory(search=${search}, category=${category}, status=${status}, stock=${stock}, sort=${sort}, page=${currentPage + 1})}">
                                         次へ <i class="bi bi-chevron-right"></i>
                                     </a>
                                 </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">
+                                <!-- 最後のページ -->
+                                <li th:class="${currentPage >= totalPages - 1 ? 'page-item disabled' : 'page-item'}">
+                                    <a class="page-link" 
+                                       th:href="@{/inventory(search=${search}, category=${category}, status=${status}, stock=${stock}, sort=${sort}, page=${totalPages - 1})}">
                                         最後 <i class="bi bi-chevron-double-right"></i>
                                     </a>
                                 </li>
                             </ul>
                         </nav>
-                        <div class="text-center text-muted">
-                            <small>全200件中 1-20件を表示 (ページ 1/10)</small>
+                        <div class="text-center text-muted" th:if="${totalElements > 0}">
+                            <small>全<span th:text="${totalElements}">200</span>件中 
+                                   <span th:text="${startItem}">1</span>-<span th:text="${endItem}">20</span>件を表示 
+                                   (ページ <span th:text="${currentPageNumber}">1</span>/<span th:text="${totalPages}">10</span>)
+                            </small>
                         </div>
                     </div>
                 </div>
@@ -494,6 +280,32 @@
           <div class="modal-footer">
             <button type="submit" class="btn btn-primary">更新</button>
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ログアウト確認モーダル -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="logoutModalLabel">
+              <i class="bi bi-box-arrow-right"></i> ログアウト確認
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p class="mb-0">ログアウトしますか？</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+            <form action="/logout" method="post" style="display: inline;">
+              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+              <button type="submit" class="btn btn-danger">
+                <i class="bi bi-box-arrow-right"></i> ログアウト
+              </button>
+            </form>
           </div>
         </div>
       </div>

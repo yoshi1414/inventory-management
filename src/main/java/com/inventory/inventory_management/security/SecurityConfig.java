@@ -44,6 +44,9 @@ public class SecurityConfig {
     
     @Autowired
     private CsrfTokenRepository csrfTokenRepository;
+    
+    @Autowired
+    private CustomLogoutSuccessHandler logoutSuccessHandler;
 
     /**
      * SessionRegistryのBean定義
@@ -67,6 +70,7 @@ public class SecurityConfig {
            .authorizeHttpRequests((requests) -> requests
            .requestMatchers("/css/**", "/images/**", "/js/**", "/storage/**").permitAll()  // 静的リソースへのアクセスを許可
            .requestMatchers("/login", "/admin/login").permitAll() // ログイン画面へのアクセスを許可
+           .requestMatchers("/error").permitAll() // エラーページへのアクセスを許可
            .requestMatchers("/csp-violation-report-endpoint").permitAll() // CSP違反レポートエンドポイント
            .requestMatchers("/admin/**").hasRole("ADMIN") // 管理者専用エンドポイント（ロールベース認証）
            .anyRequest().authenticated()  // 上記以外のURLは認証が必要
@@ -74,13 +78,13 @@ public class SecurityConfig {
            .formLogin((form) -> form
                .loginPage("/login")  // ログイン画面のURL
                .loginProcessingUrl("/login")  // ログイン処理のURL
-               .defaultSuccessUrl("/menu")  // ログイン成功時のリダイレクト先
+               .defaultSuccessUrl("/inventory")  // ログイン成功時のリダイレクト先
                .failureUrl("/login?error")  // ログイン失敗時のリダイレクト先
                .permitAll()
            )
            .logout((logout) -> logout
                .logoutUrl("/logout")  // ログアウト処理のURL
-               .logoutSuccessUrl("/login?logout")  // ログアウト成功時のリダイレクト先
+               .logoutSuccessHandler(logoutSuccessHandler)  // カスタムログアウト成功ハンドラー
                .deleteCookies("JSESSIONID", "remember-me")  // クッキーの完全削除
                .invalidateHttpSession(true)  // セッションの無効化
                .clearAuthentication(true)  // 認証情報のクリア
@@ -88,11 +92,11 @@ public class SecurityConfig {
            )
            .rememberMe((remember) -> {
                remember
-                   .key(rememberMeKey)  // Remember-Meトークンのキー（環境変数から取得）
+                   .key(rememberMeKey)                          // Remember-Meトークンのキー（環境変数から取得）
                    .tokenValiditySeconds(rememberMeTokenValiditySeconds)  // トークンの有効期限（プロパティから取得）
-                   .rememberMeParameter(rememberMeParameter)  // パラメータ名（プロパティから取得）
+                   .rememberMeParameter(rememberMeParameter)    // パラメータ名（プロパティから取得）
                    .useSecureCookie(rememberMeUseSecureCookie)  // 環境変数で制御（開発: false, 本番: true）
-                   .alwaysRemember(false);  // デフォルトでRemember-Meを無効化
+                   .alwaysRemember(false);                      // デフォルトでRemember-Meを無効化
                logger.info("Remember-Me設定: useSecureCookie={}, tokenValiditySeconds={}, parameter={}", 
                    rememberMeUseSecureCookie, rememberMeTokenValiditySeconds, rememberMeParameter);
            })
@@ -101,11 +105,11 @@ public class SecurityConfig {
            )
            .sessionManagement((session) -> {
                session
-                   .sessionFixation().migrateSession()  // セッション固定攻撃対策
+                   .sessionFixation().migrateSession()   // セッション固定攻撃対策
                    .invalidSessionUrl("/login?invalid")  // 無効なセッション時のリダイレクト先
-                   .maximumSessions(maximumSessions)  // 同時ログイン数の制限（プロパティから取得）
-                   .maxSessionsPreventsLogin(false)  // 新しいログインを許可（古いセッションを無効化）
-                   .expiredUrl("/login?expired")  // セッション期限切れ時のリダイレクト先
+                   .maximumSessions(maximumSessions)     // 同時ログイン数の制限（プロパティから取得）
+                   .maxSessionsPreventsLogin(false)      // 新しいログインを許可（古いセッションを無効化）
+                   .expiredUrl("/login?expired")         // セッション期限切れ時のリダイレクト先
                    .sessionRegistry(sessionRegistry());  // SessionRegistryを明示的に指定
                logger.info("セッション管理設定: maximumSessions={}", maximumSessions);
            })
@@ -123,8 +127,8 @@ public class SecurityConfig {
                .httpStrictTransportSecurity((hsts) -> {
                    hsts
                        .maxAgeInSeconds(hstsMaxAgeSeconds)  // HSTS有効期間（プロパティから取得）
-                       .includeSubDomains(true)  // サブドメインも含む
-                       .preload(true);  // HSTSプリロードリスト用
+                       .includeSubDomains(true)             // サブドメインも含む
+                       .preload(true);                      // HSTSプリロードリスト用
                    logger.info("HSTS設定: maxAgeSeconds={}", hstsMaxAgeSeconds);
                })
                .referrerPolicy((referrer) -> referrer
