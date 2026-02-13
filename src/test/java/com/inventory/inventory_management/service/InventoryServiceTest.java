@@ -1,11 +1,11 @@
 package com.inventory.inventory_management.service;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Optional;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,12 +15,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.inventory.inventory_management.entity.Product;
+import com.inventory.inventory_management.entity.StockTransaction;
 import com.inventory.inventory_management.repository.ProductRepository;
+import com.inventory.inventory_management.repository.StockTransactionRepository;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -36,6 +40,9 @@ class InventoryServiceTest {
 
     @Mock
     private ProductRepository productRepository;
+
+    @Mock
+    private StockTransactionRepository stockTransactionRepository;
 
     @InjectMocks
     private InventoryService inventoryService;
@@ -78,6 +85,15 @@ class InventoryServiceTest {
         product2.setRating(new BigDecimal("4.0"));
         product2.setCreatedAt(LocalDateTime.now());
         product2.setUpdatedAt(LocalDateTime.now());
+    }
+
+    /**
+     * 各テストメソッド実行後のクリーンアップ処理
+     */
+    @AfterEach
+    void tearDown() {
+        // SecurityContextHolderをクリア
+        SecurityContextHolder.clearContext();
     }
 
     /**
@@ -412,5 +428,245 @@ class InventoryServiceTest {
 
         // Then: 0が返される
         assertEquals(0L, count);
+    }
+
+    /**
+     * 入庫処理が正常に実行されることを検証
+     */
+    @Test
+    @DisplayName("入庫処理が正常に実行される")
+    void updateStock_In_Success() {
+        // Given: モックの設定
+        when(productRepository.findById(1)).thenReturn(Optional.of(product1));
+        when(productRepository.save(any(Product.class))).thenReturn(product1);
+        when(stockTransactionRepository.save(any(StockTransaction.class))).thenReturn(new StockTransaction());
+        
+        // セキュリティコンテキストのモック
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn("testuser");
+        when(authentication.isAuthenticated()).thenReturn(true);
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        // When: 入庫処理を実行
+        Product result = inventoryService.updateStock(1, "in", 10, "入庫処理");
+
+        // Then: 在庫数が増加する
+        assertNotNull(result);
+        verify(productRepository, times(1)).findById(1);
+        verify(productRepository, times(1)).save(any(Product.class));
+        verify(stockTransactionRepository, times(1)).save(argThat(transaction ->
+            transaction.getProductId().equals(1) &&
+            transaction.getTransactionType().equals("in") &&
+            transaction.getQuantity().equals(10) &&
+            transaction.getBeforeStock().equals(50) &&
+            transaction.getAfterStock().equals(60) &&
+            "入庫処理".equals(transaction.getRemarks()) &&
+            "testuser".equals(transaction.getUserId())
+        ));
+    }
+
+    /**
+     * 入庫処理でremarks=nullの場合も正常に実行されることを検証
+     */
+    @Test
+    @DisplayName("入庫処理でremarks=nullの場合も正常に実行される")
+    void updateStock_In_WithNullRemarks() {
+        // Given: モックの設定
+        when(productRepository.findById(1)).thenReturn(Optional.of(product1));
+        when(productRepository.save(any(Product.class))).thenReturn(product1);
+        when(stockTransactionRepository.save(any(StockTransaction.class))).thenReturn(new StockTransaction());
+        
+        // セキュリティコンテキストのモック
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn("testuser");
+        when(authentication.isAuthenticated()).thenReturn(true);
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        // When: remarks=nullで入庫処理を実行
+        Product result = inventoryService.updateStock(1, "in", 10, null);
+
+        // Then: 在庫数が増加する
+        assertNotNull(result);
+        verify(productRepository, times(1)).findById(1);
+        verify(productRepository, times(1)).save(any(Product.class));
+        verify(stockTransactionRepository, times(1)).save(argThat(transaction ->
+            transaction.getProductId().equals(1) &&
+            transaction.getTransactionType().equals("in") &&
+            transaction.getQuantity().equals(10) &&
+            transaction.getRemarks() == null
+        ));
+    }
+
+    /**
+     * 出庫処理が正常に実行されることを検証
+     */
+    @Test
+    @DisplayName("出庫処理が正常に実行される")
+    void updateStock_Out_Success() {
+        // Given: モックの設定
+        when(productRepository.findById(1)).thenReturn(Optional.of(product1));
+        when(productRepository.save(any(Product.class))).thenReturn(product1);
+        when(stockTransactionRepository.save(any(StockTransaction.class))).thenReturn(new StockTransaction());
+        
+        // セキュリティコンテキストのモック
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn("testuser");
+        when(authentication.isAuthenticated()).thenReturn(true);
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        // When: 出庫処理を実行
+        Product result = inventoryService.updateStock(1, "out", 20, "出庫処理");
+
+        // Then: 在庫数が減少する
+        assertNotNull(result);
+        verify(productRepository, times(1)).findById(1);
+        verify(productRepository, times(1)).save(any(Product.class));
+        verify(stockTransactionRepository, times(1)).save(argThat(transaction ->
+            transaction.getProductId().equals(1) &&
+            transaction.getTransactionType().equals("out") &&
+            transaction.getQuantity().equals(20) &&
+            transaction.getBeforeStock().equals(50) &&
+            transaction.getAfterStock().equals(30) &&
+            "出庫処理".equals(transaction.getRemarks()) &&
+            "testuser".equals(transaction.getUserId())
+        ));
+    }
+
+    /**
+     * 出庫処理でremarks=空文字の場合も正常に実行されることを検証
+     */
+    @Test
+    @DisplayName("出庫処理でremarks=空文字の場合も正常に実行される")
+    void updateStock_Out_WithEmptyRemarks() {
+        // Given: モックの設定
+        when(productRepository.findById(1)).thenReturn(Optional.of(product1));
+        when(productRepository.save(any(Product.class))).thenReturn(product1);
+        when(stockTransactionRepository.save(any(StockTransaction.class))).thenReturn(new StockTransaction());
+        
+        // セキュリティコンテキストのモック
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn("testuser");
+        when(authentication.isAuthenticated()).thenReturn(true);
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        // When: remarks=""で出庫処理を実行
+        Product result = inventoryService.updateStock(1, "out", 20, "");
+
+        // Then: 在庫数が減少する
+        assertNotNull(result);
+        verify(productRepository, times(1)).findById(1);
+        verify(productRepository, times(1)).save(any(Product.class));
+        verify(stockTransactionRepository, times(1)).save(argThat(transaction ->
+            transaction.getProductId().equals(1) &&
+            transaction.getTransactionType().equals("out") &&
+            transaction.getQuantity().equals(20) &&
+            "".equals(transaction.getRemarks())
+        ));
+    }
+
+    /**
+     * 在庫不足時に出庫処理が失敗することを検証
+     */
+    @Test
+    @DisplayName("在庫不足時に出庫処理が失敗する")
+    void updateStock_Out_InsufficientStock() {
+        // Given: モックの設定（在庫10個の商品）
+        when(productRepository.findById(2)).thenReturn(Optional.of(product2));
+
+        // When & Then: IllegalStateExceptionがスローされる
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+            inventoryService.updateStock(2, "out", 20, "出庫処理");
+        });
+        
+        assertTrue(exception.getMessage().contains("在庫が不足しています"));
+        verify(productRepository, times(1)).findById(2);
+        verify(productRepository, never()).save(any(Product.class));
+        verify(stockTransactionRepository, never()).save(any(StockTransaction.class));
+    }
+
+    /**
+     * 商品が存在しない場合、例外がスローされることを検証
+     */
+    @Test
+    @DisplayName("商品が存在しない場合、例外がスローされる")
+    void updateStock_ProductNotFound() {
+        // Given: モックの設定
+        when(productRepository.findById(999)).thenReturn(Optional.empty());
+
+        // When & Then: IllegalArgumentExceptionがスローされる
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            inventoryService.updateStock(999, "in", 10, "入庫処理");
+        });
+        
+        assertTrue(exception.getMessage().contains("商品が見つかりません"));
+        verify(productRepository, times(1)).findById(999);
+        verify(productRepository, never()).save(any(Product.class));
+        verify(stockTransactionRepository, never()).save(any(StockTransaction.class));
+    }
+
+    /**
+     * 不正な取引種別でエラーがスローされることを検証
+     */
+    @Test
+    @DisplayName("不正な取引種別でエラーがスローされる")
+    void updateStock_InvalidTransactionType() {
+        // When & Then: IllegalArgumentExceptionがスローされる
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            inventoryService.updateStock(1, "invalid", 10, "不正な処理");
+        });
+        
+        assertTrue(exception.getMessage().contains("取引種別が不正です"));
+        verify(productRepository, never()).findById(anyInt());
+        verify(productRepository, never()).save(any(Product.class));
+        verify(stockTransactionRepository, never()).save(any(StockTransaction.class));
+    }
+
+    /**
+     * 数量が0以下の場合、エラーがスローされることを検証
+     */
+    @Test
+    @DisplayName("数量が0以下の場合、エラーがスローされる")
+    void updateStock_InvalidQuantity() {
+        // When & Then: IllegalArgumentExceptionがスローされる
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            inventoryService.updateStock(1, "in", 0, "入庫処理");
+        });
+        
+        assertTrue(exception.getMessage().contains("商品IDまたは数量が不正です"));
+        verify(productRepository, never()).findById(anyInt());
+        verify(productRepository, never()).save(any(Product.class));
+        verify(stockTransactionRepository, never()).save(any(StockTransaction.class));
+    }
+
+    /**
+     * 削除済み商品への在庫更新が失敗することを検証
+     */
+    @Test
+    @DisplayName("削除済み商品への在庫更新が失敗する")
+    void updateStock_DeletedProduct() {
+        // Given: 削除済み商品
+        Product deletedProduct = new Product();
+        deletedProduct.setId(1);
+        deletedProduct.setStock(50);
+        deletedProduct.setDeletedAt(LocalDateTime.now());
+        when(productRepository.findById(1)).thenReturn(Optional.of(deletedProduct));
+
+        // When & Then: IllegalStateExceptionがスローされる
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+            inventoryService.updateStock(1, "in", 10, "入庫処理");
+        });
+        
+        assertTrue(exception.getMessage().contains("削除済みの商品です"));
+        verify(productRepository, times(1)).findById(1);
+        verify(productRepository, never()).save(any(Product.class));
+        verify(stockTransactionRepository, never()).save(any(StockTransaction.class));
     }
 }

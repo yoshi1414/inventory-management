@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- 背景円 -->
+  <circle cx="32" cy="32" r="32" fill="#0d6efd"/>
+  
+  <!-- 箱のデザイン（在庫管理を象徴） -->
+  <g transform="translate(32, 32)">
+    <!-- 箱の上面 -->
+    <path d="M -12,-8 L 0,-14 L 12,-8 L 0,-2 Z" fill="#ffffff" opacity="0.9"/>
+    
+    <!-- 箱の左側面 -->
+    <path d="M -12,-8 L -12,8 L 0,14 L 0,-2 Z" fill="#ffffff" opacity="0.7"/>
+    
+    <!-- 箱の右側面 -->
+    <path d="M 0,-2 L 0,14 L 12,8 L 12,-8 Z" fill="#ffffff" opacity="0.5"/>
+    
+    <!-- チェックマーク（管理済みを表現） -->
+    <g transform="translate(0, 0)">
+      <path d="M -5,0 L -2,3 L 5,-5" fill="none" stroke="#ffc107" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+</svg>

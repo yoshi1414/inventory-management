@@ -1,19 +1,29 @@
 package com.inventory.inventory_management.controller;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 
+import com.inventory.inventory_management.entity.Product;
+import com.inventory.inventory_management.repository.ProductRepository;
+import com.inventory.inventory_management.repository.StockTransactionRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
  * InventoryControllerのテストクラス
@@ -26,7 +36,15 @@ public class InventoryControllerTest {
     @Autowired
     private WebApplicationContext context;
 
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
+    private StockTransactionRepository stockTransactionRepository;
+
     private MockMvc mockMvc;
+    
+    private Integer testProductId;
 
     @BeforeEach
     void setup() {
@@ -34,6 +52,27 @@ public class InventoryControllerTest {
                 .webAppContextSetup(context)
                 .apply(springSecurity())
                 .build();
+
+        // テストデータ準備（ユニークなproduct_codeを生成）
+        String uniqueProductCode = "TEST" + String.format("%04d", System.currentTimeMillis() % 10000);
+        Product product = new Product();
+        product.setProductCode(uniqueProductCode);
+        product.setProductName("テスト商品");
+        product.setCategory("Electronics");
+        product.setPrice(new BigDecimal("10000.00"));
+        product.setStock(50);
+        product.setStatus("active");
+        product.setCreatedAt(LocalDateTime.now());
+        product.setUpdatedAt(LocalDateTime.now());
+        Product savedProduct = productRepository.save(product);
+        testProductId = savedProduct.getId();
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+        stockTransactionRepository.deleteAll();
+        productRepository.deleteAll();
     }
 
     // ========== 正常系テスト ==========
@@ -456,5 +495,299 @@ public class InventoryControllerTest {
                .andExpect(model().attribute("stock", "low"))
                .andExpect(model().attribute("sort", "stock"))
                .andExpect(model().attribute("currentPage", 2));
+    }
+
+    // ========== 在庫更新APIテスト ==========
+
+    /**
+     * 入庫処理が正常に実行される
+     */
+    @Test
+    @WithUserDetails("testuser")
+    public void 入庫処理が正常に実行される() throws Exception {
+        String requestBody = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "in",
+                "quantity": 10,
+                "remarks": "入庫処理テスト"
+            }
+            """, testProductId);
+
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(requestBody))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.success").value(true))
+               .andExpect(jsonPath("$.message").exists())
+               .andExpect(jsonPath("$.product.id").value(testProductId))
+               .andExpect(jsonPath("$.product.stock").exists());
+        
+        // データベースで在庫変動履歴を確認
+        var transactions = stockTransactionRepository.findByProductIdOrderByTransactionDateDesc(testProductId);
+        assertEquals(1, transactions.size());
+        assertEquals("in", transactions.get(0).getTransactionType());
+        assertEquals(10, transactions.get(0).getQuantity());
+        assertEquals("入庫処理テスト", transactions.get(0).getRemarks());
+    }
+
+    /**
+     * 出庫処理が正常に実行される
+     */
+    @Test
+    @WithUserDetails("testuser")
+    public void 出庫処理が正常に実行される() throws Exception {
+        String requestBody = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "out",
+                "quantity": 5,
+                "remarks": "出庫処理テスト"
+            }
+            """, testProductId);
+
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(requestBody))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.success").value(true))
+               .andExpect(jsonPath("$.message").exists());
+        
+        // データベースで在庫変動履歴を確認
+        var transactions = stockTransactionRepository.findByProductIdOrderByTransactionDateDesc(testProductId);
+        assertEquals(1, transactions.size());
+        assertEquals("out", transactions.get(0).getTransactionType());
+        assertEquals(5, transactions.get(0).getQuantity());
+        assertEquals("出庫処理テスト", transactions.get(0).getRemarks());
+    }
+
+    /**
+     * remarksがnullでも在庫更新が正常に実行される
+     */
+    @Test
+    @WithUserDetails("testuser")
+    public void remarksがnullでも在庫更新が正常に実行される() throws Exception {
+        String requestBody = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "in",
+                "quantity": 10
+            }
+            """, testProductId);
+
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(requestBody))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.success").value(true))
+               .andExpect(jsonPath("$.message").exists());
+        
+        // データベースで在庫変動履歴を確認
+        var transactions = stockTransactionRepository.findByProductIdOrderByTransactionDateDesc(testProductId);
+        assertEquals(1, transactions.size());
+        assertNull(transactions.get(0).getRemarks());
+    }
+
+    /**
+     * 商品IDが指定されていない場合、エラーが返される
+     */
+    @Test
+    @WithUserDetails("testuser")
+    public void 商品IDが指定されていない場合エラーが返される() throws Exception {
+        String requestBody = """
+            {
+                "transactionType": "in",
+                "quantity": 10,
+                "remarks": "入庫処理"
+            }
+            """;
+
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(requestBody))
+               .andExpect(status().isBadRequest())
+               .andExpect(jsonPath("$.success").value(false))
+               .andExpect(jsonPath("$.message").exists());
+    }
+
+    /**
+     * 不正な取引種別の場合、エラーが返される
+     */
+    @Test
+    @WithUserDetails("testuser")
+    public void 不正な取引種別の場合エラーが返される() throws Exception {
+        String requestBody = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "invalid",
+                "quantity": 10,
+                "remarks": "不正な処理"
+            }
+            """, testProductId);
+
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(requestBody))
+               .andExpect(status().isBadRequest())
+               .andExpect(jsonPath("$.success").value(false))
+               .andExpect(jsonPath("$.message").exists());
+    }
+
+    /**
+     * 数量が0以下の場合、エラーが返される
+     */
+    @Test
+    @WithUserDetails("testuser")
+    public void 数量が0以下の場合エラーが返される() throws Exception {
+        String requestBody = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "in",
+                "quantity": 0,
+                "remarks": "入庫処理"
+            }
+            """, testProductId);
+
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(requestBody))
+               .andExpect(status().isBadRequest())
+               .andExpect(jsonPath("$.success").value(false))
+               .andExpect(jsonPath("$.message").exists());
+    }
+
+    /**
+     * CSRFトークンなしでリクエストすると403エラーが返される
+     */
+    @Test
+    @WithUserDetails("testuser")
+    public void CSRFトークンなしでリクエストすると403エラーが返される() throws Exception {
+        String requestBody = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "in",
+                "quantity": 10,
+                "remarks": "入庫処理"
+            }
+            """, testProductId);
+
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(requestBody))
+               .andExpect(status().is3xxRedirection());
+    }
+
+    /**
+     * 認証なしで在庫更新APIにアクセスするとリダイレクトまたは403エラーが返される
+     */
+    @Test
+    public void 認証なしで在庫更新APIにアクセスするとリダイレクトまたは403エラーが返される() throws Exception {
+        String requestBody = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "in",
+                "quantity": 10,
+                "remarks": "入庫処理"
+            }
+            """, testProductId);
+
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(requestBody))
+               .andExpect(status().is3xxRedirection());
+    }
+
+    /**
+     * 在庫更新後、商品の在庫数が正確に更新される
+     */
+    @Test
+    @WithUserDetails("testuser")
+    public void 在庫更新後商品の在庫数が正確に更新される() throws Exception {
+        // 初期在庫数を確認
+        Product initialProduct = productRepository.findById(testProductId).orElseThrow();
+        int initialStock = initialProduct.getStock();
+
+        String requestBody = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "in",
+                "quantity": 15,
+                "remarks": "在庫数検証テスト"
+            }
+            """, testProductId);
+
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(requestBody))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.success").value(true))
+               .andExpect(jsonPath("$.product.stock").value(initialStock + 15));
+
+        // データベースで在庫数を確認
+        Product updatedProduct = productRepository.findById(testProductId).orElseThrow();
+        assertEquals(initialStock + 15, updatedProduct.getStock());
+    }
+
+    /**
+     * 複数回の在庫更新が正確に反映される
+     */
+    @Test
+    @WithUserDetails("testuser")
+    public void 複数回の在庫更新が正確に反映される() throws Exception {
+        // 初期在庫数を確認
+        Product initialProduct = productRepository.findById(testProductId).orElseThrow();
+        int initialStock = initialProduct.getStock();
+
+        // 1回目: 入庫10個
+        String requestBody1 = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "in",
+                "quantity": 10,
+                "remarks": "1回目入庫"
+            }
+            """, testProductId);
+
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(requestBody1))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.product.stock").value(initialStock + 10));
+
+        // 2回目: 出庫5個
+        String requestBody2 = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "out",
+                "quantity": 5,
+                "remarks": "2回目出庫"
+            }
+            """, testProductId);
+
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(requestBody2))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.product.stock").value(initialStock + 5));
+
+        // 最終的な在庫数を確認
+        Product finalProduct = productRepository.findById(testProductId).orElseThrow();
+        assertEquals(initialStock + 5, finalProduct.getStock());
+
+        // 在庫変動履歴を確認
+        var transactions = stockTransactionRepository.findByProductIdOrderByTransactionDateDesc(testProductId);
+        assertEquals(2, transactions.size());
+        assertEquals("out", transactions.get(0).getTransactionType());
+        assertEquals("in", transactions.get(1).getTransactionType());
     }
 }

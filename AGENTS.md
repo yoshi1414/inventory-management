@@ -71,4 +71,6 @@ Write-Utf8NoBom -Path $file -Content ($old+"`nYOUR_TEXT_HERE`n")
 - エラーハンドラーを利用して、エラー処理を行う
 - htmlへの直接記載ではなく、CSSを利用する
 - bootstrap利用してください。
-
+- JS処理は、JSファイルへ集約する
+- コントローラー、サービス、リポジトリは、処理の責務を分ける
+- @DataJpaTestは利用しないで、＠SpringBootTestを利用する

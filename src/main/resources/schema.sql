@@ -64,17 +64,16 @@ CREATE TABLE IF NOT EXISTS products (
 CREATE TABLE IF NOT EXISTS stock_transactions (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     product_id INT NOT NULL,
-    transaction_type VARCHAR(20) NOT NULL,
+    transaction_type VARCHAR(10) NOT NULL,
     quantity INTEGER NOT NULL,
     before_stock INTEGER NOT NULL,
     after_stock INTEGER NOT NULL,
-    user_id INT NOT NULL,
-    user_name VARCHAR(100) NOT NULL,
-    note VARCHAR(255) NULL,
+    user_id VARCHAR(50) NOT NULL,
     transaction_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    remarks VARCHAR(255) NULL,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CHECK (transaction_type IN ('IN', 'OUT', 'ADJUST')),
+    CHECK (transaction_type IN ('in', 'out')),
+    CHECK (quantity > 0),
     CHECK (before_stock >= 0),
     CHECK (after_stock >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
