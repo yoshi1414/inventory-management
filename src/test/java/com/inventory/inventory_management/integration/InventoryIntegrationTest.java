@@ -1,18 +1,21 @@
 package com.inventory.inventory_management.integration;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -22,7 +25,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.inventory.inventory_management.entity.Product;
+import com.inventory.inventory_management.entity.StockTransaction;
 import com.inventory.inventory_management.repository.ProductRepository;
+import com.inventory.inventory_management.repository.StockTransactionRepository;
 import com.inventory.inventory_management.service.InventoryService;
 
 /**
@@ -52,6 +57,9 @@ public class InventoryIntegrationTest {
     private ProductRepository productRepository;
 
     @Autowired
+    private StockTransactionRepository stockTransactionRepository;
+
+    @Autowired
     private InventoryService inventoryService;
 
     private MockMvc mockMvc;
@@ -72,6 +80,7 @@ public class InventoryIntegrationTest {
                 .build();
 
         // 既存のテストデータをクリーンアップ
+        stockTransactionRepository.deleteAll();
         productRepository.deleteAll();
 
         // テスト用商品1: 在庫あり(50個)
@@ -539,5 +548,346 @@ public class InventoryIntegrationTest {
             .isEqualTo(repoResult.getTotalElements());
         assertThat(serviceResult.getContent().size())
             .isEqualTo(repoResult.getContent().size());
+    }
+
+    // ========== 在庫更新API 結合テスト ==========
+
+    /**
+     * Test: 入庫処理の結合テスト（コントローラー → サービス → リポジトリ → DB）
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】入庫処理でコントローラーからDBまで正しく処理される")
+    void testEndToEnd_StockUpdate_In() throws Exception {
+        // Given: 初期在庫数を記録
+        int initialStock = testProduct1.getStock();
+        int quantity = 10;
+
+        // リクエストボディを作成
+        String requestBody = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "in",
+                "quantity": %d,
+                "remarks": "結合テスト入庫処理"
+            }
+            """, testProduct1.getId(), quantity);
+
+        // Act: 入庫APIを実行
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(requestBody))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.success").value(true))
+               .andExpect(jsonPath("$.product.id").value(testProduct1.getId()))
+               .andExpect(jsonPath("$.product.stock").value(initialStock + quantity));
+
+        // Assert: データベースで在庫数が正しく更新されている
+        Product updatedProduct = productRepository.findById(testProduct1.getId()).orElseThrow();
+        assertThat(updatedProduct.getStock()).isEqualTo(initialStock + quantity);
+
+        // Assert: 在庫変動履歴が正しく記録されている
+        List<StockTransaction> transactions = stockTransactionRepository
+                .findByProductIdOrderByTransactionDateDesc(testProduct1.getId());
+        assertThat(transactions).hasSize(1);
+        
+        StockTransaction transaction = transactions.get(0);
+        assertThat(transaction.getProductId()).isEqualTo(testProduct1.getId());
+        assertThat(transaction.getTransactionType()).isEqualTo("in");
+        assertThat(transaction.getQuantity()).isEqualTo(quantity);
+        assertThat(transaction.getBeforeStock()).isEqualTo(initialStock);
+        assertThat(transaction.getAfterStock()).isEqualTo(initialStock + quantity);
+        assertThat(transaction.getRemarks()).isEqualTo("結合テスト入庫処理");
+        assertThat(transaction.getUserId()).isEqualTo("testuser");
+    }
+
+    /**
+     * Test: 出庫処理の結合テスト
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】出庫処理でコントローラーからDBまで正しく処理される")
+    void testEndToEnd_StockUpdate_Out() throws Exception {
+        // Given: 初期在庫数を記録
+        int initialStock = testProduct1.getStock();
+        int quantity = 20;
+
+        // リクエストボディを作成
+        String requestBody = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "out",
+                "quantity": %d,
+                "remarks": "結合テスト出庫処理"
+            }
+            """, testProduct1.getId(), quantity);
+
+        // Act: 出庫APIを実行
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(requestBody))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.success").value(true))
+               .andExpect(jsonPath("$.product.stock").value(initialStock - quantity));
+
+        // Assert: データベースで在庫数が正しく更新されている
+        Product updatedProduct = productRepository.findById(testProduct1.getId()).orElseThrow();
+        assertThat(updatedProduct.getStock()).isEqualTo(initialStock - quantity);
+
+        // Assert: 在庫変動履歴が正しく記録されている
+        List<StockTransaction> transactions = stockTransactionRepository
+                .findByProductIdOrderByTransactionDateDesc(testProduct1.getId());
+        assertThat(transactions).hasSize(1);
+        
+        StockTransaction transaction = transactions.get(0);
+        assertThat(transaction.getTransactionType()).isEqualTo("out");
+        assertThat(transaction.getQuantity()).isEqualTo(quantity);
+        assertThat(transaction.getBeforeStock()).isEqualTo(initialStock);
+        assertThat(transaction.getAfterStock()).isEqualTo(initialStock - quantity);
+        assertThat(transaction.getRemarks()).isEqualTo("結合テスト出庫処理");
+    }
+
+    /**
+     * Test: remarks=null での在庫更新結合テスト
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】remarks=nullでも在庫更新が正常に処理される")
+    void testEndToEnd_StockUpdate_WithNullRemarks() throws Exception {
+        // Given: 初期在庫数を記録
+        int initialStock = testProduct1.getStock();
+        int quantity = 15;
+        
+        String requestBody = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "in",
+                "quantity": %d
+            }
+            """, testProduct1.getId(), quantity);
+
+        // Act: 在庫更新APIを実行（remarksなし）
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(requestBody))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.success").value(true))
+               .andExpect(jsonPath("$.product.stock").value(initialStock + quantity));
+
+        // Assert: データベースで在庫数が正しく更新されている
+        Product updatedProduct = productRepository.findById(testProduct1.getId()).orElseThrow();
+        assertThat(updatedProduct.getStock()).isEqualTo(initialStock + quantity);
+
+        // Assert: 在庫変動履歴でremarks=nullが記録される
+        List<StockTransaction> transactions = stockTransactionRepository
+                .findByProductIdOrderByTransactionDateDesc(testProduct1.getId());
+        assertThat(transactions).hasSize(1);
+        assertThat(transactions.get(0).getRemarks()).isNull();
+    }
+
+    /**
+     * Test: 複数回の在庫更新が cumulative に反映される結合テスト
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】複数回の在庫更新が累積して正しく処理される")
+    void testEndToEnd_MultipleStockUpdates() throws Exception {
+        // Given: 初期在庫数
+        int initialStock = testProduct1.getStock();
+
+        // Act 1: 入庫10個
+        String requestBody1 = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "in",
+                "quantity": 10,
+                "remarks": "1回目入庫"
+            }
+            """, testProduct1.getId());
+
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(requestBody1))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.product.stock").value(initialStock + 10));
+
+        // Act 2: 出庫5個
+        String requestBody2 = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "out",
+                "quantity": 5,
+                "remarks": "1回目出庫"
+            }
+            """, testProduct1.getId());
+
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(requestBody2))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.product.stock").value(initialStock + 5));
+
+        // Act 3: 入庫20個
+        String requestBody3 = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "in",
+                "quantity": 20,
+                "remarks": "2回目入庫"
+            }
+            """, testProduct1.getId());
+
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(requestBody3))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.product.stock").value(initialStock + 25));
+
+        // Assert: 最終的な在庫数
+        Product finalProduct = productRepository.findById(testProduct1.getId()).orElseThrow();
+        assertThat(finalProduct.getStock()).isEqualTo(initialStock + 25);
+
+        // Assert: 在庫変動履歴が3件記録されている
+        List<StockTransaction> transactions = stockTransactionRepository
+                .findByProductIdOrderByTransactionDateDesc(testProduct1.getId());
+        assertThat(transactions).hasSize(3);
+        
+        // 最新から順に確認
+        assertThat(transactions.get(0).getRemarks()).isEqualTo("2回目入庫");
+        assertThat(transactions.get(0).getBeforeStock()).isEqualTo(initialStock + 5);
+        assertThat(transactions.get(0).getAfterStock()).isEqualTo(initialStock + 25);
+        
+        assertThat(transactions.get(1).getRemarks()).isEqualTo("1回目出庫");
+        assertThat(transactions.get(1).getBeforeStock()).isEqualTo(initialStock + 10);
+        assertThat(transactions.get(1).getAfterStock()).isEqualTo(initialStock + 5);
+        
+        assertThat(transactions.get(2).getRemarks()).isEqualTo("1回目入庫");
+        assertThat(transactions.get(2).getBeforeStock()).isEqualTo(initialStock);
+        assertThat(transactions.get(2).getAfterStock()).isEqualTo(initialStock + 10);
+    }
+
+    /**
+     * Test: 在庫不足時の出庫エラー結合テスト
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】在庫不足時に出庫処理がエラーになる")
+    void testEndToEnd_StockUpdate_InsufficientStock() throws Exception {
+        // Given: 在庫不足の商品（testProduct2 = 15個）
+        String requestBody = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "out",
+                "quantity": 100,
+                "remarks": "在庫不足テスト"
+            }
+            """, testProduct2.getId());
+
+        // Act & Assert: 在庫不足エラーが返される
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(requestBody))
+               .andExpect(status().isConflict())
+               .andExpect(jsonPath("$.success").value(false))
+               .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("在庫が不足")));
+
+        // Assert: 在庫数は変更されていない
+        Product unchangedProduct = productRepository.findById(testProduct2.getId()).orElseThrow();
+        assertThat(unchangedProduct.getStock()).isEqualTo(15);
+
+        // Assert: 在庫変動履歴は記録されていない
+        List<StockTransaction> transactions = stockTransactionRepository
+                .findByProductIdOrderByTransactionDateDesc(testProduct2.getId());
+        assertThat(transactions).isEmpty();
+    }
+
+    /**
+     * Test: 不正な商品IDでのエラー結合テスト
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】存在しない商品IDで在庫更新するとエラーになる")
+    void testEndToEnd_StockUpdate_InvalidProductId() throws Exception {
+        // Given: 存在しない商品ID
+        String requestBody = """
+            {
+                "productId": 99999,
+                "transactionType": "in",
+                "quantity": 10,
+                "remarks": "不正な商品ID"
+            }
+            """;
+
+        // Act & Assert: エラーが返される
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(requestBody))
+               .andExpect(status().isBadRequest())
+               .andExpect(jsonPath("$.success").value(false))
+               .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("商品が見つかりません")));
+    }
+
+    /**
+     * Test: 認証なしでの在庫更新API結合テスト
+     */
+    @Test
+    @DisplayName("【結合】認証なしで在庫更新APIにアクセスするとリダイレクトされる")
+    void testEndToEnd_StockUpdate_NoAuth() throws Exception {
+        // Given
+        String requestBody = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "in",
+                "quantity": 10,
+                "remarks": "認証なしテスト"
+            }
+            """, testProduct1.getId());
+
+        // Act & Assert: 認証エラーでリダイレクト
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(requestBody))
+               .andExpect(status().is3xxRedirection());
+
+        // Assert: 在庫数は変更されていない
+        Product unchangedProduct = productRepository.findById(testProduct1.getId()).orElseThrow();
+        assertThat(unchangedProduct.getStock()).isEqualTo(50); // 初期値のまま
+    }
+
+    /**
+     * Test: CSRFトークンなしでのエラー結合テスト
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】CSRFトークンなしで在庫更新APIにアクセスするとエラーになる")
+    void testEndToEnd_StockUpdate_NoCsrf() throws Exception {
+        // Given
+        String requestBody = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "in",
+                "quantity": 10,
+                "remarks": "CSRFなしテスト"
+            }
+            """, testProduct1.getId());
+
+        // Act & Assert: CSRFエラー
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(requestBody))
+               .andExpect(status().is3xxRedirection());
+
+        // Assert: 在庫数は変更されていない
+        Product unchangedProduct = productRepository.findById(testProduct1.getId()).orElseThrow();
+        assertThat(unchangedProduct.getStock()).isEqualTo(50);
     }
 }

@@ -235,3 +235,65 @@ body.error-page .login-container {
 .error-icon {
     font-size: 4rem;
 }
+
+/* テーブル列の幅指定 */
+.w-8 {
+    width: 8%;
+}
+
+.w-10 {
+    width: 10%;
+}
+
+.w-12 {
+    width: 12%;
+}
+
+.w-13 {
+    width: 13%;
+}
+
+.w-15 {
+    width: 15%;
+}
+
+.w-18 {
+    width: 18%;
+}
+
+.w-20 {
+    width: 20%;
+}
+
+.w-40 {
+    width: 40%;
+}
+
+.w-50 {
+    width: 50%;
+}
+
+/* インラインフォーム用スタイル */
+.form-inline {
+    display: inline;
+}
+
+/* リンクボタンのインライン表示 */
+.btn-link-inline {
+    display: inline;
+    padding: 0;
+    border: none;
+}
+
+/* ステータスバッジ */
+.badge-status-active {
+    background-color: #e7f5ff;
+    color: #212529;
+    border: 1px solid #74c0fc;
+}
+
+.badge-status-inactive {
+    background-color: #dc3545;
+    color: #ffffff;
+    font-weight: 600;
+}

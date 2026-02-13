@@ -1,14 +1,20 @@
 package com.inventory.inventory_management.service;
 
+import java.time.LocalDateTime;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.inventory.inventory_management.entity.Product;
+import com.inventory.inventory_management.entity.StockTransaction;
 import com.inventory.inventory_management.repository.ProductRepository;
+import com.inventory.inventory_management.repository.StockTransactionRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 public class InventoryService {
 
     private final ProductRepository productRepository;
+    private final StockTransactionRepository stockTransactionRepository;
 
     /**
      * 1ページあたりの表示件数
@@ -198,6 +205,103 @@ public class InventoryService {
         } catch (Exception e) {
             log.error("商品取得時にエラー: productCode={}, error={}", productCode, e.getMessage(), e);
             return null;
+        }
+    }
+
+    /**
+     * 在庫を更新（入庫・出庫）
+     * @param productId 商品ID
+     * @param transactionType 取引種別（"in": 入庫、"out": 出庫）
+     * @param quantity 数量
+     * @param remarks 備考
+     * @return 更新後の商品エンティティ
+     * @throws IllegalArgumentException 不正な引数の場合
+     * @throws IllegalStateException 在庫不足の場合
+     */
+    @Transactional
+    public Product updateStock(Integer productId, String transactionType, Integer quantity, String remarks) {
+        try {
+            log.info("在庫更新開始: productId={}, type={}, quantity={}", productId, transactionType, quantity);
+
+            // バリデーション
+            if (productId == null || quantity == null || quantity <= 0) {
+                throw new IllegalArgumentException("商品IDまたは数量が不正です");
+            }
+
+            if (!"in".equals(transactionType) && !"out".equals(transactionType)) {
+                throw new IllegalArgumentException("取引種別が不正です（in/outのみ）");
+            }
+
+            // 商品を取得
+            Product product = productRepository.findById(productId)
+                    .orElseThrow(() -> new IllegalArgumentException("商品が見つかりません: " + productId));
+
+            // 削除済み商品チェック
+            if (product.getDeletedAt() != null) {
+                throw new IllegalStateException("削除済みの商品です");
+            }
+
+            // 変更前在庫数を記録
+            Integer beforeStock = product.getStock();
+            Integer afterStock;
+
+            // 在庫数を更新
+            if ("in".equals(transactionType)) {
+                // 入庫
+                afterStock = beforeStock + quantity;
+                log.debug("入庫: {} → {}", beforeStock, afterStock);
+            } else {
+                // 出庫
+                if (beforeStock < quantity) {
+                    throw new IllegalStateException("在庫が不足しています（現在: " + beforeStock + "個）");
+                }
+                afterStock = beforeStock - quantity;
+                log.debug("出庫: {} → {}", beforeStock, afterStock);
+            }
+
+            // 商品の在庫数を更新
+            product.setStock(afterStock);
+            product.setUpdatedAt(LocalDateTime.now());
+            Product savedProduct = productRepository.save(product);
+
+            // 在庫変動履歴を記録
+            StockTransaction transaction = new StockTransaction();
+            transaction.setProductId(productId);
+            transaction.setTransactionType(transactionType);
+            transaction.setQuantity(quantity);
+            transaction.setBeforeStock(beforeStock);
+            transaction.setAfterStock(afterStock);
+            transaction.setUserId(getCurrentUserId());
+            transaction.setTransactionDate(LocalDateTime.now());
+            transaction.setRemarks(remarks);
+            stockTransactionRepository.save(transaction);
+
+            log.info("在庫更新完了: productId={}, before={}, after={}", productId, beforeStock, afterStock);
+            return savedProduct;
+
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            log.warn("在庫更新エラー: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("在庫更新時にエラーが発生: productId={}, error={}", productId, e.getMessage(), e);
+            throw new RuntimeException("在庫更新に失敗しました", e);
+        }
+    }
+
+    /**
+     * 現在のログインユーザーIDを取得
+     * @return ユーザーID
+     */
+    private String getCurrentUserId() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication != null && authentication.isAuthenticated()) {
+                return authentication.getName();
+            }
+            return "system";
+        } catch (Exception e) {
+            log.warn("ユーザーID取得エラー: {}", e.getMessage());
+            return "unknown";
         }
     }
 }

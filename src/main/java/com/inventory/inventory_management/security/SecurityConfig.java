@@ -102,6 +102,7 @@ public class SecurityConfig {
            })
            .csrf((csrf) -> csrf
                .csrfTokenRepository(csrfTokenRepository)  // CSRF保護の明示的な設定（セッションベース）
+               .ignoringRequestMatchers("/csp-violation-report-endpoint")  // CSPレポートエンドポイントをCSRF保護から除外
            )
            .sessionManagement((session) -> {
                session

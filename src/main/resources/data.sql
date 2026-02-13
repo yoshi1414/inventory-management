@@ -10208,3 +10208,45 @@ INSERT IGNORE INTO products (product_code, product_name, category, description, 
 ('RPYLOB1M', 'Headphones', 'Clothing', 'Product_K3M9M', 411.63, 79, 1, '17x11x17 cm', '2023-07-30', '2026-01-01', 'INSC1B', '0QB,U55', 'Red/Small', 1, 'active'),
 ('3JWTGTOM', 'Laptop', 'Clothing', 'Product_I0ACF', 74.38, 81, 1, '6x6x16 cm', '2023-01-01', '2025-01-01', 'UH0U3R', 'C5R,TZN', 'Blue/Medium', 1, 'active');
 
+-- Update stock to 0 for 30 items
+UPDATE products
+SET stock = 0
+WHERE product_code IN (
+	'93TGNAY7', 'TYYZ5AV7', '5C94FGTQ', 'XBHKYPQB', '728GCZFU',
+	'27R9M103', 'JDOVOMY2', '0KHFMXFN', 'T4F2EW7G', 'GL199BEL',
+	'SX7HALUU', '1AOXE5QW', 'KOXR70B4', 'X2D1GWO5', 'ZKI2USNA',
+	'EPKS7ECS', 'UB8UO1PA', '6ID782KK', 'YWJW03Z5', '44WFTM8R',
+	'CVYLYMJ3', '9UQRU4ZU', '4RBD28EN', 'XNTCQGCN', 'T27XMDD2',
+	'OR97MBZ1', 'HGFIOVL2', '758FMQ42', '8XJVYL79', 'YWS54ZGS'
+);
+
+-- Mark 10 items as inactive
+UPDATE products
+SET status = 'inactive'
+WHERE product_code IN (
+	'93TGNAY7', 'TYYZ5AV7', '5C94FGTQ', 'XBHKYPQB', '728GCZFU',
+	'27R9M103', 'JDOVOMY2', '0KHFMXFN', 'T4F2EW7G', 'GL199BEL'
+);
+
+-- Mark 10 items with stock greater than 1 as inactive using JOIN
+UPDATE products p
+JOIN (
+	SELECT product_code
+	FROM products
+	WHERE stock > 1
+	LIMIT 10
+) sub ON p.product_code = sub.product_code
+SET p.status = 'inactive';
+
+-- 在庫履歴データ（remarksカラムを含む）
+-- 注: 実際の運用環境では、これらのサンプルデータは不要な場合があります
+INSERT INTO stock_transactions (product_id, transaction_type, quantity, before_stock, after_stock, user_id, transaction_date, remarks) VALUES
+-- commercial_Laptop (product_code: '93TGNAY7') の在庫履歴
+((SELECT id FROM products WHERE product_code = '93TGNAY7'), 'in', 50, 0, 50, 'testuser', '2023-01-15 10:00:00', '初期在庫入庫'),
+((SELECT id FROM products WHERE product_code = '93TGNAY7'), 'out', 47, 50, 3, 'testuser', '2023-06-20 14:30:00', '販売による出庫'),
+-- Smartphone (product_code: 'TYYZ5AV7') の在庫履歴
+((SELECT id FROM products WHERE product_code = 'TYYZ5AV7'), 'in', 100, 0, 100, 'testuser', '2023-03-20 09:00:00', '初期在庫入庫'),
+((SELECT id FROM products WHERE product_code = 'TYYZ5AV7'), 'out', 8, 100, 92, 'testuser', '2023-08-15 16:45:00', '販売による出庫'),
+-- Headphones (product_code: '5C94FGTQ') の在庫履歴
+((SELECT id FROM products WHERE product_code = '5C94FGTQ'), 'in', 30, 0, 30, 'adminuser', '2023-03-20 11:30:00', '初期在庫入庫'),
+((SELECT id FROM products WHERE product_code = '5C94FGTQ'), 'out', 11, 30, 19, 'adminuser', '2023-09-10 13:20:00', '販売による出庫');

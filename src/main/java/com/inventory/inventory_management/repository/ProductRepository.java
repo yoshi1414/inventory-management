@@ -34,9 +34,9 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
      * @return 検索結果のページ
      */
     @Query("SELECT p FROM Product p WHERE " +
-           "(:keyword IS NULL OR LOWER(p.productName) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
-           "(:category IS NULL OR p.category = :category) AND " +
-           "(:status IS NULL OR p.status = :status) AND " +
+           "(:keyword IS NULL OR :keyword = '' OR LOWER(p.productName) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
+           "(:category IS NULL OR :category = '' OR p.category = :category) AND " +
+           "(:status IS NULL OR :status = '' OR p.status = :status) AND " +
            "p.deletedAt IS NULL")
     Page<Product> findBySearchConditions(
         @Param("keyword") String keyword,
@@ -70,9 +70,9 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
      * @return 検索結果のページ
      */
     @Query("SELECT p FROM Product p WHERE " +
-           "(:keyword IS NULL OR LOWER(p.productName) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
-           "(:category IS NULL OR p.category = :category) AND " +
-           "(:status IS NULL OR p.status = :status) AND " +
+           "(:keyword IS NULL OR :keyword = '' OR LOWER(p.productName) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
+           "(:category IS NULL OR :category = '' OR p.category = :category) AND " +
+           "(:status IS NULL OR :status = '' OR p.status = :status) AND " +
            "(:minStock IS NULL OR p.stock >= :minStock) AND " +
            "(:maxStock IS NULL OR p.stock <= :maxStock) AND " +
            "p.deletedAt IS NULL")

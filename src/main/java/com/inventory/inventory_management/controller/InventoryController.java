@@ -1,9 +1,16 @@
 package com.inventory.inventory_management.controller;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.inventory.inventory_management.entity.Product;
@@ -45,6 +52,18 @@ public class InventoryController {
             Model model) {
 
         try {
+            // ページ番号のバリデーション
+            if (page < 0) {
+                log.warn("負のページ番号が指定されました: page={}", page);
+                model.addAttribute("errorMessage", "ページ番号は0以上である必要があります。");
+                return "error";
+            }
+            
+            // 検索キーワードのトリム処理（前後のスペースを削除）
+            if (search != null && !search.isEmpty()) {
+                search = search.trim();
+            }
+            
             log.debug("在庫一覧画面を表示: search={}, category={}, status={}, stock={}, sort={}, page={}", 
                         search, category, status, stock, sort, page);
 
@@ -92,6 +111,80 @@ public class InventoryController {
             log.error("在庫一覧画面表示時にエラーが発生: error={}", e.getMessage(), e);
             model.addAttribute("errorMessage", "在庫情報の取得に失敗しました。");
             return "error";
+        }
+    }
+
+    /**
+     * 在庫を更新（入庫・出庫）
+     * @param request リクエストボディ（productId, transactionType, quantity, remarks）
+     * @return ResponseEntity（成功/エラー情報）
+     */
+    @PostMapping("/api/inventory/update-stock")
+    public ResponseEntity<Map<String, Object>> updateStock(@RequestBody Map<String, Object> request) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // リクエストパラメータを取得
+            Integer productId = (Integer) request.get("productId");
+            String transactionType = (String) request.get("transactionType");
+            Integer quantity = (Integer) request.get("quantity");
+            String remarks = (String) request.get("remarks");
+
+            log.info("在庫更新リクエスト: productId={}, type={}, quantity={}", productId, transactionType, quantity);
+
+            // バリデーション
+            if (productId == null) {
+                response.put("success", false);
+                response.put("message", "商品IDが指定されていません。");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            if (transactionType == null || (!transactionType.equals("in") && !transactionType.equals("out"))) {
+                response.put("success", false);
+                response.put("message", "操作種別が不正です。");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            if (quantity == null || quantity <= 0) {
+                response.put("success", false);
+                response.put("message", "数量は1以上を入力してください。");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // 在庫更新
+            Product updatedProduct = inventoryService.updateStock(productId, transactionType, quantity, remarks);
+
+            // 成功レスポンス
+            response.put("success", true);
+            response.put("message", transactionType.equals("in") ? 
+                    quantity + "個の入庫が完了しました。" : 
+                    quantity + "個の出庫が完了しました。");
+            response.put("product", Map.of(
+                    "id", updatedProduct.getId(),
+                    "productName", updatedProduct.getProductName(),
+                    "stock", updatedProduct.getStock()
+            ));
+
+            log.info("在庫更新成功: productId={}, newStock={}", productId, updatedProduct.getStock());
+            return ResponseEntity.ok(response);
+
+        } catch (IllegalArgumentException e) {
+            log.warn("在庫更新バリデーションエラー: {}", e.getMessage());
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+
+        } catch (IllegalStateException e) {
+            log.warn("在庫更新ビジネスエラー: {}", e.getMessage());
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+
+        } catch (Exception e) {
+            log.error("在庫更新時にエラーが発生: error={}", e.getMessage(), e);
+            response.put("success", false);
+            response.put("message", "在庫更新に失敗しました。システム管理者に連絡してください。");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 }
