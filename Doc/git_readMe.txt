@@ -136,6 +136,27 @@ git branch -D requirements-definition-1
 git branch -D requirements-definition-2
 
 ーーーーーーーーーーーーーーーーーーーーーーーーーー
+#ローカルファイルの保持
+1.現在の変更を確認
+git status
+
+2.変更を一時退避（必要に応じて）
+git stash
+これにより、ローカルの変更を一時的に保存できます。
+
+3.ブランチを作成して切り替え
+git checkout -b system-design-view-user origin/system-design-view-user
+
+4.退避した変更を戻す（必要に応じて）
+git stash pop
+
+--------
+補足
+・git stash list を実行して、スタッシュがまだ存在しているか確認できます。
+・git stash drop で手動で削除できます
+・git stash clear ですべてのスタッシュを削除ができます
+
+ーーーーーーーーーーーーーーーーーーーーーーーーーー
 ローカル環境にマージするには
 1.取り込み
 git fetch
@@ -155,6 +176,3 @@ git merge origin/main
 
 コミットコメント例を参考にして、添付内容のコミットコメントを考えて
 ーーーーーーーーーーーーー
-
-
-
