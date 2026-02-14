@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商品詳細 - 商品在庫管理システム</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <!-- ナビゲーションバー（一般ユーザー用） -->
+    <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/inventory">
+                <i class="bi bi-box-seam"></i> 商品在庫管理システム
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/users/password">
+                            <i class="bi bi-key"></i> パスワード変更
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                            <i class="bi bi-box-arrow-right"></i> ログアウト
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- メインコンテンツ -->
+    <div class="container mt-5 pt-4">
+        <div class="row">
+            <div class="col-12">
+                <!-- パンくずリスト -->
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/inventory">在庫管理</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">商品詳細</li>
+                    </ol>
+                </nav>
+
+                <!-- ヘッダー -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>
+                        <i class="bi bi-box-seam"></i> 商品詳細
+                    </h2>
+                </div>
+
+                <!-- 商品基本情報カード -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-info-circle"></i> 基本情報</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <th class="w-40">商品コード (Product Code)</th>
+                                        <td><code th:text="${product.productCode}">PRD001</code></td>
+                                    </tr>
+                                    <tr>
+                                        <th>商品名 (Product Name)</th>
+                                        <td><strong th:text="${product.productName}">商品名</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <th>カテゴリ (Product Category)</th>
+                                        <td>
+                                            <span th:class="${'badge ' + 
+                                                (product.category == 'Electronics' ? 'bg-primary' : 
+                                                 product.category == 'Clothing' ? 'bg-info' : 'bg-secondary')}"
+                                                  th:text="${product.category}">カテゴリ</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>SKU (在庫管理番号)</th>
+                                        <td><code th:text="${product.sku}">SKU001</code></td>
+                                    </tr>
+                                    <tr>
+                                        <th>商品説明 (Product Description)</th>
+                                        <td th:text="${product.description}">商品説明</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <th class="w-40">価格 (Price)</th>
+                                        <td>
+                                            <strong class="text-primary">
+                                                ¥<span th:text="${#numbers.formatInteger(product.price, 0, 'COMMA')}">0</span>
+                                            </strong>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>在庫数 (Stock Quantity)</th>
+                                        <td>
+                                            <span th:if="${product.stock == 0}" class="stock-out">
+                                                <i class="bi bi-x-circle-fill"></i> <span th:text="${product.stock}">0</span>個（在庫なし）
+                                            </span>
+                                            <span th:if="${product.stock > 0 and product.stock <= 20}" class="stock-warning">
+                                                <i class="bi bi-exclamation-triangle-fill"></i> <span th:text="${product.stock}">0</span>個（在庫不足）
+                                            </span>
+                                            <span th:if="${product.stock > 20}" class="stock-sufficient">
+                                                <i class="bi bi-check-circle-fill"></i> <span th:text="${product.stock}">0</span>個
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>ステータス</th>
+                                        <td>
+                                            <span th:class="${'badge badge-status-' + product.status}"
+                                                  th:text="${product.status == 'active' ? '販売中' : '販売停止'}">販売中</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>商品評価 (Product Ratings)</th>
+                                        <td>
+                                            <span class="text-warning">
+                                                <th:block th:each="i : ${#numbers.sequence(1, 5)}">
+                                                    <i th:if="${i <= product.rating}" class="bi bi-star-fill"></i>
+                                                    <i th:if="${i > product.rating and i - 0.5 <= product.rating}" class="bi bi-star-half"></i>
+                                                    <i th:if="${i - 0.5 > product.rating}" class="bi bi-star"></i>
+                                                </th:block>
+                                            </span>
+                                            <span class="ms-2" th:text="${product.rating} + ' / 5.0'">0.0 / 5.0</span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 商品詳細情報カード -->
+                <div class="card mb-4">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0"><i class="bi bi-list-ul"></i> 詳細情報</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <th class="w-50">保証期間 (Warranty Period)</th>
+                                        <td th:text="${product.warrantyMonths != null ? product.warrantyMonths + 'ヶ月' : '-'}">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>商品寸法 (Product Dimensions)</th>
+                                        <td th:text="${product.dimensions}">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>色/サイズバリエーション (Color/Size Variations)</th>
+                                        <td>
+                                            <span class="badge bg-success" th:text="${product.variations}">-</span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <th class="w-50">製造日 (Manufacturing Date)</th>
+                                        <td th:text="${product.manufacturingDate != null ? #temporals.format(product.manufacturingDate, 'yyyy-MM-dd') : '-'}">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>有効期限 (Expiration Date)</th>
+                                        <td th:text="${product.expirationDate != null ? #temporals.format(product.expirationDate, 'yyyy-MM-dd') : '-'}">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>商品タグ (Product Tags)</th>
+                                        <td>
+                                            <th:block th:if="${product.tags != null and !#strings.isEmpty(product.tags)}">
+                                                <th:block th:each="tag, iterStat : ${#strings.arraySplit(product.tags, ',')}">
+                                                    <span class="badge bg-info me-1" th:text="${#strings.trim(tag)}">タグ</span>
+                                                </th:block>
+                                            </th:block>
+                                            <span th:if="${product.tags == null or #strings.isEmpty(product.tags)}">-</span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 入出庫履歴カード -->
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="bi bi-clock-history"></i> 最近の入出庫履歴</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>日時</th>
+                                        <th>種別</th>
+                                        <th>数量</th>
+                                        <th>在庫数（変更後）</th>
+                                        <th>担当者</th>
+                                        <th>備考</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="transaction : ${transactions}">
+                                        <td th:text="${#temporals.format(transaction.transactionDate, 'yyyy-MM-dd HH:mm')}">2026-01-01 10:00</td>
+                                        <td>
+                                            <span th:if="${transaction.transactionType == 'in'}" class="badge bg-success">入庫</span>
+                                            <span th:if="${transaction.transactionType == 'out'}" class="badge bg-danger">出庫</span>
+                                        </td>
+                                        <td>
+                                            <span th:if="${transaction.transactionType == 'in'}" th:text="'+' + ${transaction.quantity}">+0</span>
+                                            <span th:if="${transaction.transactionType == 'out'}" th:text="'-' + ${transaction.quantity}">-0</span>
+                                        </td>
+                                        <td th:text="${transaction.afterStock}">0</td>
+                                        <td th:text="${transaction.userId}">担当者</td>
+                                        <td th:text="${transaction.remarks != null ? transaction.remarks : '-'}">-</td>
+                                    </tr>
+                                    <!-- データが0件の場合 -->
+                                    <tr th:if="${#lists.isEmpty(transactions)}">
+                                        <td colspan="6" class="text-center text-muted">
+                                            入出庫履歴がありません。
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div th:if="${!#lists.isEmpty(transactions)}" class="text-muted mt-2">
+                            <small><i class="bi bi-info-circle"></i> 最新3件の履歴を表示しています。</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- アクションボタン -->
+                <div class="d-flex justify-content-between mb-4">
+                    <a href="/inventory" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> 在庫管理に戻る
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ログアウト確認モーダル -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="logoutModalLabel">
+                        <i class="bi bi-box-arrow-right"></i> ログアウト確認
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0">ログアウトしますか？</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <form action="/logout" method="post" class="form-inline">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-box-arrow-right"></i> ログアウト
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- 共通JavaScript -->
+    <script src="/js/common.js"></script>
+</body>
+</html>
