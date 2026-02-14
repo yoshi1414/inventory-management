@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,9 @@ class ProductRepositoryTest {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private StockTransactionRepository stockTransactionRepository;
+
     private Product product1;
     private Product product2;
     private Product product3;
@@ -43,8 +47,10 @@ class ProductRepositoryTest {
      */
     @BeforeEach
     void setUp() {
-        // テストデータをクリア
+        // テストデータをクリア（外部キー制約を考慮して、先にstock_transactionsを削除）
+        stockTransactionRepository.deleteAll();
         productRepository.deleteAll();
+        productRepository.flush();
 
         // テスト商品1: 在庫十分（Electronics）
         product1 = new Product();
@@ -105,6 +111,17 @@ class ProductRepositoryTest {
         product3.setCreatedAt(LocalDateTime.now());
         product3.setUpdatedAt(LocalDateTime.now());
         productRepository.save(product3);
+    }
+
+    /**
+     * 各テストメソッド実行後のクリーンアップ処理
+     * テストデータを削除してデータベ ースをクリアする
+     */
+    @AfterEach
+    void tearDown() {
+        // 外部キー制約を考慮して、先にstock_transactionsを削除
+        stockTransactionRepository.deleteAll();
+        productRepository.deleteAll();
     }
 
     /**

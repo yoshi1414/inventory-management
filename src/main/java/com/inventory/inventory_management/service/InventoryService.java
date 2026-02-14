@@ -1,6 +1,9 @@
 package com.inventory.inventory_management.service;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -179,21 +182,6 @@ public class InventoryService {
     }
 
     /**
-     * 商品IDで商品を取得
-     * @param id 商品ID
-     * @return 商品エンティティ
-     */
-    public Product getProductById(Integer id) {
-        try {
-            log.debug("商品取得: id={}", id);
-            return productRepository.findById(id).orElse(null);
-        } catch (Exception e) {
-            log.error("商品取得時にエラー: id={}, error={}", id, e.getMessage(), e);
-            return null;
-        }
-    }
-
-    /**
      * 商品コードで商品を取得
      * @param productCode 商品コード
      * @return 商品エンティティ
@@ -285,6 +273,69 @@ public class InventoryService {
         } catch (Exception e) {
             log.error("在庫更新時にエラーが発生: productId={}, error={}", productId, e.getMessage(), e);
             throw new RuntimeException("在庫更新に失敗しました", e);
+        }
+    }
+
+    /**
+     * 商品詳細をIDで取得
+     * @param productId 商品ID
+     * @return 商品エンティティ（Optional）
+     */
+    public Optional<Product> getProductById(Integer productId) {
+        try {
+            log.debug("商品詳細取得: productId={}", productId);
+            
+            if (productId == null) {
+                log.warn("商品IDがnullです");
+                return Optional.empty();
+            }
+            
+            Optional<Product> product = productRepository.findById(productId);
+            
+            // 削除済み商品は返さない
+            if (product.isPresent() && product.get().getDeletedAt() != null) {
+                log.debug("削除済み商品のため取得不可: productId={}", productId);
+                return Optional.empty();
+            }
+            
+            log.debug("商品取得成功: productId={}", productId);
+            return product;
+            
+        } catch (Exception e) {
+            log.error("商品取得時にエラーが発生: productId={}, error={}", productId, e.getMessage(), e);
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * 商品の入出庫履歴を取得（最新N件）
+     * @param productId 商品ID
+     * @param limit 取得件数（nullの場合は全件取得）
+     * @return 在庫変動履歴リスト
+     */
+    public List<StockTransaction> getStockTransactions(Integer productId, Integer limit) {
+        try {
+            log.debug("在庫履歴取得: productId={}, limit={}", productId, limit);
+            
+            if (productId == null) {
+                log.warn("商品IDがnullです");
+                return Collections.emptyList();
+            }
+            
+            List<StockTransaction> transactions = 
+                    stockTransactionRepository.findByProductIdOrderByTransactionDateDesc(productId);
+            
+            // 件数制限を適用
+            if (limit != null && limit > 0 && transactions.size() > limit) {
+                transactions = transactions.subList(0, limit);
+            }
+            
+            log.debug("在庫履歴取得成功: productId={}, 件数={}", productId, transactions.size());
+            return transactions;
+            
+        } catch (Exception e) {
+            log.error("在庫履歴取得時にエラーが発生: productId={}, error={}", productId, e.getMessage(), e);
+            return Collections.emptyList();
         }
     }
 

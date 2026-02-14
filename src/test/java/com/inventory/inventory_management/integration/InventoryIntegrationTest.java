@@ -890,4 +890,994 @@ public class InventoryIntegrationTest {
         Product unchangedProduct = productRepository.findById(testProduct1.getId()).orElseThrow();
         assertThat(unchangedProduct.getStock()).isEqualTo(50);
     }
+
+    // ========== 商品詳細画面 結合テスト ==========
+
+    /**
+     * Test: 商品詳細画面が正常に表示される結合テスト
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】商品詳細画面でコントローラーからDBまで正しく処理される")
+    void testEndToEnd_ProductDetail_Success() throws Exception {
+        // Act & Assert
+        MvcResult result = mockMvc.perform(get("/inventory/products/{id}", testProduct1.getId()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("inventory-detail"))
+                .andExpect(model().attributeExists("product"))
+                .andExpect(model().attributeExists("transactions"))
+                .andReturn();
+
+        // モデルから商品を取得してDBの内容と一致することを確認
+        Product product = (Product) result.getModelAndView().getModel().get("product");
+        assertThat(product).isNotNull();
+        assertThat(product.getId()).isEqualTo(testProduct1.getId());
+        assertThat(product.getProductCode()).isEqualTo(testProduct1.getProductCode());
+        assertThat(product.getProductName()).isEqualTo(testProduct1.getProductName());
+        assertThat(product.getStock()).isEqualTo(testProduct1.getStock());
+
+        // DBから直接取得して整合性を確認
+        Product dbProduct = productRepository.findById(testProduct1.getId()).orElseThrow();
+        assertThat(product.getProductName()).isEqualTo(dbProduct.getProductName());
+        assertThat(product.getStock()).isEqualTo(dbProduct.getStock());
+    }
+
+    /**
+     * Test: 商品詳細画面の全表示項目がDBの内容と一致しているか確認する詳細テスト
+     * HTML表示項目とDB値の完全な整合性を検証
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】商品詳細画面のすべての表示項目がDBの内容と完全に一致している")
+    void testEndToEnd_ProductDetail_AllFieldsConsistency() throws Exception {
+        // Given: テストデータに全項目を設定
+        Product product = productRepository.findById(testProduct1.getId()).orElseThrow();
+        product.setSku("SKU-TEST-001");
+        product.setDescription("詳細テスト用商品説明");
+        product.setPrice(new BigDecimal("15000.00"));
+        product.setRating(new BigDecimal("4.5"));
+        product.setWarrantyMonths(12);
+        product.setDimensions("10cm x 20cm x 5cm");
+        product.setVariations("Red, Blue, Green");
+        product.setManufacturingDate(java.time.LocalDate.now().minusDays(30));
+        product.setExpirationDate(java.time.LocalDate.now().plusYears(1));
+        product.setTags("タグ1,タグ2,タグ3");
+        productRepository.save(product);
+
+        // Act: 商品詳細画面を取得
+        MvcResult result = mockMvc.perform(get("/inventory/products/{id}", product.getId()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("inventory-detail"))
+                .andExpect(model().attributeExists("product"))
+                .andReturn();
+
+        // Assert: モデルの商品情報がDBと完全に一致することを確認
+        Product resultProduct = (Product) result.getModelAndView().getModel().get("product");
+        
+        // 基本情報の確認
+        assertThat(resultProduct.getId()).isEqualTo(product.getId());
+        assertThat(resultProduct.getProductCode()).isEqualTo(product.getProductCode());
+        assertThat(resultProduct.getProductName()).isEqualTo(product.getProductName());
+        assertThat(resultProduct.getCategory()).isEqualTo(product.getCategory());
+        
+        // 詳細情報の確認
+        assertThat(resultProduct.getSku()).isEqualTo(product.getSku());
+        assertThat(resultProduct.getDescription()).isEqualTo(product.getDescription());
+        assertThat(resultProduct.getPrice()).isEqualByComparingTo(product.getPrice());
+        assertThat(resultProduct.getStatus()).isEqualTo(product.getStatus());
+        assertThat(resultProduct.getRating()).isEqualByComparingTo(product.getRating());
+        
+        // 追加情報の確認
+        assertThat(resultProduct.getWarrantyMonths()).isEqualTo(product.getWarrantyMonths());
+        assertThat(resultProduct.getDimensions()).isEqualTo(product.getDimensions());
+        assertThat(resultProduct.getVariations()).isEqualTo(product.getVariations());
+        assertThat(resultProduct.getManufacturingDate()).isEqualTo(product.getManufacturingDate());
+        assertThat(resultProduct.getExpirationDate()).isEqualTo(product.getExpirationDate());
+        assertThat(resultProduct.getTags()).isEqualTo(product.getTags());
+        
+        // 在庫情報の確認
+        assertThat(resultProduct.getStock()).isEqualTo(product.getStock());
+        
+        // DBから直接取得した商品とも完全に一致することを確認
+        Product dbProduct = productRepository.findById(product.getId()).orElseThrow();
+        assertThat(resultProduct.getProductCode()).isEqualTo(dbProduct.getProductCode());
+        assertThat(resultProduct.getProductName()).isEqualTo(dbProduct.getProductName());
+        assertThat(resultProduct.getCategory()).isEqualTo(dbProduct.getCategory());
+        assertThat(resultProduct.getSku()).isEqualTo(dbProduct.getSku());
+        assertThat(resultProduct.getDescription()).isEqualTo(dbProduct.getDescription());
+        assertThat(resultProduct.getPrice()).isEqualByComparingTo(dbProduct.getPrice());
+        assertThat(resultProduct.getStatus()).isEqualTo(dbProduct.getStatus());
+        assertThat(resultProduct.getRating()).isEqualByComparingTo(dbProduct.getRating());
+        assertThat(resultProduct.getWarrantyMonths()).isEqualTo(dbProduct.getWarrantyMonths());
+        assertThat(resultProduct.getDimensions()).isEqualTo(dbProduct.getDimensions());
+        assertThat(resultProduct.getVariations()).isEqualTo(dbProduct.getVariations());
+        assertThat(resultProduct.getManufacturingDate()).isEqualTo(dbProduct.getManufacturingDate());
+        assertThat(resultProduct.getExpirationDate()).isEqualTo(dbProduct.getExpirationDate());
+        assertThat(resultProduct.getTags()).isEqualTo(dbProduct.getTags());
+        assertThat(resultProduct.getStock()).isEqualTo(dbProduct.getStock());
+    }
+
+    /**
+     * Test: Null値フィールドが正しく表示される結合テスト
+     * オプショナルフィールド(保証期間、製造日など)がnullの場合の処理確認
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】オプショナルフィールドがnullの場合、正常に表示される")
+    void testEndToEnd_ProductDetail_NullOptionalFields() throws Exception {
+        // Given: オプショナルフィールドをnullに設定
+        Product product = productRepository.findById(testProduct1.getId()).orElseThrow();
+        product.setSku(null);
+        product.setDescription(null);
+        product.setWarrantyMonths(null);
+        product.setDimensions(null);
+        product.setVariations(null);
+        product.setManufacturingDate(null);
+        product.setExpirationDate(null);
+        product.setTags(null);
+        product.setRating(null);
+        productRepository.save(product);
+
+        // Act
+        MvcResult result = mockMvc.perform(get("/inventory/products/{id}", product.getId()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("inventory-detail"))
+                .andExpect(model().attributeExists("product"))
+                .andReturn();
+
+        // Assert: nullフィールドが正しく取得されることを確認
+        Product resultProduct = (Product) result.getModelAndView().getModel().get("product");
+        assertThat(resultProduct.getSku()).isNull();
+        assertThat(resultProduct.getDescription()).isNull();
+        assertThat(resultProduct.getWarrantyMonths()).isNull();
+        assertThat(resultProduct.getDimensions()).isNull();
+        assertThat(resultProduct.getVariations()).isNull();
+        assertThat(resultProduct.getManufacturingDate()).isNull();
+        assertThat(resultProduct.getExpirationDate()).isNull();
+        assertThat(resultProduct.getTags()).isNull();
+        assertThat(resultProduct.getRating()).isNull();
+        
+        // DBからも同じ結果が得られることを確認
+        Product dbProduct = productRepository.findById(product.getId()).orElseThrow();
+        assertThat(resultProduct.getSku()).isEqualTo(dbProduct.getSku());
+        assertThat(resultProduct.getWarrantyMonths()).isEqualTo(dbProduct.getWarrantyMonths());
+        assertThat(resultProduct.getDimensions()).isEqualTo(dbProduct.getDimensions());
+        assertThat(resultProduct.getTags()).isEqualTo(dbProduct.getTags());
+    }
+
+    /**
+     * Test: 複数商品の表示項目がそれぞれ正しく表示される結合テスト
+     * 同時に複数商品の詳細画面を表示して、各商品の項目が混ざらないことを確認
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】複数商品の詳細画面で各商品の表示項目が混ざらない")
+    void testEndToEnd_ProductDetail_MultipleProductsDataSegregation() throws Exception {
+        // Act: 商品1の詳細を取得
+        MvcResult result1 = mockMvc.perform(get("/inventory/products/{id}", testProduct1.getId()))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Product product1Result = (Product) result1.getModelAndView().getModel().get("product");
+
+        // Act: 商品2の詳細を取得
+        MvcResult result2 = mockMvc.perform(get("/inventory/products/{id}", testProduct2.getId()))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Product product2Result = (Product) result2.getModelAndView().getModel().get("product");
+
+        // Act: 商品3の詳細を取得
+        MvcResult result3 = mockMvc.perform(get("/inventory/products/{id}", testProduct3.getId()))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Product product3Result = (Product) result3.getModelAndView().getModel().get("product");
+
+        // Assert: 各商品の情報が正しく分離されていることを確認
+        assertThat(product1Result.getProductCode()).isEqualTo("INT0001");
+        assertThat(product1Result.getProductName()).isEqualTo("統合テスト商品A");
+        assertThat(product1Result.getStock()).isEqualTo(50);
+
+        assertThat(product2Result.getProductCode()).isEqualTo("INT0002");
+        assertThat(product2Result.getProductName()).isEqualTo("統合テスト商品B");
+        assertThat(product2Result.getStock()).isEqualTo(15);
+
+        assertThat(product3Result.getProductCode()).isEqualTo("INT0003");
+        assertThat(product3Result.getProductName()).isEqualTo("統合テスト商品C");
+        assertThat(product3Result.getStock()).isEqualTo(0);
+
+        // Assert: DBの値と完全に一致することを確認
+        Product db1 = productRepository.findById(testProduct1.getId()).orElseThrow();
+        Product db2 = productRepository.findById(testProduct2.getId()).orElseThrow();
+        Product db3 = productRepository.findById(testProduct3.getId()).orElseThrow();
+
+        assertThat(product1Result.getProductCode()).isEqualTo(db1.getProductCode());
+        assertThat(product2Result.getProductCode()).isEqualTo(db2.getProductCode());
+        assertThat(product3Result.getProductCode()).isEqualTo(db3.getProductCode());
+    }
+
+    /**
+     * Test: 商品詳細画面に入出庫履歴が正しく表示される結合テスト
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】商品詳細画面に入出庫履歴が最新3件表示される")
+    void testEndToEnd_ProductDetail_WithTransactions() throws Exception {
+        // Given: 在庫変動履歴を作成（4件）
+        for (int i = 0; i < 4; i++) {
+            String requestBody = String.format("""
+                {
+                    "productId": %d,
+                    "transactionType": "in",
+                    "quantity": 5,
+                    "remarks": "テスト履歴%d"
+                }
+                """, testProduct1.getId(), i + 1);
+
+            mockMvc.perform(post("/api/inventory/update-stock")
+                           .with(csrf())
+                           .contentType(MediaType.APPLICATION_JSON)
+                           .content(requestBody))
+                   .andExpect(status().isOk());
+        }
+
+        // Act & Assert: 商品詳細画面を表示（最新3件のみ表示されるはず）
+        MvcResult result = mockMvc.perform(get("/inventory/products/{id}", testProduct1.getId()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("inventory-detail"))
+                .andExpect(model().attributeExists("transactions"))
+                .andReturn();
+
+        // 履歴件数が3件であることを確認
+        @SuppressWarnings("unchecked")
+        List<StockTransaction> transactions = (List<StockTransaction>) result.getModelAndView()
+                .getModel().get("transactions");
+        assertThat(transactions).hasSize(3);
+        assertThat(transactions.get(0).getRemarks()).isEqualTo("テスト履歴4"); // 最新
+        assertThat(transactions.get(1).getRemarks()).isEqualTo("テスト履歴3");
+        assertThat(transactions.get(2).getRemarks()).isEqualTo("テスト履歴2");
+
+        // DBから全件取得して4件あることを確認
+        List<StockTransaction> allTransactions = stockTransactionRepository
+                .findByProductIdOrderByTransactionDateDesc(testProduct1.getId());
+        assertThat(allTransactions).hasSize(4);
+    }
+
+    /**
+     * Test: 入庫と出庫が混在する履歴が正しく表示される結合テスト
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】商品詳細画面に入庫と出庫が混在する履歴が正しく表示される")
+    void testEndToEnd_ProductDetail_MixedTransactions() throws Exception {
+        // Given: 入庫を記録
+        String inRequestBody = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "in",
+                "quantity": 10,
+                "remarks": "入庫テスト"
+            }
+            """, testProduct1.getId());
+
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(inRequestBody))
+               .andExpect(status().isOk());
+
+        // Given: 出庫を記録
+        String outRequestBody = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "out",
+                "quantity": 5,
+                "remarks": "出庫テスト"
+            }
+            """, testProduct1.getId());
+
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(outRequestBody))
+               .andExpect(status().isOk());
+
+        // Act & Assert: 商品詳細画面を表示
+        MvcResult result = mockMvc.perform(get("/inventory/products/{id}", testProduct1.getId()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("inventory-detail"))
+                .andExpect(model().attributeExists("transactions"))
+                .andReturn();
+
+        // 履歴に入庫と出庫の両方が含まれることを確認
+        @SuppressWarnings("unchecked")
+        List<StockTransaction> transactions = (List<StockTransaction>) result.getModelAndView()
+                .getModel().get("transactions");
+        assertThat(transactions).isNotEmpty();
+
+        // 入庫と出庫の両方の種別が存在することを確認
+        boolean hasIn = transactions.stream().anyMatch(t -> "in".equals(t.getTransactionType()));
+        boolean hasOut = transactions.stream().anyMatch(t -> "out".equals(t.getTransactionType()));
+        assertThat(hasIn).isTrue();
+        assertThat(hasOut).isTrue();
+
+        // 最新の履歴が出庫であることを確認
+        assertThat(transactions.get(0).getTransactionType()).isEqualTo("out");
+        assertThat(transactions.get(0).getRemarks()).isEqualTo("出庫テスト");
+    }
+
+    /**
+     * Test: 存在しない商品IDでアクセスするとエラー画面が表示される結合テスト
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】存在しない商品IDで商品詳細画面にアクセスするとエラー画面が表示される")
+    void testEndToEnd_ProductDetail_NotFound() throws Exception {
+        // Given: 存在しない商品ID
+        Integer nonExistentId = 999999;
+
+        // Act & Assert
+        mockMvc.perform(get("/inventory/products/{id}", nonExistentId))
+                .andExpect(status().isOk())
+                .andExpect(view().name("error"))
+                .andExpect(model().attributeExists("errorMessage"));
+
+        // DBで商品が存在しないことを確認
+        assertThat(productRepository.findById(nonExistentId)).isEmpty();
+    }
+
+    /**
+     * Test: 0以下の商品IDでアクセスするとエラー画面が表示される結合テスト
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】0以下の商品IDで商品詳細画面にアクセスするとエラー画面が表示される")
+    void testEndToEnd_ProductDetail_InvalidId() throws Exception {
+        // Act& Assert: ID=0の場合
+        mockMvc.perform(get("/inventory/products/{id}", 0))
+                .andExpect(status().isOk())
+                .andExpect(view().name("error"))
+                .andExpect(model().attributeExists("errorMessage"));
+
+        // Act & Assert: ID=-1の場合
+        mockMvc.perform(get("/inventory/products/{id}", -1))
+                .andExpect(status().isOk())
+                .andExpect(view().name("error"))
+                .andExpect(model().attributeExists("errorMessage"));
+    }
+
+    /**
+     * Test: 削除済み商品にアクセスするとエラー画面が表示される結合テスト
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】削除済み商品にアクセスするとエラー画面が表示される")
+    void testEndToEnd_ProductDetail_DeletedProduct() throws Exception {
+        // Given: 商品を論理削除
+        Product product = productRepository.findById(testProduct1.getId()).orElseThrow();
+        product.setDeletedAt(LocalDateTime.now());
+        productRepository.save(product);
+
+        // Act & Assert
+        mockMvc.perform(get("/inventory/products/{id}", testProduct1.getId()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("error"))
+                .andExpect(model().attributeExists("errorMessage"));
+
+        // DBで削除フラグが立っていることを確認
+        Product deletedProduct = productRepository.findById(testProduct1.getId()).orElseThrow();
+        assertThat(deletedProduct.getDeletedAt()).isNotNull();
+    }
+
+    /**
+     * Test: 認証なしで商品詳細画面にアクセスするとログイン画面にリダイレクトされる結合テスト
+     */
+    @Test
+    @DisplayName("【結合】認証なしで商品詳細画面にアクセスするとログイン画面にリダイレクトされる")
+    void testEndToEnd_ProductDetail_NoAuth() throws Exception {
+        // Act & Assert
+        mockMvc.perform(get("/inventory/products/{id}", testProduct1.getId()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
+    }
+
+    /**
+     * Test: 入出庫履歴がない商品でも商品詳細画面が正常に表示される結合テスト
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】入出庫履歴がない商品でも商品詳細画面が正常に表示される")
+    void testEndToEnd_ProductDetail_NoTransactions() throws Exception {
+        // Act & Assert
+        MvcResult result = mockMvc.perform(get("/inventory/products/{id}", testProduct2.getId()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("inventory-detail"))
+                .andExpect(model().attributeExists("product"))
+                .andExpect(model().attributeExists("transactions"))
+                .andReturn();
+
+        // 履歴が空のリストであることを確認
+        @SuppressWarnings("unchecked")
+        List<StockTransaction> transactions = (List<StockTransaction>) result.getModelAndView()
+                .getModel().get("transactions");
+        assertThat(transactions).isEmpty();
+
+        // DBでも履歴が存在しないことを確認
+        List<StockTransaction> dbTransactions = stockTransactionRepository
+                .findByProductIdOrderByTransactionDateDesc(testProduct2.getId());
+        assertThat(dbTransactions).isEmpty();
+    }
+
+    /**
+     * Test: 在庫切れ商品の詳細画面が正常に表示される結合テスト
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】在庫切れ商品の詳細画面が正常に表示される")
+    void testEndToEnd_ProductDetail_OutOfStock() throws Exception {
+        // Act & Assert
+        MvcResult result = mockMvc.perform(get("/inventory/products/{id}", testProduct3.getId()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("inventory-detail"))
+                .andExpect(model().attributeExists("product"))
+                .andReturn();
+
+        // 在庫が0であることを確認
+        Product product = (Product) result.getModelAndView().getModel().get("product");
+        assertThat(product.getStock()).isEqualTo(0);
+        assertThat(product.getStatus()).isEqualTo("inactive");
+
+        // DBでも在庫が0であることを確認
+        Product dbProduct = productRepository.findById(testProduct3.getId()).orElseThrow();
+        assertThat(dbProduct.getStock()).isEqualTo(0);
+    }
+
+    /**
+     * Test: 在庫不足商品の詳細画面が正常に表示される結合テスト
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】在庫不足商品の詳細画面が正常に表示される")
+    void testEndToEnd_ProductDetail_LowStock() throws Exception {
+        // Act & Assert
+        MvcResult result = mockMvc.perform(get("/inventory/products/{id}", testProduct2.getId()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("inventory-detail"))
+                .andExpect(model().attributeExists("product"))
+                .andReturn();
+
+        // 在庫が1-20の範囲であることを確認
+        Product product = (Product) result.getModelAndView().getModel().get("product");
+        assertThat(product.getStock())
+                .isGreaterThan(0)
+                .isLessThanOrEqualTo(20);
+
+        // DBでも在庫不足状態であることを確認
+        Product dbProduct = productRepository.findById(testProduct2.getId()).orElseThrow();
+        assertThat(dbProduct.getStock())
+                .isGreaterThan(0)
+                .isLessThanOrEqualTo(20);
+    }
+
+    /**
+     * Test: 在庫十分商品の詳細画面が正常に表示される結合テスト
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】在庫十分商品の詳細画面が正常に表示される")
+    void testEndToEnd_ProductDetail_SufficientStock() throws Exception {
+        // Act & Assert
+        MvcResult result = mockMvc.perform(get("/inventory/products/{id}", testProduct1.getId()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("inventory-detail"))
+                .andExpect(model().attributeExists("product"))
+                .andReturn();
+
+        // 在庫が21以上であることを確認
+        Product product = (Product) result.getModelAndView().getModel().get("product");
+        assertThat(product.getStock()).isGreaterThan(20);
+
+        // DBでも在庫十分状態であることを確認
+        Product dbProduct = productRepository.findById(testProduct1.getId()).orElseThrow();
+        assertThat(dbProduct.getStock()).isGreaterThan(20);
+    }
+
+    /**
+     * Test: 商品詳細画面から在庫一覧画面への整合性結合テスト
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】商品詳細画面と在庫一覧画面のデータ整合性が取れている")
+    void testEndToEnd_ProductDetail_ConsistencyWithList() throws Exception {
+        // Act: 在庫一覧画面から商品情報を取得
+        MvcResult listResult = mockMvc.perform(get("/inventory")
+                        .param("search", testProduct1.getProductName()))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        @SuppressWarnings("unchecked")
+        org.springframework.data.domain.Page<Product> productPage = 
+                (org.springframework.data.domain.Page<Product>) listResult.getModelAndView()
+                        .getModel().get("productPage");
+        Product listProduct = productPage.getContent().get(0);
+
+        // Act: 商品詳細画面からも同じ商品情報を取得
+        MvcResult detailResult = mockMvc.perform(get("/inventory/products/{id}", testProduct1.getId()))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Product detailProduct = (Product) detailResult.getModelAndView().getModel().get("product");
+
+        // Assert: 両画面で同じ商品情報が取得されることを確認
+        assertThat(listProduct.getId()).isEqualTo(detailProduct.getId());
+        assertThat(listProduct.getProductCode()).isEqualTo(detailProduct.getProductCode());
+        assertThat(listProduct.getProductName()).isEqualTo(detailProduct.getProductName());
+        assertThat(listProduct.getStock()).isEqualTo(detailProduct.getStock());
+        assertThat(listProduct.getPrice()).isEqualByComparingTo(detailProduct.getPrice());
+        assertThat(listProduct.getStatus()).isEqualTo(detailProduct.getStatus());
+    }
+
+    // ========== トランザクション（入出庫履歴）表示の整合性検証テスト ==========
+
+    /**
+     * Test: トランザクション履歴の全フィールドがDBと完全に一致しているか確認
+     * HTML表示項目とDB値の完全な整合性を検証
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】トランザクション履歴のすべてのフィールドがDBと完全に一致している")
+    void testEndToEnd_Transaction_AllFieldsConsistency() throws Exception {
+        // Given: トランザクションを記録
+        String requestBody = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "in",
+                "quantity": 25,
+                "remarks": "仕入先Aからの商品受入"
+            }
+            """, testProduct1.getId());
+
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(requestBody))
+               .andExpect(status().isOk());
+
+        // Act: 商品詳細画面を取得してトランザクション情報を取得
+        MvcResult result = mockMvc.perform(get("/inventory/products/{id}", testProduct1.getId()))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("transactions"))
+                .andReturn();
+
+        @SuppressWarnings("unchecked")
+        List<StockTransaction> transactions = (List<StockTransaction>) result.getModelAndView()
+                .getModel().get("transactions");
+
+        assertThat(transactions).isNotEmpty();
+        StockTransaction displayedTransaction = transactions.get(0); // 最新のトランザクション
+
+        // Assert: DBから取得したトランザクションと完全に一致することを確認
+        List<StockTransaction> dbTransactions = stockTransactionRepository
+                .findByProductIdOrderByTransactionDateDesc(testProduct1.getId());
+        StockTransaction dbTransaction = dbTransactions.get(0);
+
+        // 全フィールドの一致を確認
+        assertThat(displayedTransaction.getId()).isEqualTo(dbTransaction.getId());
+        assertThat(displayedTransaction.getProductId()).isEqualTo(dbTransaction.getProductId());
+        assertThat(displayedTransaction.getTransactionType()).isEqualTo(dbTransaction.getTransactionType());
+        assertThat(displayedTransaction.getQuantity()).isEqualTo(dbTransaction.getQuantity());
+        assertThat(displayedTransaction.getBeforeStock()).isEqualTo(dbTransaction.getBeforeStock());
+        assertThat(displayedTransaction.getAfterStock()).isEqualTo(dbTransaction.getAfterStock());
+        assertThat(displayedTransaction.getRemarks()).isEqualTo(dbTransaction.getRemarks());
+        assertThat(displayedTransaction.getUserId()).isEqualTo(dbTransaction.getUserId());
+        // 日時も秒単位で一致を確認（ミリ秒は無視）
+        assertThat(displayedTransaction.getTransactionDate().withNano(0))
+                .isEqualTo(dbTransaction.getTransactionDate().withNano(0));
+    }
+
+    /**
+     * Test: 複数トランザクション時の計算正確性と順序確認
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】複数トランザクションの在庫計算が正確で、最新順に表示される")
+    void testEndToEnd_Transaction_MultipleMutationsWithAccuracy() throws Exception {
+        // Given: 初期在庫を記録
+        int initialStock = testProduct1.getStock();
+        ;
+
+        // 入庫 1回目: +20個
+        String in1 = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "in",
+                "quantity": 20,
+                "remarks": "1回目入庫"
+            }
+            """, testProduct1.getId());
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(in1))
+               .andExpect(status().isOk());
+
+        // 出庫 1回目: -5個
+        String out1 = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "out",
+                "quantity": 5,
+                "remarks": "1回目出庫"
+            }
+            """, testProduct1.getId());
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(out1))
+               .andExpect(status().isOk());
+
+        // 入庫 2回目: +10個
+        String in2 = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "in",
+                "quantity": 10,
+                "remarks": "2回目入庫"
+            }
+            """, testProduct1.getId());
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(in2))
+               .andExpect(status().isOk());
+
+        // Act: 商品詳細画面を取得
+        MvcResult result = mockMvc.perform(get("/inventory/products/{id}", testProduct1.getId()))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        @SuppressWarnings("unchecked")
+        List<StockTransaction> transactions = (List<StockTransaction>) result.getModelAndView()
+                .getModel().get("transactions");
+
+        // Assert: 3件のトランザクションが存在すること
+        assertThat(transactions).hasSize(3);
+
+        // Assert: 最新順に表示されていることを確認
+        assertThat(transactions.get(0).getRemarks()).isEqualTo("2回目入庫");
+        assertThat(transactions.get(1).getRemarks()).isEqualTo("1回目出庫");
+        assertThat(transactions.get(2).getRemarks()).isEqualTo("1回目入庫");
+
+        // Assert: 各トランザクションの計算が正確であることを確認
+        // 1回目入庫後: 50 + 20 = 70
+        assertThat(transactions.get(2).getBeforeStock()).isEqualTo(initialStock);
+        assertThat(transactions.get(2).getAfterStock()).isEqualTo(initialStock + 20);
+
+        // 1回目出庫後: 70 - 5 = 65
+        assertThat(transactions.get(1).getBeforeStock()).isEqualTo(initialStock + 20);
+        assertThat(transactions.get(1).getAfterStock()).isEqualTo(initialStock + 20 - 5);
+
+        // 2回目入庫後: 65 + 10 = 75
+        assertThat(transactions.get(0).getBeforeStock()).isEqualTo(initialStock + 20 - 5);
+        assertThat(transactions.get(0).getAfterStock()).isEqualTo(initialStock + 20 - 5 + 10);
+
+        // Assert: 最終在庫が一致することを確認
+        Product product = productRepository.findById(testProduct1.getId()).orElseThrow();
+        assertThat(product.getStock()).isEqualTo(initialStock + 20 - 5 + 10);
+    }
+
+    /**
+     * Test: トランザクション表示上限（最新3件）が正しく適用されているか確認
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】トランザクション履歴は最新3件のみが表示される")
+    void testEndToEnd_Transaction_DisplayLimitOf3() throws Exception {
+        // Given: 新規テスト商品を作成（履歴をクリアするため）
+        Product testProduct = new Product();
+        testProduct.setProductCode("LIM0001");
+        testProduct.setProductName("表示上限テスト商品");
+        testProduct.setCategory("テストカテゴリ");
+        testProduct.setStock(100);
+        testProduct.setPrice(new BigDecimal("5000.00"));
+        testProduct.setStatus("active");
+        testProduct.setDescription("表示上限テスト用");
+        testProduct.setCreatedAt(LocalDateTime.now());
+        testProduct.setUpdatedAt(LocalDateTime.now());
+        testProduct = productRepository.save(testProduct);
+
+        // 5件のトランザクションを記録
+        for (int i = 1; i <= 5; i++) {
+            String requestBody = String.format("""
+                {
+                    "productId": %d,
+                    "transactionType": "in",
+                    "quantity": 5,
+                    "remarks": "テスト入庫#%d"
+                }
+                """, testProduct.getId(), i);
+
+            mockMvc.perform(post("/api/inventory/update-stock")
+                           .with(csrf())
+                           .contentType(MediaType.APPLICATION_JSON)
+                           .content(requestBody))
+                   .andExpect(status().isOk());
+        }
+
+        // Act: 商品詳細画面を取得
+        MvcResult result = mockMvc.perform(get("/inventory/products/{id}", testProduct.getId()))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        @SuppressWarnings("unchecked")
+        List<StockTransaction> displayedTransactions = (List<StockTransaction>) result.getModelAndView()
+                .getModel().get("transactions");
+
+        // Assert: 画面に表示されるのは3件のみ
+        assertThat(displayedTransactions).hasSize(3);
+        
+        // 最新の3件が表示されていることを確認（最新の記号#5から順に）
+        assertThat(displayedTransactions.get(0).getRemarks()).isEqualTo("テスト入庫#5"); // 最新
+        assertThat(displayedTransactions.get(1).getRemarks()).isEqualTo("テスト入庫#4");
+        assertThat(displayedTransactions.get(2).getRemarks()).isEqualTo("テスト入庫#3");
+
+        // Assert: DBには全5件が存在することを確認
+        List<StockTransaction> allTransactions = stockTransactionRepository
+                .findByProductIdOrderByTransactionDateDesc(testProduct.getId());
+        assertThat(allTransactions).hasSize(5);
+        
+        // 全件がDBに存在していることを確認
+        assertThat(allTransactions.stream()
+                .map(StockTransaction::getRemarks)
+                .toList())
+                .containsExactly("テスト入庫#5", "テスト入庫#4", "テスト入庫#3", "テスト入庫#2", "テスト入庫#1");
+    }
+
+    /**
+     * Test: トランザクション表示のnull値フィールド処理
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】トランザクション履歴で備考（remarks）がnullでも正常に表示される")
+    void testEndToEnd_Transaction_NullRemarks() throws Exception {
+        // Given: 備考なしでトランザクションを記録
+        String requestBody = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "out",
+                "quantity": 5
+            }
+            """, testProduct1.getId());
+
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(requestBody))
+               .andExpect(status().isOk());
+
+        // Act: 商品詳細画面を取得
+        MvcResult result = mockMvc.perform(get("/inventory/products/{id}", testProduct1.getId()))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        @SuppressWarnings("unchecked")
+        List<StockTransaction> transactions = (List<StockTransaction>) result.getModelAndView()
+                .getModel().get("transactions");
+
+        // Assert: remarksがnullであることを確認
+        assertThat(transactions).isNotEmpty();
+        StockTransaction transaction = transactions.get(0);
+        assertThat(transaction.getRemarks()).isNull();
+
+        // Assert: DBからも同じ結果が得られることを確認
+        List<StockTransaction> dbTransactions = stockTransactionRepository
+                .findByProductIdOrderByTransactionDateDesc(testProduct1.getId());
+        assertThat(dbTransactions.get(0).getRemarks()).isNull();
+    }
+
+    /**
+     * Test: トランザクション表示と商品在庫数の特合性確認
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】トランザクション履歴の最終在庫数と商品の現在在庫数が一致している")
+    void testEndToEnd_Transaction_ConsistencyWithProductStock() throws Exception {
+        // Given: 複数のトランザクションを記録
+        String in = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "in",
+                "quantity": 30,
+                "remarks": "総入庫"
+            }
+            """, testProduct1.getId());
+
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(in))
+               .andExpect(status().isOk());
+
+        String out = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "out",
+                "quantity": 10,
+                "remarks": "総出庫"
+            }
+            """, testProduct1.getId());
+
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(out))
+               .andExpect(status().isOk());
+
+        // Act: 商品詳細画面を取得
+        MvcResult result = mockMvc.perform(get("/inventory/products/{id}", testProduct1.getId()))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Product displayedProduct = (Product) result.getModelAndView().getModel().get("product");
+        @SuppressWarnings("unchecked")
+        List<StockTransaction> transactions = (List<StockTransaction>) result.getModelAndView()
+                .getModel().get("transactions");
+
+        // Assert: トランザクション履歴の最新の「在庫数（変更後）」と商品の現在在庫数が一致
+        int latestAfterStock = transactions.get(0).getAfterStock();
+        assertThat(displayedProduct.getStock()).isEqualTo(latestAfterStock);
+
+        // Assert: DBの在庫数とも一致することを確認
+        Product dbProduct = productRepository.findById(testProduct1.getId()).orElseThrow();
+        assertThat(dbProduct.getStock()).isEqualTo(latestAfterStock);
+        assertThat(displayedProduct.getStock()).isEqualTo(dbProduct.getStock());
+    }
+
+    /**
+     * Test: トランザクション履歴が正しく日時順にソートされている確認
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】トランザクション履歴が日時の新しい順（desc）に正確にソートされている")
+    void testEndToEnd_Transaction_SortOrderByDate() throws Exception {
+        // Given: 新規テスト商品を作成
+        Product sortTestProduct = new Product();
+        sortTestProduct.setProductCode("SORT0001");
+        sortTestProduct.setProductName("ソート順序テスト商品");
+        sortTestProduct.setCategory("テストカテゴリ");
+        sortTestProduct.setStock(50);
+        sortTestProduct.setPrice(new BigDecimal("5000.00"));
+        sortTestProduct.setStatus("active");
+        sortTestProduct.setDescription("ソート順序テスト用");
+        sortTestProduct.setCreatedAt(LocalDateTime.now());
+        sortTestProduct.setUpdatedAt(LocalDateTime.now());
+        sortTestProduct = productRepository.save(sortTestProduct);
+
+        // 複数のトランザクションを記録
+        for (int i = 1; i <= 3; i++) {
+            String requestBody = String.format("""
+                {
+                    "productId": %d,
+                    "transactionType": "in",
+                    "quantity": 1,
+                    "remarks": "トランザクション#%d"
+                }
+                """, sortTestProduct.getId(), i);
+
+            mockMvc.perform(post("/api/inventory/update-stock")
+                           .with(csrf())
+                           .contentType(MediaType.APPLICATION_JSON)
+                           .content(requestBody))
+                   .andExpect(status().isOk());
+        }
+
+        // Act: 商品詳細画面を取得
+        MvcResult result = mockMvc.perform(get("/inventory/products/{id}", sortTestProduct.getId()))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        @SuppressWarnings("unchecked")
+        List<StockTransaction> transactions = (List<StockTransaction>) result.getModelAndView()
+                .getModel().get("transactions");
+
+        // Assert: 表示されたトランザクションが存在することを確認
+        assertThat(transactions).isNotEmpty();
+
+        // Assert: トランザクションが新しい順にソートされていることを確認（重要な検証）
+        for (int i = 0; i < transactions.size() - 1; i++) {
+            assertThat(transactions.get(i).getTransactionDate())
+                    .isAfterOrEqualTo(transactions.get(i + 1).getTransactionDate());
+        }
+
+        // Assert: DBからの取得結果とも同じソート順序であることを確認
+        List<StockTransaction> dbTransactions = stockTransactionRepository
+                .findByProductIdOrderByTransactionDateDesc(sortTestProduct.getId());
+        assertThat(dbTransactions).isNotEmpty();
+        
+        // DBのソート順序もチェック
+        for (int i = 0; i < dbTransactions.size() - 1; i++) {
+            assertThat(dbTransactions.get(i).getTransactionDate())
+                    .isAfterOrEqualTo(dbTransactions.get(i + 1).getTransactionDate());
+        }
+        
+        // 表示順と DB取得順が一致することを確認（最新のものから順に一致）
+        for (int i = 0; i < Math.min(transactions.size(), dbTransactions.size()); i++) {
+            assertThat(transactions.get(i).getId()).isEqualTo(dbTransactions.get(i).getId());
+        }
+    }
+
+    /**
+     * Test: 入庫・出庫の種別表示が正確に区別されているか確認
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】トランザクション履歴で入庫・出庫の種別が正確に表示されている")
+    void testEndToEnd_Transaction_TypeDistinction() throws Exception {
+        // Given: 入庫と出庫を記録
+        String in = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "in",
+                "quantity": 10,
+                "remarks": "入庫テスト"
+            }
+            """, testProduct1.getId());
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(in))
+               .andExpect(status().isOk());
+
+        String out = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "out",
+                "quantity": 3,
+                "remarks": "出庫テスト"
+            }
+            """, testProduct1.getId());
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(out))
+               .andExpect(status().isOk());
+
+        // Act: 商品詳細画面を取得
+        MvcResult result = mockMvc.perform(get("/inventory/products/{id}", testProduct1.getId()))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        @SuppressWarnings("unchecked")
+        List<StockTransaction> transactions = (List<StockTransaction>) result.getModelAndView()
+                .getModel().get("transactions");
+
+        // Assert: 最新の出庫トランザクションを確認
+        StockTransaction latestOut = transactions.stream()
+                .filter(t -> "出庫テスト".equals(t.getRemarks()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(latestOut.getTransactionType()).isEqualTo("out");
+        assertThat(latestOut.getQuantity()).isEqualTo(3);
+
+        // Assert: 入庫トランザクションを確認
+        StockTransaction latestIn = transactions.stream()
+                .filter(t -> "入庫テスト".equals(t.getRemarks()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(latestIn.getTransactionType()).isEqualTo("in");
+        assertThat(latestIn.getQuantity()).isEqualTo(10);
+
+        // Assert: DBからの取得結果とも一致
+        List<StockTransaction> dbTransactions = stockTransactionRepository
+                .findByProductIdOrderByTransactionDateDesc(testProduct1.getId());
+        long dbInCount = dbTransactions.stream().filter(t -> "in".equals(t.getTransactionType())).count();
+        long dbOutCount = dbTransactions.stream().filter(t -> "out".equals(t.getTransactionType())).count();
+        
+        long displayInCount = transactions.stream().filter(t -> "in".equals(t.getTransactionType())).count();
+        long displayOutCount = transactions.stream().filter(t -> "out".equals(t.getTransactionType())).count();
+        
+        assertThat(displayInCount).isEqualTo(dbInCount);
+        assertThat(displayOutCount).isEqualTo(dbOutCount);
+    }
 }

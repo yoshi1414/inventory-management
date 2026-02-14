@@ -7,6 +7,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 
 import com.inventory.inventory_management.entity.Product;
+import com.inventory.inventory_management.entity.StockTransaction;
 import com.inventory.inventory_management.repository.ProductRepository;
 import com.inventory.inventory_management.repository.StockTransactionRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -789,5 +790,353 @@ public class InventoryControllerTest {
         assertEquals(2, transactions.size());
         assertEquals("out", transactions.get(0).getTransactionType());
         assertEquals("in", transactions.get(1).getTransactionType());
+    }
+
+    // ========== 商品詳細画面テスト ==========
+
+    /**
+     * 一般ユーザーとして商品詳細画面が正常に表示される
+     */
+    @Test
+    @WithUserDetails("testuser")
+    public void 一般ユーザーとして商品詳細画面が正常に表示される() throws Exception {
+        mockMvc.perform(get("/inventory/products/{id}", testProductId))
+               .andExpect(status().isOk())
+               .andExpect(view().name("inventory-detail"))
+               .andExpect(model().attributeExists("product"))
+               .andExpect(model().attributeExists("transactions"));
+    }
+
+    /**
+     * 管理者として商品詳細画面が正常に表示される
+     */
+    @Test
+    @WithUserDetails("adminuser")
+    public void 管理者として商品詳細画面が正常に表示される() throws Exception {
+        mockMvc.perform(get("/inventory/products/{id}", testProductId))
+               .andExpect(status().isOk())
+               .andExpect(view().name("inventory-detail"))
+               .andExpect(model().attributeExists("product"))
+               .andExpect(model().attributeExists("transactions"));
+    }
+
+    /**
+     * 商品詳細画面に商品情報が正しく表示される
+     */
+    @Test
+    @WithUserDetails("testuser")
+    public void 商品詳細画面に商品情報が正しく表示される() throws Exception {
+        Product expectedProduct = productRepository.findById(testProductId).orElseThrow();
+
+        mockMvc.perform(get("/inventory/products/{id}", testProductId))
+               .andExpect(status().isOk())
+               .andExpect(view().name("inventory-detail"))
+               .andExpect(model().attribute("product", expectedProduct));
+    }
+
+    /**
+     * 商品詳細画面に入出庫履歴が表示される（最新3件）
+     */
+    @Test
+    @WithUserDetails("testuser")
+    public void 商品詳細画面に入出庫履歴が表示される() throws Exception {
+        // 在庫変動履歴を作成（4件）
+        for (int i = 0; i < 4; i++) {
+            String requestBody = String.format("""
+                {
+                    "productId": %d,
+                    "transactionType": "in",
+                    "quantity": 5,
+                    "remarks": "テスト履歴%d"
+                }
+                """, testProductId, i + 1);
+
+            mockMvc.perform(post("/api/inventory/update-stock")
+                           .with(csrf())
+                           .contentType(MediaType.APPLICATION_JSON)
+                           .content(requestBody))
+                   .andExpect(status().isOk());
+        }
+
+        // 商品詳細画面を表示（最新3件のみ表示されるはず）
+        mockMvc.perform(get("/inventory/products/{id}", testProductId))
+               .andExpect(status().isOk())
+               .andExpect(view().name("inventory-detail"))
+               .andExpect(model().attributeExists("transactions"));
+
+        // 履歴件数が3件であることを確認
+        var result = mockMvc.perform(get("/inventory/products/{id}", testProductId))
+                           .andReturn();
+        @SuppressWarnings("unchecked")
+        var transactions = (java.util.List<?>) result.getModelAndView().getModel().get("transactions");
+        assertEquals(3, transactions.size(), "最新3件のみ表示されるべき");
+    }
+
+    /**
+     * 存在しない商品IDでアクセスするとエラー画面が表示される
+     */
+    @Test
+    @WithUserDetails("testuser")
+    public void 存在しない商品IDでアクセスするとエラー画面が表示される() throws Exception {
+        Integer nonExistentId = 999999;
+
+        mockMvc.perform(get("/inventory/products/{id}", nonExistentId))
+               .andExpect(status().isOk())
+               .andExpect(view().name("error"))
+               .andExpect(model().attributeExists("errorMessage"));
+    }
+
+    /**
+     * 0以下の商品IDでアクセスするとエラー画面が表示される
+     */
+    @Test
+    @WithUserDetails("testuser")
+    public void ゼロ以下の商品IDでアクセスするとエラー画面が表示される() throws Exception {
+        mockMvc.perform(get("/inventory/products/{id}", 0))
+               .andExpect(status().isOk())
+               .andExpect(view().name("error"))
+               .andExpect(model().attributeExists("errorMessage"));
+
+        mockMvc.perform(get("/inventory/products/{id}", -1))
+               .andExpect(status().isOk())
+               .andExpect(view().name("error"))
+               .andExpect(model().attributeExists("errorMessage"));
+    }
+
+    /**
+     * 削除済み商品にアクセスするとエラー画面が表示される
+     */
+    @Test
+    @WithUserDetails("testuser")
+    public void 削除済み商品にアクセスするとエラー画面が表示される() throws Exception {
+        // 商品を論理削除
+        Product product = productRepository.findById(testProductId).orElseThrow();
+        product.setDeletedAt(LocalDateTime.now());
+        productRepository.save(product);
+
+        mockMvc.perform(get("/inventory/products/{id}", testProductId))
+               .andExpect(status().isOk())
+               .andExpect(view().name("error"))
+               .andExpect(model().attributeExists("errorMessage"));
+    }
+
+    /**
+     * 認証なしで商品詳細画面にアクセスするとログイン画面にリダイレクトされる
+     */
+    @Test
+    public void 認証なしで商品詳細画面にアクセスするとログイン画面にリダイレクトされる() throws Exception {
+        mockMvc.perform(get("/inventory/products/{id}", testProductId))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/login"));
+    }
+
+    /**
+     * 入出庫履歴がない商品でも商品詳細画面が正常に表示される
+     */
+    @Test
+    @WithUserDetails("testuser")
+    public void 入出庫履歴がない商品でも商品詳細画面が正常に表示される() throws Exception {
+        mockMvc.perform(get("/inventory/products/{id}", testProductId))
+               .andExpect(status().isOk())
+               .andExpect(view().name("inventory-detail"))
+               .andExpect(model().attributeExists("product"))
+               .andExpect(model().attributeExists("transactions"));
+
+        // 履歴が空のリストであることを確認
+        var result = mockMvc.perform(get("/inventory/products/{id}", testProductId))
+                           .andReturn();
+        @SuppressWarnings("unchecked")
+        var transactions = (java.util.List<?>) result.getModelAndView().getModel().get("transactions");
+        assertTrue(transactions.isEmpty(), "履歴がない場合は空のリストが返されるべき");
+    }
+
+    /**
+     * 在庫切れ商品の詳細画面が正常に表示される
+     */
+    @Test
+    @WithUserDetails("testuser")
+    public void 在庫切れ商品の詳細画面が正常に表示される() throws Exception {
+        // 在庫を0にする
+        Product product = productRepository.findById(testProductId).orElseThrow();
+        product.setStock(0);
+        productRepository.save(product);
+
+        mockMvc.perform(get("/inventory/products/{id}", testProductId))
+               .andExpect(status().isOk())
+               .andExpect(view().name("inventory-detail"))
+               .andExpect(model().attributeExists("product"));
+
+        // 在庫が0であることを確認
+        var result = mockMvc.perform(get("/inventory/products/{id}", testProductId))
+                           .andReturn();
+        Product returnedProduct = (Product) result.getModelAndView().getModel().get("product");
+        assertEquals(0, returnedProduct.getStock(), "在庫数が0であるべき");
+    }
+
+    /**
+     * 在庫不足商品（1-20個）の詳細画面が正常に表示される
+     */
+    @Test
+    @WithUserDetails("testuser")
+    public void 在庫不足商品の詳細画面が正常に表示される() throws Exception {
+        // 在庫を10にする
+        Product product = productRepository.findById(testProductId).orElseThrow();
+        product.setStock(10);
+        productRepository.save(product);
+
+        mockMvc.perform(get("/inventory/products/{id}", testProductId))
+               .andExpect(status().isOk())
+               .andExpect(view().name("inventory-detail"))
+               .andExpect(model().attributeExists("product"));
+
+        // 在庫が10であることを確認
+        var result = mockMvc.perform(get("/inventory/products/{id}", testProductId))
+                           .andReturn();
+        Product returnedProduct = (Product) result.getModelAndView().getModel().get("product");
+        assertEquals(10, returnedProduct.getStock(), "在庫数が10であるべき");
+        assertTrue(returnedProduct.getStock() > 0 && returnedProduct.getStock() <= 20, "在庫不足状態であるべき");
+    }
+
+    /**
+     * 在庫十分商品（21個以上）の詳細画面が正常に表示される
+     */
+    @Test
+    @WithUserDetails("testuser")
+    public void 在庫十分商品の詳細画面が正常に表示される() throws Exception {
+        // 在庫を100にする
+        Product product = productRepository.findById(testProductId).orElseThrow();
+        product.setStock(100);
+        productRepository.save(product);
+
+        mockMvc.perform(get("/inventory/products/{id}", testProductId))
+               .andExpect(status().isOk())
+               .andExpect(view().name("inventory-detail"))
+               .andExpect(model().attributeExists("product"));
+
+        // 在庫が100であることを確認
+        var result = mockMvc.perform(get("/inventory/products/{id}", testProductId))
+                           .andReturn();
+        Product returnedProduct = (Product) result.getModelAndView().getModel().get("product");
+        assertEquals(100, returnedProduct.getStock(), "在庫数が100であるべき");
+        assertTrue(returnedProduct.getStock() > 20, "在庫十分状態であるべき");
+    }
+
+    /**
+     * 入庫と出庫が混在する履歴が正しく表示される
+     */
+    @Test
+    @WithUserDetails("testuser")
+    public void 入庫と出庫が混在する履歴が正しく表示される() throws Exception {
+        // 在庫を十分な量に設定
+        Product product = productRepository.findById(testProductId).orElseThrow();
+        product.setStock(50);
+        productRepository.save(product);
+
+        // 入庫を記録
+        String inRequestBody = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "in",
+                "quantity": 10,
+                "remarks": "入庫テスト"
+            }
+            """, testProductId);
+
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(inRequestBody))
+               .andExpect(status().isOk());
+
+        // 出庫を記録
+        String outRequestBody = String.format("""
+            {
+                "productId": %d,
+                "transactionType": "out",
+                "quantity": 5,
+                "remarks": "出庫テスト"
+            }
+            """, testProductId);
+
+        mockMvc.perform(post("/api/inventory/update-stock")
+                       .with(csrf())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(outRequestBody))
+               .andExpect(status().isOk());
+
+        // 商品詳細画面を表示
+        mockMvc.perform(get("/inventory/products/{id}", testProductId))
+               .andExpect(status().isOk())
+               .andExpect(view().name("inventory-detail"))
+               .andExpect(model().attributeExists("transactions"));
+
+        // 履歴に入庫と出庫の両方が含まれることを確認
+        var result = mockMvc.perform(get("/inventory/products/{id}", testProductId))
+                           .andReturn();
+        @SuppressWarnings("unchecked")
+        var transactions = (java.util.List<StockTransaction>) result.getModelAndView().getModel().get("transactions");
+        assertFalse(transactions.isEmpty(), "履歴が存在するべき");
+        
+        // 入庫と出庫の両方の種別が存在することを確認
+        boolean hasIn = transactions.stream().anyMatch(t -> "in".equals(t.getTransactionType()));
+        boolean hasOut = transactions.stream().anyMatch(t -> "out".equals(t.getTransactionType()));
+        assertTrue(hasIn, "入庫履歴が含まれているべき");
+        assertTrue(hasOut, "出庫履歴が含まれているべき");
+    }
+
+    /**
+     * 販売停止商品（inactive）の詳細画面が正常に表示される
+     */
+    @Test
+    @WithUserDetails("testuser")
+    public void 販売停止商品の詳細画面が正常に表示される() throws Exception {
+        // ステータスをinactiveにする
+        Product product = productRepository.findById(testProductId).orElseThrow();
+        product.setStatus("inactive");
+        productRepository.save(product);
+
+        mockMvc.perform(get("/inventory/products/{id}", testProductId))
+               .andExpect(status().isOk())
+               .andExpect(view().name("inventory-detail"))
+               .andExpect(model().attributeExists("product"));
+
+        // ステータスがinactiveであることを確認
+        var result = mockMvc.perform(get("/inventory/products/{id}", testProductId))
+                           .andReturn();
+        Product returnedProduct = (Product) result.getModelAndView().getModel().get("product");
+        assertEquals("inactive", returnedProduct.getStatus(), "ステータスがinactiveであるべき");
+    }
+
+    /**
+     * オプション項目がnullの商品でも詳細画面が正常に表示される
+     */
+    @Test
+    @WithUserDetails("testuser")
+    public void オプション項目がnullの商品でも詳細画面が正常に表示される() throws Exception {
+        // オプション項目をnullにする
+        Product product = productRepository.findById(testProductId).orElseThrow();
+        product.setWarrantyMonths(null);
+        product.setDimensions(null);
+        product.setVariations(null);
+        product.setManufacturingDate(null);
+        product.setExpirationDate(null);
+        product.setTags(null);
+        productRepository.save(product);
+
+        mockMvc.perform(get("/inventory/products/{id}", testProductId))
+               .andExpect(status().isOk())
+               .andExpect(view().name("inventory-detail"))
+               .andExpect(model().attributeExists("product"));
+
+        // オプション項目がnullであることを確認
+        var result = mockMvc.perform(get("/inventory/products/{id}", testProductId))
+                           .andReturn();
+        Product returnedProduct = (Product) result.getModelAndView().getModel().get("product");
+        assertNull(returnedProduct.getWarrantyMonths(), "保証期間がnullであるべき");
+        assertNull(returnedProduct.getDimensions(), "寸法がnullであるべき");
+        assertNull(returnedProduct.getVariations(), "バリエーションがnullであるべき");
+        assertNull(returnedProduct.getManufacturingDate(), "製造日がnullであるべき");
+        assertNull(returnedProduct.getExpirationDate(), "有効期限がnullであるべき");
+        assertNull(returnedProduct.getTags(), "タグがnullであるべき");
     }
 }

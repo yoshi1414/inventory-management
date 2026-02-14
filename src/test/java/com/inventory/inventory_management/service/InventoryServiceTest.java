@@ -321,29 +321,166 @@ class InventoryServiceTest {
         when(productRepository.findById(1)).thenReturn(Optional.of(product1));
 
         // When: 商品IDで商品を取得
-        Product result = inventoryService.getProductById(1);
+        Optional<Product> result = inventoryService.getProductById(1);
 
         // Then: 正しい商品が返される
-        assertNotNull(result);
-        assertEquals("TEST001", result.getProductCode());
+        assertTrue(result.isPresent());
+        assertEquals("TEST001", result.get().getProductCode());
         verify(productRepository, times(1)).findById(1);
     }
 
     /**
-     * 存在しない商品IDで検索した場合、nullが返されることを検証
+     * 存在しない商品IDで検索した場合、空のOptionalが返されることを検証
      */
     @Test
-    @DisplayName("存在しない商品IDで検索するとnullが返される")
+    @DisplayName("存在しない商品IDで検索すると空のOptionalが返される")
     void getProductById_NotFound() {
         // Given: モックの設定
         when(productRepository.findById(999)).thenReturn(Optional.empty());
 
         // When: 存在しない商品IDで検索
-        Product result = inventoryService.getProductById(999);
+        Optional<Product> result = inventoryService.getProductById(999);
 
-        // Then: nullが返される
-        assertNull(result);
+        // Then: 空のOptionalが返される
+        assertFalse(result.isPresent());
         verify(productRepository, times(1)).findById(999);
+    }
+
+    /**
+     * 削除済み商品を検索した場合、空のOptionalが返されることを検証
+     */
+    @Test
+    @DisplayName("削除済み商品を検索すると空のOptionalが返される")
+    void getProductById_DeletedProduct() {
+        // Given: 削除済み商品のモック
+        Product deletedProduct = new Product();
+        deletedProduct.setId(1);
+        deletedProduct.setProductCode("TEST001");
+        deletedProduct.setDeletedAt(LocalDateTime.now());
+        when(productRepository.findById(1)).thenReturn(Optional.of(deletedProduct));
+
+        // When: 削除済み商品を検索
+        Optional<Product> result = inventoryService.getProductById(1);
+
+        // Then: 空のOptionalが返される
+        assertFalse(result.isPresent());
+        verify(productRepository, times(1)).findById(1);
+    }
+
+    /**
+     * 商品IDがnullの場合、空のOptionalが返されることを検証
+     */
+    @Test
+    @DisplayName("商品IDがnullの場合、空のOptionalが返される")
+    void getProductById_NullId() {
+        // When: nullで商品を検索
+        Optional<Product> result = inventoryService.getProductById(null);
+
+        // Then: 空のOptionalが返される
+        assertFalse(result.isPresent());
+        verify(productRepository, never()).findById(any());
+    }
+
+    /**
+     * 入出庫履歴を取得できることを検証
+     */
+    @Test
+    @DisplayName("入出庫履歴を取得できる")
+    void getStockTransactions_Success() {
+        // Given: モックの設定
+        StockTransaction transaction1 = new StockTransaction();
+        transaction1.setId(1);
+        transaction1.setProductId(1);
+        transaction1.setTransactionType("in");
+        transaction1.setQuantity(50);
+        transaction1.setBeforeStock(0);
+        transaction1.setAfterStock(50);
+        transaction1.setUserId("testuser");
+        transaction1.setTransactionDate(LocalDateTime.now());
+
+        StockTransaction transaction2 = new StockTransaction();
+        transaction2.setId(2);
+        transaction2.setProductId(1);
+        transaction2.setTransactionType("out");
+        transaction2.setQuantity(10);
+        transaction2.setBeforeStock(50);
+        transaction2.setAfterStock(40);
+        transaction2.setUserId("testuser");
+        transaction2.setTransactionDate(LocalDateTime.now().minusDays(1));
+
+        when(stockTransactionRepository.findByProductIdOrderByTransactionDateDesc(1))
+                .thenReturn(Arrays.asList(transaction1, transaction2));
+
+        // When: 入出庫履歴を取得
+        java.util.List<StockTransaction> result = inventoryService.getStockTransactions(1, null);
+
+        // Then: 正しい履歴が返される
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals("in", result.get(0).getTransactionType());
+        verify(stockTransactionRepository, times(1)).findByProductIdOrderByTransactionDateDesc(1);
+    }
+
+    /**
+     * 入出庫履歴を制限付きで取得できることを検証
+     */
+    @Test
+    @DisplayName("入出庫履歴を制限付きで取得できる")
+    void getStockTransactions_WithLimit() {
+        // Given: モックの設定（5件の履歴）
+        java.util.List<StockTransaction> transactions = new java.util.ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            StockTransaction transaction = new StockTransaction();
+            transaction.setId(i + 1);
+            transaction.setProductId(1);
+            transaction.setTransactionType("in");
+            transaction.setQuantity(10);
+            transactions.add(transaction);
+        }
+        when(stockTransactionRepository.findByProductIdOrderByTransactionDateDesc(1))
+                .thenReturn(transactions);
+
+        // When: 入出庫履歴を最新3件で取得
+        java.util.List<StockTransaction> result = inventoryService.getStockTransactions(1, 3);
+
+        // Then: 3件のみ返される
+        assertNotNull(result);
+        assertEquals(3, result.size());
+        verify(stockTransactionRepository, times(1)).findByProductIdOrderByTransactionDateDesc(1);
+    }
+
+    /**
+     * 商品IDがnullの場合、空リストが返されることを検証
+     */
+    @Test
+    @DisplayName("商品IDがnullの場合、空リストが返される")
+    void getStockTransactions_NullProductId() {
+        // When: nullで履歴を取得
+        java.util.List<StockTransaction> result = inventoryService.getStockTransactions(null, null);
+
+        // Then: 空リストが返される
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        verify(stockTransactionRepository, never()).findByProductIdOrderByTransactionDateDesc(any());
+    }
+
+    /**
+     * 履歴が存在しない場合、空リストが返されることを検証
+     */
+    @Test
+    @DisplayName("履歴が存在しない場合、空リストが返される")
+    void getStockTransactions_NoHistory() {
+        // Given: モックの設定
+        when(stockTransactionRepository.findByProductIdOrderByTransactionDateDesc(999))
+                .thenReturn(java.util.Collections.emptyList());
+
+        // When: 履歴が存在しない商品IDで取得
+        java.util.List<StockTransaction> result = inventoryService.getStockTransactions(999, null);
+
+        // Then: 空リストが返される
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        verify(stockTransactionRepository, times(1)).findByProductIdOrderByTransactionDateDesc(999);
     }
 
     /**
