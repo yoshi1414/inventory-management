@@ -59,6 +59,9 @@ git checkout -b feature/inventory
 ##そのほかブランチ
 git checkout -b feature/other
 
+##開発ブランチ 在庫(管理者)
+git checkout -b feature/AdminInventory
+
 ーーーーーーーーーーーーー
 ##作成しながら、ブランチ切り替え
 git checkout -b requirements-definition-1
@@ -177,6 +180,17 @@ git branch
 2.mainと他ブランチを比較
 git log main..feature/inventory
 ※結果がなにも返ってこなければ、取り込みが完了している
+
+ーーーーーーーーーーーーー
+以下でリモートブランチの最新情報をローカルに反映します。
+ローカルブランチのソース削除などはされないです。
+
+git fetch --prune
+リモートリポジトリの最新状態を取得し、ローカルで追跡している削除済みのリモートブランチを整理します。
+
+git branch -vv:
+ローカルブランチとリモートブランチの対応状況を表示します。
+gone と表示されるブランチは、リモートで削除されているがローカルに残っているものです。
 
 ーーーーーーーーーーーーー
 コミットコメント例

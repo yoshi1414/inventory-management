@@ -91,4 +91,29 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
      */
     @Query("SELECT DISTINCT p.category FROM Product p WHERE p.deletedAt IS NULL ORDER BY p.category")
     List<String> findAllCategories();
+
+    /**
+     * 削除済み商品を含む検索（管理者専用）
+     * @param keyword 商品名検索キーワード
+     * @param category カテゴリ
+     * @param status ステータス
+     * @param minStock 最小在庫数
+     * @param maxStock 最大在庫数
+     * @param pageable ページング情報
+     * @return 検索結果のページ
+     */
+    @Query("SELECT p FROM Product p WHERE " +
+           "(:keyword IS NULL OR :keyword = '' OR LOWER(p.productName) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
+           "(:category IS NULL OR :category = '' OR p.category = :category) AND " +
+           "(:status IS NULL OR :status = '' OR p.status = :status) AND " +
+           "(:minStock IS NULL OR p.stock >= :minStock) AND " +
+           "(:maxStock IS NULL OR p.stock <= :maxStock)")
+    Page<Product> findBySearchConditionsIncludingDeleted(
+        @Param("keyword") String keyword,
+        @Param("category") String category,
+        @Param("status") String status,
+        @Param("minStock") Integer minStock,
+        @Param("maxStock") Integer maxStock,
+        Pageable pageable
+    );
 }

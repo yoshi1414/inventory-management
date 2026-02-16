@@ -79,17 +79,23 @@ mvn test                     # テスト実行
 - **Service**: `InventoryService`, `UserService`
 - **Repository**: `ProductRepository`, `UserRepository`
 - **Entity**: `Product`, `User`, `StockTransaction`
+- **DTO（Request）**: `SearchCriteria`, `ProductCreateRequest`（機能を示す名前）
+- **DTO（Response）**: `ProductResponse`, `StockHistoryResponse`
 
 ### パッケージ構造
 ```
 com.inventory.inventory_management/
 ├── config/          # Spring Security, CSRF設定
 ├── controller/      # @Controller
-├── entity/          # @Entity（DTOなし、Entity直接使用）
+├── dto/             # DTO（Data Transfer Object）
+│   ├── request/     # リクエスト用DTO（SearchCriteria など）
+│   └── response/    # レスポンス用DTO（今後拡張用）
+├── entity/          # @Entity
 ├── exception/       # GlobalExceptionHandler
 ├── repository/      # JpaRepository
 ├── security/        # UserDetailsServiceImpl, LoginAttemptService
-└── service/         # @Service, @Transactional
+├── service/         # @Service, @Transactional
+└── util/            # ユーティリティクラス
 ```
 
 ### Validation
@@ -197,6 +203,7 @@ Write-Utf8NoBom -Path $file -Content ($old+"`nYOUR_TEXT_HERE`n")
 - **セキュリティチェック**: 入力値検証、SQLインジェクション対策、XSS/CSRF対策を実施
 - **戻り値**: `Optional<T>` を使用して null 安全性を確保。`orElseThrow()` でnullチェック
 - **エラーハンドラー**: `GlobalExceptionHandler.java` で例外を一括処理
+- **DTO**: `dto/request/` と `dto/response/` に分類。`@Data` (Lombok) で getter/setter を自動生成
 - **HTMLにJSを直接記載しない**: `src/main/resources/static/js/` ディレクトリに集約
 - **HTMLにCSSを記載しない**: `src/main/resources/static/css/` ディレクトリに集約
 - **Bootstrap優先**: カスタムCSSは必要な場合のみ
