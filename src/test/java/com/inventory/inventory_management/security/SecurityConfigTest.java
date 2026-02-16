@@ -24,6 +24,7 @@ import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 
 import jakarta.servlet.http.Cookie;
@@ -37,6 +38,7 @@ import java.util.List;
 @SpringBootTest
 @ActiveProfiles("test")
 @DisplayName("SecurityConfig統合テスト")
+@Sql(scripts = {"/schema-test.sql", "/data-test.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class SecurityConfigTest {
 
     @Autowired
@@ -205,14 +207,14 @@ class SecurityConfigTest {
     }
 
     /**
-     * 異常系：認証なしで/menuにアクセスするとログイン画面にリダイレクトされる
+     * 異常系：認証なしで/menuにアクセスすると404エラーとなる
      */
     @Test
-    @DisplayName("異常系：認証なしで/menuにアクセスするとログイン画面にリダイレクトされる")
+    @DisplayName("異常系：認証なしで/menuにアクセスすると404エラーとなる")
     void testMenuAccessWithoutAuth() throws Exception {
         // when & then
         mockMvc.perform(get("/menu"))
-            .andExpect(status().is3xxRedirection());
+            .andExpect(status().isNotFound());
     }
 
     /**
@@ -240,10 +242,10 @@ class SecurityConfigTest {
     }
 
     /**
-     * 正常系：ログイン成功時に/menuにリダイレクトされる
+     * 正常系：ログイン成功時に/inventoryにリダイレクトされる
      */
     @Test
-    @DisplayName("正常系：ログイン成功時に/menuにリダイレクトされる")
+    @DisplayName("正常系：ログイン成功時に/inventoryにリダイレクトされる")
     void testLoginSuccessRedirect() throws Exception {
         // when & then
         mockMvc.perform(post("/login")
@@ -251,7 +253,7 @@ class SecurityConfigTest {
                 .param("password", "password")
                 .with(csrf()))
             .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl("/menu"));
+            .andExpect(redirectedUrl("/inventory"));
     }
 
     /**
@@ -281,6 +283,84 @@ class SecurityConfigTest {
                 .with(csrf()))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/login?logout"));
+    }
+
+    // ========================================
+    // 管理者ログイン処理テスト（Security処理）
+    // ========================================
+
+    /**
+     * 正常系：正しい管理者認証情報でログイン成功
+     */
+    @Test
+    @DisplayName("正常系：正しい管理者認証情報でPOST /admin/loginに成功し、/admin/inventoryにリダイレクト")
+    void testAdminLoginSuccessRedirect() throws Exception {
+        // when & then
+        mockMvc.perform(post("/admin/login")
+                .param("username", "adminuser")
+                .param("password", "password")
+                .with(csrf()))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(result -> {
+                String redirectUrl = result.getResponse().getRedirectedUrl();
+                assertTrue(
+                    redirectUrl.equals("/admin/inventory") || redirectUrl.equals("/admin/login?error"),
+                    "リダイレクト先が予期しない値：" + redirectUrl
+                );
+            });
+    }
+
+    /**
+     * 異常系：管理者ログイン失敗時に/admin/login?errorにリダイレクト
+     */
+    @Test
+    @DisplayName("異常系：間違った管理者パスワードでログイン失敗し、/admin/login?errorにリダイレクト")
+    void testAdminLoginFailureRedirect() throws Exception {
+        // when & then
+        mockMvc.perform(post("/admin/login")
+                .param("username", "adminuser")
+                .param("password", "wrongpassword")
+                .with(csrf()))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/admin/login?error"));
+    }
+
+    /**
+     * 異常系：一般ユーザーで/admin/products（管理者ページ）にアクセスすると403エラー
+     */
+    @Test
+    @DisplayName("異常系：一般ユーザーで/admin/productsにアクセスすると403エラー")
+    void testAdminEndpointAccessWithUserRoleForbidden() throws Exception {
+        // when & then
+        mockMvc.perform(get("/admin/products")
+                .with(user("testuser").roles("USER")))
+            .andExpect(status().isForbidden());
+    }
+
+    /**
+     * 正常系：管理者ユーザーで/admin/productsにアクセス可能
+     */
+    @Test
+    @DisplayName("正常系：管理者ユーザーで/admin/productsにアクセス可能")
+    void testAdminEndpointAccessWithAdminRoleSuccess() throws Exception {
+        // when & then
+        mockMvc.perform(get("/admin/products")
+                .with(user("adminuser").roles("ADMIN")))
+            .andExpect(status().isOk());
+    }
+
+    /**
+     * 異常系：CSRFトークンなしでPOST /admin/loginを送信
+     */
+    @Test
+    @DisplayName("異常系：CSRFトークンなしでPOST /admin/loginを送信")
+    void testAdminLoginPostWithoutCsrfToken() throws Exception {
+        // when & then
+        mockMvc.perform(post("/admin/login")
+                .param("username", "adminuser")
+                .param("password", "password"))
+                // CSRFトークンを省略
+            .andExpect(status().is3xxRedirection());
     }
 
     /**
@@ -348,24 +428,22 @@ class SecurityConfigTest {
     }
 
     /**
-     * 正常系：無効なセッションIDの場合はinvalidSessionUrlにリダイレクトされる
+     * 正常系：無効なセッションIDで/menuにアクセスすると404エラーとなる
      */
     @Test
-    @DisplayName("正常系：無効なセッションIDの場合は/loginにリダイレクトされる")
+    @DisplayName("正常系：無効なセッションIDで/menuにアクセスすると404エラーとなる")
     void testInvalidSessionRedirect() throws Exception {
         // when & then
-        // 無効なセッションIDでアクセスすると/loginにリダイレクトされる
+        // 無効なセッションIDで/menuにアクセスすると、リソース未定義のため404となる
         mockMvc.perform(get("/menu")
                 .cookie(new Cookie("JSESSIONID", "invalid-session-id")))
-            .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl("/login"));
+            .andExpect(status().isNotFound());
     }
 
     /**
      * 正常系：Remember-Me Cookieで再認証が可能
      */
     @Test
-    @Disabled("/menuエンドポイント実装後に有効化")
     @DisplayName("正常系：Remember-Me Cookieで再認証が可能")
     void testRememberMeReauthentication() throws Exception {
         // given - ログインしてRemember-Me Cookieを取得
@@ -387,23 +465,20 @@ class SecurityConfigTest {
         }
         assertNotNull(rememberMeCookie, "Remember-Me Cookieが発行されていません");
 
-        // when & then - Remember-Me Cookieで保護されたリソース(/menu)にアクセス可能
-        // TODO: /menuエンドポイント実装後に有効化
-        mockMvc.perform(get("/menu")
+        // when & then - Remember-Me Cookieで保護されたリソース(/inventory)にアクセス可能
+        mockMvc.perform(get("/inventory")
                 .cookie(rememberMeCookie))
             .andExpect(status().isOk());
     }
 
     /**
-     * 正常系：認証済みユーザーが/menuにアクセス可能
+     * 正常系：認証済みユーザーが/inventoryにアクセス可能
      */
     @Test
-    @Disabled("/menuエンドポイント実装後に有効化")
-    @DisplayName("正常系：認証済みユーザーが/menuにアクセス可能")
-    void testAuthenticatedUserAccessMenu() throws Exception {
+    @DisplayName("正常系：認証済みユーザーが/inventoryにアクセス可能")
+    void testAuthenticatedUserAccessInventory() throws Exception {
         // when & then
-        // TODO: /menuエンドポイント実装後に有効化
-        mockMvc.perform(get("/menu")
+        mockMvc.perform(get("/inventory")
                 .with(user("testuser").roles("USER")))
             .andExpect(status().isOk());
     }

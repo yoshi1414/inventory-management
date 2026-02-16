@@ -8,4 +8,14 @@ document.addEventListener('DOMContentLoaded', function () {
       event.stopPropagation(); // 親要素のクリックイベントを防止
     });
   });
+
+  /**
+   * エラーページの戻るボタン処理
+   */
+  const backButton = document.getElementById('backButton');
+  if (backButton) {
+    backButton.addEventListener('click', function() {
+      window.history.back();
+    });
+  }
 });

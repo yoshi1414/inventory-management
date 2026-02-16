@@ -48,6 +48,9 @@ public class SecurityConfig {
     @Autowired
     private CustomLogoutSuccessHandler logoutSuccessHandler;
 
+    @Autowired
+    private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+
     /**
      * SessionRegistryのBean定義
      * セッション管理に使用されるSessionRegistryを提供します。
@@ -59,24 +62,113 @@ public class SecurityConfig {
     }
 
     /**
-     * セキュリティフィルターチェーンの設定
+     * 管理者用セキュリティフィルターチェーンの設定
+     * 優先順位を高く設定して、/admin/** のリクエストを先に処理する
      * @param http HttpSecurityオブジェクト
      * @return SecurityFilterChain
      * @throws Exception 設定エラー時
      */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-       http
+    @org.springframework.core.annotation.Order(1)
+    public SecurityFilterChain adminSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .securityMatcher("/admin/**")  // このフィルターチェーンは /admin/** のみに適用
+            .authorizeHttpRequests((requests) -> requests
+                .requestMatchers("/admin/login").permitAll()  // ログイン画面へのアクセスを許可
+                .requestMatchers("/admin/**").hasRole("ADMIN")  // その他の管理者ページはROLE_ADMINが必要
+            )
+            .exceptionHandling((exception) -> exception
+                .authenticationEntryPoint(customAuthenticationEntryPoint)  // カスタム認証エントリーポイント
+                .accessDeniedPage("/error?status=403")  // アクセス拒否時のページ
+            )
+            .formLogin((form) -> form
+                .loginPage("/admin/login")  // 管理者用ログイン画面
+                .loginProcessingUrl("/admin/login")  // 管理者用ログイン処理URL
+                .defaultSuccessUrl("/admin/inventory")  // ログイン成功時のリダイレクト先（管理者用在庫管理）
+                .failureUrl("/admin/login?error")  // ログイン失敗時のリダイレクト先
+                .permitAll()
+            )
+            .logout((logout) -> logout
+                .logoutUrl("/logout")  // ログアウト処理のURL
+                .logoutSuccessHandler(logoutSuccessHandler)  // カスタムログアウト成功ハンドラー
+                .deleteCookies("JSESSIONID", "remember-me")  // クッキーの完全削除
+                .invalidateHttpSession(true)  // セッションの無効化
+                .clearAuthentication(true)  // 認証情報のクリア
+                .permitAll()
+            )
+            .rememberMe((remember) -> {
+                remember
+                    .key(rememberMeKey)                          // Remember-Meトークンのキー（環境変数から取得）
+                    .tokenValiditySeconds(rememberMeTokenValiditySeconds)  // トークンの有効期限（プロパティから取得）
+                    .rememberMeParameter(rememberMeParameter)    // パラメータ名（プロパティから取得）
+                    .useSecureCookie(rememberMeUseSecureCookie)  // 環境変数で制御（開発: false, 本番: true）
+                    .alwaysRemember(false);                      // デフォルトでRemember-Meを無効化
+                logger.info("管理者用Remember-Me設定: useSecureCookie={}, tokenValiditySeconds={}, parameter={}", 
+                    rememberMeUseSecureCookie, rememberMeTokenValiditySeconds, rememberMeParameter);
+            })
+            .csrf((csrf) -> csrf
+                .csrfTokenRepository(csrfTokenRepository)  // CSRF保護の明示的な設定（セッションベース）
+            )
+            .sessionManagement((session) -> {
+                session
+                    .sessionFixation().migrateSession()   // セッション固定攻撃対策
+                    .invalidSessionUrl("/admin/login?invalid")  // 無効なセッション時のリダイレクト先
+                    .maximumSessions(maximumSessions)     // 同時ログイン数の制限（プロパティから取得）
+                    .maxSessionsPreventsLogin(false)      // 新しいログインを許可（古いセッションを無効化）
+                    .expiredUrl("/admin/login?expired")   // セッション期限切れ時のリダイレクト先
+                    .sessionRegistry(sessionRegistry());  // SessionRegistryを明示的に指定
+                logger.info("管理者用セッション管理設定: maximumSessions={}", maximumSessions);
+            })
+            .headers((headers) -> headers
+                .contentSecurityPolicy((csp) -> csp
+                    .policyDirectives("default-src 'self'; " +
+                        "script-src 'self' https://cdn.jsdelivr.net; " +
+                        "style-src 'self' https://cdn.jsdelivr.net; " +
+                        "img-src 'self' data:; " +
+                        "font-src 'self' https://cdn.jsdelivr.net; " +
+                        "report-uri /csp-violation-report-endpoint")
+                )
+                .frameOptions((frame) -> frame.deny())  // クリックジャッキング対策
+                .xssProtection((xss) -> xss.disable())  // 最新ブラウザでは非推奨のため無効化
+                .httpStrictTransportSecurity((hsts) -> {
+                    hsts
+                        .maxAgeInSeconds(hstsMaxAgeSeconds)  // HSTS有効期間（プロパティから取得）
+                        .includeSubDomains(true)             // サブドメインも含む
+                        .preload(true);                      // HSTSプリロードリスト用
+                    logger.info("管理者用HSTS設定: maxAgeSeconds={}", hstsMaxAgeSeconds);
+                })
+                .referrerPolicy((referrer) -> referrer
+                    .policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)  // Referrer-Policy設定
+                )
+            );
+
+        return http.build();
+    }
+    
+    /**
+     * 一般ユーザー用セキュリティフィルターチェーンの設定
+     * @param http HttpSecurityオブジェクト
+     * @return SecurityFilterChain
+     * @throws Exception 設定エラー時
+     */
+    @Bean
+    @org.springframework.core.annotation.Order(2)
+    public SecurityFilterChain userSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
            .authorizeHttpRequests((requests) -> requests
            .requestMatchers("/css/**", "/images/**", "/js/**", "/storage/**").permitAll()  // 静的リソースへのアクセスを許可
-           .requestMatchers("/login", "/admin/login").permitAll() // ログイン画面へのアクセスを許可
+           .requestMatchers("/login").permitAll() // 一般ユーザー用ログイン画面へのアクセスを許可
            .requestMatchers("/error").permitAll() // エラーページへのアクセスを許可
            .requestMatchers("/csp-violation-report-endpoint").permitAll() // CSP違反レポートエンドポイント
-           .requestMatchers("/admin/**").hasRole("ADMIN") // 管理者専用エンドポイント（ロールベース認証）
+           .requestMatchers("/users/password").authenticated() // パスワード変更は認証済みユーザーのみ
            .anyRequest().authenticated()  // 上記以外のURLは認証が必要
            )
+           .exceptionHandling((exception) -> exception
+               .authenticationEntryPoint(customAuthenticationEntryPoint)  // カスタム認証エントリーポイント
+               .accessDeniedPage("/error?status=403")  // アクセス拒否時のページ
+           )
            .formLogin((form) -> form
-               .loginPage("/login")  // ログイン画面のURL
+               .loginPage("/login")  // 一般ユーザー用ログイン画面のURL
                .loginProcessingUrl("/login")  // ログイン処理のURL
                .defaultSuccessUrl("/inventory")  // ログイン成功時のリダイレクト先
                .failureUrl("/login?error")  // ログイン失敗時のリダイレクト先
@@ -97,7 +189,7 @@ public class SecurityConfig {
                    .rememberMeParameter(rememberMeParameter)    // パラメータ名（プロパティから取得）
                    .useSecureCookie(rememberMeUseSecureCookie)  // 環境変数で制御（開発: false, 本番: true）
                    .alwaysRemember(false);                      // デフォルトでRemember-Meを無効化
-               logger.info("Remember-Me設定: useSecureCookie={}, tokenValiditySeconds={}, parameter={}", 
+               logger.info("一般ユーザー用Remember-Me設定: useSecureCookie={}, tokenValiditySeconds={}, parameter={}", 
                    rememberMeUseSecureCookie, rememberMeTokenValiditySeconds, rememberMeParameter);
            })
            .csrf((csrf) -> csrf
@@ -112,7 +204,7 @@ public class SecurityConfig {
                    .maxSessionsPreventsLogin(false)      // 新しいログインを許可（古いセッションを無効化）
                    .expiredUrl("/login?expired")         // セッション期限切れ時のリダイレクト先
                    .sessionRegistry(sessionRegistry());  // SessionRegistryを明示的に指定
-               logger.info("セッション管理設定: maximumSessions={}", maximumSessions);
+               logger.info("一般ユーザー用セッション管理設定: maximumSessions={}", maximumSessions);
            })
            .headers((headers) -> headers
                .contentSecurityPolicy((csp) -> csp
@@ -130,7 +222,7 @@ public class SecurityConfig {
                        .maxAgeInSeconds(hstsMaxAgeSeconds)  // HSTS有効期間（プロパティから取得）
                        .includeSubDomains(true)             // サブドメインも含む
                        .preload(true);                      // HSTSプリロードリスト用
-                   logger.info("HSTS設定: maxAgeSeconds={}", hstsMaxAgeSeconds);
+                   logger.info("一般ユーザー用HSTS設定: maxAgeSeconds={}", hstsMaxAgeSeconds);
                })
                .referrerPolicy((referrer) -> referrer
                    .policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)  // Referrer-Policy設定

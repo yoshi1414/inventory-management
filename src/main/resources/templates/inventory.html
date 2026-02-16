@@ -141,8 +141,8 @@
                                 <tbody>
                                     <!-- 商品データループ -->
                                     <tr th:each="product : ${products}" 
-                                        class="product-row" 
-                                        th:onclick="'location.href=\'/inventory/products/' + ${product.id} + '\''">
+                                        class="product-row clickable-row" 
+                                        th:attr="data-product-id=${product.id}">
                                         <td><code th:text="${product.productCode}">PRD001</code></td>
                                         <td th:text="${product.productName}">商品名</td>
                                         <td>
@@ -157,10 +157,9 @@
                                             <a href="javascript:void(0);" 
                                                data-bs-toggle="modal" 
                                                data-bs-target="#stockModal" 
-                                               class="text-decoration-underline stock-link"
+                                               class="text-decoration-underline stock-link prevent-row-click"
                                                th:attr="data-product-id=${product.id}, data-product-name=${product.productName}, data-current-stock=${product.stock}"
-                                               th:text="${product.stock}"
-                                               onclick="event.stopPropagation();">0</a>
+                                               th:text="${product.stock}">0</a>
                                         </td>
                                         <td>
                                             <span th:class="${'badge badge-status-' + product.status}"
@@ -169,8 +168,7 @@
                                         <td th:text="${#temporals.format(product.updatedAt, 'yyyy-MM-dd')}">2026-01-01</td>
                                         <td>
                                             <a th:href="@{/inventory/products/{id}(id=${product.id})}" 
-                                               class="btn btn-sm btn-outline-primary"
-                                               onclick="event.stopPropagation();">
+                                               class="btn btn-sm btn-outline-primary prevent-row-click">
                                                 <i class="bi bi-eye"></i> 詳細
                                             </a>
                                         </td>

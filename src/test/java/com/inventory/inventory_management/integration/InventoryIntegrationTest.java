@@ -18,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -48,6 +49,7 @@ import com.inventory.inventory_management.service.InventoryService;
 @ActiveProfiles("test")
 @Transactional
 @DisplayName("在庫管理システム 結合テスト")
+@Sql(scripts = {"/schema-test.sql", "/data-test.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 public class InventoryIntegrationTest {
 
     @Autowired
@@ -1104,7 +1106,10 @@ public class InventoryIntegrationTest {
     @WithUserDetails("testuser")
     @DisplayName("【結合】商品詳細画面に入出庫履歴が最新3件表示される")
     void testEndToEnd_ProductDetail_WithTransactions() throws Exception {
-        // Given: 在庫変動履歴を作成（4件）
+        // Given: 既存の取引履歴をクリアして、新しい履歴を作成する
+        stockTransactionRepository.deleteByProductId(testProduct1.getId());
+
+        // 在庫変動履歴を作成（4件）
         for (int i = 0; i < 4; i++) {
             String requestBody = String.format("""
                 {

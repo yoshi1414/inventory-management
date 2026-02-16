@@ -159,4 +159,28 @@ document.addEventListener('DOMContentLoaded', function() {
             updateButton.textContent = '更新';
         });
     });
+
+    /**
+     * テーブル行のクリックイベント処理
+     * clickable-rowクラスを持つテーブル行をクリックすると、商品詳細ページに遷移
+     */
+    const productRows = document.querySelectorAll('tr.clickable-row');
+    productRows.forEach(row => {
+        row.addEventListener('click', function() {
+            const productId = this.getAttribute('data-product-id');
+            if (productId) {
+                window.location.href = '/inventory/products/' + productId;
+            }
+        });
+    });
+
+    /**
+     * イベント伝播を停止する要素（prevent-row-clickクラス）のクリックハンドラー
+     */
+    const preventRowClickElements = document.querySelectorAll('.prevent-row-click');
+    preventRowClickElements.forEach(element => {
+        element.addEventListener('click', function(event) {
+            event.stopPropagation();
+        });
+    });
 });

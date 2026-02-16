@@ -105,6 +105,24 @@ class AuthenticationFailureListenerTest {
     }
 
     /**
+     * 正常系：管理者ユーザーでの認証失敗
+     */
+    @Test
+    @DisplayName("正常系：管理者ユーザー（adminuser）での認証失敗")
+    void testOnApplicationEvent_AdminUserFailure() {
+        // given
+        authentication = new UsernamePasswordAuthenticationToken("adminuser", "wrongpassword");
+        AuthenticationFailureBadCredentialsEvent event = 
+            new AuthenticationFailureBadCredentialsEvent(authentication, badCredentialsException);
+
+        // when
+        authenticationFailureListener.onApplicationEvent(event);
+
+        // then
+        verify(loginAttemptService, times(1)).loginFailed("adminuser");
+    }
+
+    /**
      * 正常系：複数回の認証失敗イベント
      */
     @Test

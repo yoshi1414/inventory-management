@@ -114,6 +114,27 @@ class AuthenticationSuccessListenerTest {
     }
 
     /**
+     * 正常系：管理者ユーザーでの認証成功
+     */
+    @Test
+    @DisplayName("正常系：管理者ユーザー（adminuser）での認証成功")
+    void testOnApplicationEvent_AdminUserSuccess() {
+        // given
+        authentication = new UsernamePasswordAuthenticationToken(
+                "adminuser",
+                "password",
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN"))
+        );
+        AuthenticationSuccessEvent event = new AuthenticationSuccessEvent(authentication);
+
+        // when
+        authenticationSuccessListener.onApplicationEvent(event);
+
+        // then
+        verify(loginAttemptService, times(1)).loginSucceeded("adminuser");
+    }
+
+    /**
      * 異常系：LoginAttemptServiceが例外をスローした場合でもエラーにならない
      */
     @Test

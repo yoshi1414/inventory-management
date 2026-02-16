@@ -35,4 +35,10 @@ public interface StockTransactionRepository extends JpaRepository<StockTransacti
         @Param("productId") Integer productId,
         @Param("transactionType") String transactionType
     );
+
+    /**
+     * 商品IDで在庫変動履歴を削除
+     * @param productId 商品ID
+     */
+    void deleteByProductId(Integer productId);
 }

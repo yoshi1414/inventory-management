@@ -167,6 +167,17 @@ git checkout main
 3.リモートの main をローカルの main にマージ
 git merge origin/main
 
+ーーーーーーーーーーーーーーーーーーーーーーーーーー
+ブランチ内容がすべて取り込まれているかの確認
+1.現在のブランチを確認
+git branch
+  feature/inventory
+* main
+
+2.mainと他ブランチを比較
+git log main..feature/inventory
+※結果がなにも返ってこなければ、取り込みが完了している
+
 ーーーーーーーーーーーーー
 コミットコメント例
 管理者用在庫管理画面および商品管理関連設計書を追加 #10
