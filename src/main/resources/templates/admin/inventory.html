@@ -14,11 +14,11 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/style.css">
 </head>
-<body>
+<body th:data-csrf-token="${_csrf.token}" th:data-csrf-header="${_csrf.headerName}">
     <!-- ナビゲーションバー（管理者用） -->
     <nav class="navbar navbar-expand-lg navbar-custom-admin fixed-top">
         <div class="container-fluid">
-            <a class="navbar-brand" href="/admin/menu">
+            <a class="navbar-brand" href="/admin/inventory">
                 <i class="bi bi-shield-lock"></i> 商品在庫管理システム <span class="badge admin-badge">管理者</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -72,72 +72,75 @@
                 </div>
 
                 <!-- 在庫不足アラート -->
-                <div class="alert alert-warning alert-stock-shortage d-flex align-items-center" role="alert">
+                <div th:if="${lowStockCount > 0 or outOfStockCount > 0}" 
+                     class="alert alert-warning alert-stock-shortage d-flex align-items-center" role="alert">
                     <i class="bi bi-exclamation-triangle-fill me-2"></i>
                     <div>
-                        <strong>在庫不足の商品があります:</strong> 15商品が在庫不足（20個以下）、3商品が在庫切れです。
-                        <a href="/admin/inventory/in" class="alert-link ms-2">
-                            <i class="bi bi-box-arrow-in-down"></i> 入庫処理へ
-                        </a>
+                        <strong>在庫不足の商品があります:</strong> 
+                        <span th:text="${lowStockCount}">15</span>商品が在庫不足（20個以下）、
+                        <span th:text="${outOfStockCount}">3</span>商品が在庫切れです。
                     </div>
                 </div>
 
                 <!-- 検索・フィルタリングパネル -->
                 <div class="search-panel">
-                    <form id="searchForm">
+                    <form id="searchForm" method="get" action="/admin/inventory">
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <label for="searchKeyword" class="form-label">商品名検索</label>
-                                <input type="text" class="form-control" id="searchKeyword" placeholder="商品名を入力">
+                                <input type="text" class="form-control" id="searchKeyword" name="search" 
+                                       th:value="${search}" placeholder="商品名を入力">
                             </div>
                             <div class="col-md-2">
                                 <label for="categoryFilter" class="form-label">カテゴリ</label>
-                                <select class="form-select" id="categoryFilter">
+                                <select class="form-select" id="categoryFilter" name="category">
                                     <option value="">全て</option>
-                                    <option value="Electronics">Electronics</option>
-                                    <option value="Clothing">Clothing</option>
-                                    <option value="Home Appliances">Home Appliances</option>
+                                    <option value="Electronics" th:selected="${category == 'Electronics'}">Electronics</option>
+                                    <option value="Clothing" th:selected="${category == 'Clothing'}">Clothing</option>
+                                    <option value="Home Appliances" th:selected="${category == 'Home Appliances'}">Home Appliances</option>
                                 </select>
                             </div>
                             <div class="col-md-2">
                                 <label for="statusFilter" class="form-label">ステータス</label>
-                                <select class="form-select" id="statusFilter">
+                                <select class="form-select" id="statusFilter" name="status">
                                     <option value="">全て</option>
-                                    <option value="active">販売中</option>
-                                    <option value="inactive">販売停止</option>
+                                    <option value="active" th:selected="${status == 'active'}">販売中</option>
+                                    <option value="inactive" th:selected="${status == 'inactive'}">販売停止</option>
                                 </select>
                             </div>
                             <div class="col-md-2">
                                 <label for="stockFilter" class="form-label">在庫状態</label>
-                                <select class="form-select" id="stockFilter">
+                                <select class="form-select" id="stockFilter" name="stock">
                                     <option value="">全て</option>
-                                    <option value="sufficient">在庫あり(21個以上)</option>
-                                    <option value="low">在庫不足(1-20個)</option>
-                                    <option value="out">在庫なし(0個)</option>
+                                    <option value="sufficient" th:selected="${stock == 'sufficient'}">在庫あり(21個以上)</option>
+                                    <option value="low" th:selected="${stock == 'low'}">在庫不足(1-20個)</option>
+                                    <option value="out" th:selected="${stock == 'out'}">在庫なし(0個)</option>
                                 </select>
                             </div>
                             <div class="col-md-2">
                                 <label for="sortBy" class="form-label">並び順</label>
-                                <select class="form-select" id="sortBy">
-                                    <option value="name">商品名順</option>
-                                    <option value="stock">在庫数順</option>
-                                    <option value="updated">更新日順</option>
+                                <select class="form-select" id="sortBy" name="sort">
+                                    <option value="name" th:selected="${sort == 'name' or sort == null}">商品名順</option>
+                                    <option value="stock" th:selected="${sort == 'stock'}">在庫数順（昇順）</option>
+                                    <option value="stock_desc" th:selected="${sort == 'stock_desc'}">在庫数順（降順）</option>
+                                    <option value="updated" th:selected="${sort == 'updated'}">更新日順</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-12">
+                        <div class="row mt-2">
+                            <div class="col-12 d-flex justify-content-end align-items-center">
+                                <div class="form-check me-3 mb-0">
+                                    <input class="form-check-input" type="checkbox" name="includeDeleted" 
+                                            id="includeDeleted" th:checked="${includeDeleted}">
+                                    <label class="form-check-label" for="includeDeleted">
+                                        削除済み商品を含める
+                                    </label>
+                                </div>
                                 <button type="submit" class="btn btn-primary">
                                     <i class="bi bi-search"></i> 検索
                                 </button>
-                                <button type="reset" class="btn btn-secondary ms-2">
+                                <a href="/admin/inventory" class="btn btn-secondary ms-2">
                                     <i class="bi bi-x-circle"></i> クリア
-                                </button>
-                                <a href="/admin/products/import" class="btn btn-outline-success ms-3">
-                                    <i class="bi bi-upload"></i> CSVインポート
-                                </a>
-                                <a href="/admin/products/export" class="btn btn-outline-primary ms-2">
-                                    <i class="bi bi-download"></i> CSVエクスポート
                                 </a>
                             </div>
                         </div>
@@ -162,386 +165,83 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <!-- 在庫切れ商品 -->
-                                    <tr>
-                                        <td><code>JHQ82GFX</code></td>
-                                        <td>Monitor XM4P4</td>
-                                        <td><span class="badge bg-info">Clothing</span></td>
-                                        <td>¥402</td>
-                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-danger text-decoration-underline"><i class="bi bi-x-circle-fill"></i> 0</a></td>
-                                        <td><span class="badge badge-status-inactive">販売停止</span></td>
-                                        <td>2026-01-30</td>
-                                        <td class="action-buttons">
-                                            <a href="/admin/products/JHQ82GFX" class="btn btn-sm btn-outline-info" title="詳細">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                            <a href="/admin/products/JHQ82GFX/edit" class="btn btn-sm btn-outline-primary" title="編集">
-                                                <i class="bi bi-pencil"></i> 編集
-                                            </a>
-                                            <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('JHQ82GFX')">
-                                                <i class="bi bi-trash"></i> 削除
-                                            </button>
+                                    <tr th:if="${#lists.isEmpty(products)}">
+                                        <td colspan="8" class="text-center text-muted">
+                                            該当する商品がありません。
                                         </td>
                                     </tr>
-                                    <!-- 在庫不足商品 -->
-                                    <tr>
-                                        <td><code>93TGNAY7</code></td>
-                                        <td>Laptop XU5QX</td>
-                                        <td><span class="badge bg-secondary">Home Appliances</span></td>
-                                        <td>¥253</td>
-                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-warning text-decoration-underline"><i class="bi bi-exclamation-triangle-fill"></i> 3</a></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-29</td>
-                                        <td class="action-buttons">
-                                            <a href="/admin/products/JHQ82GFX" class="btn btn-sm btn-outline-info" title="詳細">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                            <a href="/admin/products/93TGNAY7/edit" class="btn btn-sm btn-outline-primary" title="編集">
-                                                <i class="bi bi-pencil"></i> 編集
-                                            </a>
-                                            <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('93TGNAY7')">
-                                                <i class="bi bi-trash"></i> 削除
-                                            </button>
+                                    <tr th:each="product : ${products}">
+                                        <td>
+                                            <code th:text="${product.productCode}">JHQ82GFX</code>
                                         </td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>YTFM1TLG</code></td>
-                                        <td>Smartphone XDVMX</td>
-                                        <td><span class="badge bg-info">Clothing</span></td>
-                                        <td>¥286</td>
-                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-warning text-decoration-underline"><i class="bi bi-exclamation-triangle-fill"></i> 12</a></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-28</td>
-                                        <td class="action-buttons">
-                                            <a href="/admin/products/JHQ82GFX" class="btn btn-sm btn-outline-info" title="詳細">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                            <a href="/admin/products/YTFM1TLG/edit" class="btn btn-sm btn-outline-primary" title="編集">
-                                                <i class="bi bi-pencil"></i> 編集
-                                            </a>
-                                            <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('YTFM1TLG')">
-                                                <i class="bi bi-trash"></i> 削除
-                                            </button>
+                                        <td>
+                                            <a th:href="@{/admin/products/{id}(id=${product.id})}" 
+                                               th:text="${product.productName}">商品名</a>
+                                            <span th:if="${product.deletedAt != null}" 
+                                                  class="badge bg-secondary ms-1">削除済み</span>
                                         </td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>5C94FGTQ</code></td>
-                                        <td>Headphones IT7HG</td>
-                                        <td><span class="badge bg-info">Clothing</span></td>
-                                        <td>¥475</td>
-                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-warning text-decoration-underline"><i class="bi bi-exclamation-triangle-fill"></i> 19</a></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-27</td>
-                                        <td class="action-buttons">
-                                            <a href="/admin/products/JHQ82GFX" class="btn btn-sm btn-outline-info" title="詳細">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                            <a href="/admin/products/5C94FGTQ/edit" class="btn btn-sm btn-outline-primary" title="編集">
-                                                <i class="bi bi-pencil"></i> 編集
-                                            </a>
-                                            <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('5C94FGTQ')">
-                                                <i class="bi bi-trash"></i> 削除
-                                            </button>
+                                        <td>
+                                            <span th:class="${'badge ' + 
+                                                (product.category == 'Electronics' ? 'bg-primary' : 
+                                                 product.category == 'Clothing' ? 'bg-info' : 'bg-secondary')}"
+                                                  th:text="${product.category}">カテゴリ</span>
                                         </td>
-                                    </tr>
-                                    <!-- 在庫十分 -->
-                                    <tr>
-                                        <td><code>728GCZFU</code></td>
-                                        <td>Laptop 54FAF</td>
-                                        <td><span class="badge bg-secondary">Home Appliances</span></td>
-                                        <td>¥230</td>
-                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">32</a></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-26</td>
-                                        <td class="action-buttons">
-                                            <a href="/admin/products/JHQ82GFX" class="btn btn-sm btn-outline-info" title="詳細">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                            <a href="/admin/products/728GCZFU/edit" class="btn btn-sm btn-outline-primary" title="編集">
-                                                <i class="bi bi-pencil"></i> 編集
-                                            </a>
-                                            <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('728GCZFU')">
-                                                <i class="bi bi-trash"></i> 削除
-                                            </button>
+                                        <td>
+                                            ¥<span th:text="${#numbers.formatInteger(product.price, 0, 'COMMA')}">0</span>
                                         </td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>XBHKYPQB</code></td>
-                                        <td>Monitor 8SBDO</td>
-                                        <td><span class="badge bg-info">Clothing</span></td>
-                                        <td>¥403</td>
-                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">40</a></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-25</td>
-                                        <td class="action-buttons">
-                                            <a href="/admin/products/JHQ82GFX" class="btn btn-sm btn-outline-info" title="詳細">
-                                                <i class="bi bi-eye"></i> 詳細
+                                        <td>
+                                            <a href="javascript:void(0);"
+                                               th:data-product-id="${product.id}" 
+                                               th:data-product-name="${product.productName}"
+                                               th:data-current-stock="${product.stock}"
+                                               th:classappend="${product.stock == 0} ? 'stock-danger' : (${product.stock <= 20} ? 'stock-warning' : 'stock-ok')"
+                                               class="text-decoration-underline stock-link">
+                                                <i th:if="${product.stock == 0}" 
+                                                   class="bi bi-x-circle-fill"></i>
+                                                <i th:if="${product.stock > 0 and product.stock <= 20}" 
+                                                   class="bi bi-exclamation-triangle-fill"></i>
+                                                <span th:text="${product.stock}">0</span>
                                             </a>
-                                            <a href="/admin/products/XBHKYPQB/edit" class="btn btn-sm btn-outline-primary" title="編集">
-                                                <i class="bi bi-pencil"></i> 編集
-                                            </a>
-                                            <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('XBHKYPQB')">
-                                                <i class="bi bi-trash"></i> 削除
-                                            </button>
                                         </td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>0KHFMXFN</code></td>
-                                        <td>Monitor GFUOS</td>
-                                        <td><span class="badge bg-secondary">Home Appliances</span></td>
-                                        <td>¥21</td>
-                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">48</a></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-24</td>
-                                        <td class="action-buttons">
-                                            <a href="/admin/products/JHQ82GFX" class="btn btn-sm btn-outline-info" title="詳細">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                            <a href="/admin/products/0KHFMXFN/edit" class="btn btn-sm btn-outline-primary" title="編集">
-                                                <i class="bi bi-pencil"></i> 編集
-                                            </a>
-                                            <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('0KHFMXFN')">
-                                                <i class="bi bi-trash"></i> 削除
-                                            </button>
+                                        <td>
+                                            <span th:if="${product.status == 'active'}" 
+                                                  class="badge badge-status-active">販売中</span>
+                                            <span th:if="${product.status == 'inactive'}" 
+                                                  class="badge badge-status-inactive">販売停止</span>
                                         </td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>TYYZ5AV7</code></td>
-                                        <td>Smartphone NRUMS</td>
-                                        <td><span class="badge bg-info">Clothing</span></td>
-                                        <td>¥214</td>
-                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">92</a></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-23</td>
-                                        <td class="action-buttons">
-                                            <a href="/admin/products/JHQ82GFX" class="btn btn-sm btn-outline-info" title="詳細">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                            <a href="/admin/products/TYYZ5AV7/edit" class="btn btn-sm btn-outline-primary" title="編集">
-                                                <i class="bi bi-pencil"></i> 編集
-                                            </a>
-                                            <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('TYYZ5AV7')">
-                                                <i class="bi bi-trash"></i> 削除
-                                            </button>
+                                        <td th:text="${#temporals.format(product.updatedAt, 'yyyy-MM-dd HH:mm')}">
+                                            2026-01-30 12:00
                                         </td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>27R9M103</code></td>
-                                        <td>Smartphone Z5CGR</td>
-                                        <td><span class="badge bg-primary">Electronics</span></td>
-                                        <td>¥19</td>
-                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">98</a></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-22</td>
                                         <td class="action-buttons">
-                                            <a href="/admin/products/JHQ82GFX" class="btn btn-sm btn-outline-info" title="詳細">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                            <a href="/admin/products/27R9M103/edit" class="btn btn-sm btn-outline-primary" title="編集">
-                                                <i class="bi bi-pencil"></i> 編集
-                                            </a>
-                                            <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('27R9M103')">
-                                                <i class="bi bi-trash"></i> 削除
+                                            <!-- 在庫編集ボタン -->
+                                            <button type="button" class="btn btn-sm btn-primary" 
+                                                    th:data-product-id="${product.id}"
+                                                    th:data-product-name="${product.productName}"
+                                                    th:data-current-stock="${product.stock}"
+                                                    onclick="openStockModal(this)" title="在庫編集">
+                                                <i class="bi bi-pencil"></i>
                                             </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>T4F2EW7G</code></td>
-                                        <td>Monitor VSWHF</td>
-                                        <td><span class="badge bg-secondary">Home Appliances</span></td>
-                                        <td>¥229</td>
-                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">100</a></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-21</td>
-                                        <td class="action-buttons">
-                                            <a href="/admin/products/JHQ82GFX" class="btn btn-sm btn-outline-info" title="詳細">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                            <a href="/admin/products/T4F2EW7G/edit" class="btn btn-sm btn-outline-primary" title="編集">
-                                                <i class="bi bi-pencil"></i> 編集
-                                            </a>
-                                            <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('T4F2EW7G')">
-                                                <i class="bi bi-trash"></i> 削除
+                                            <!-- 履歴表示ボタン -->
+                                            <button type="button" class="btn btn-sm btn-info" 
+                                                    th:data-product-id="${product.id}"
+                                                    th:data-product-name="${product.productName}"
+                                                    onclick="openHistoryModal(this)" title="履歴">
+                                                <i class="bi bi-clock-history"></i>
                                             </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>GL199BEL</code></td>
-                                        <td>Smartphone HMH7Q</td>
-                                        <td><span class="badge bg-info">Clothing</span></td>
-                                        <td>¥446</td>
-                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">47</a></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-20</td>
-                                        <td class="action-buttons">
-                                            <a href="/admin/products/JHQ82GFX" class="btn btn-sm btn-outline-info" title="詳細">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                            <a href="/admin/products/GL199BEL/edit" class="btn btn-sm btn-outline-primary" title="編集">
-                                                <i class="bi bi-pencil"></i> 編集
-                                            </a>
-                                            <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('GL199BEL')">
-                                                <i class="bi bi-trash"></i> 削除
+                                            <!-- 削除/復元ボタン -->
+                                            <button th:if="${product.deletedAt == null}" 
+                                                    type="button" class="btn btn-sm btn-danger" 
+                                                    th:data-product-id="${product.id}"
+                                                    th:data-product-name="${product.productName}"
+                                                    onclick="openDeleteModal(this)" title="削除">
+                                                <i class="bi bi-trash"></i>
                                             </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>SX7HALUU</code></td>
-                                        <td>Monitor SM05O</td>
-                                        <td><span class="badge bg-primary">Electronics</span></td>
-                                        <td>¥322</td>
-                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">74</a></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-19</td>
-                                        <td class="action-buttons">
-                                            <a href="/admin/products/JHQ82GFX" class="btn btn-sm btn-outline-info" title="詳細">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                            <a href="/admin/products/SX7HALUU/edit" class="btn btn-sm btn-outline-primary" title="編集">
-                                                <i class="bi bi-pencil"></i> 編集
-                                            </a>
-                                            <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('SX7HALUU')">
-                                                <i class="bi bi-trash"></i> 削除
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>1AOXE5QW</code></td>
-                                        <td>Headphones IXUWP</td>
-                                        <td><span class="badge bg-info">Clothing</span></td>
-                                        <td>¥372</td>
-                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">36</a></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-18</td>
-                                        <td class="action-buttons">
-                                            <a href="/admin/products/JHQ82GFX" class="btn btn-sm btn-outline-info" title="詳細">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                            <a href="/admin/products/1AOXE5QW/edit" class="btn btn-sm btn-outline-primary" title="編集">
-                                                <i class="bi bi-pencil"></i> 編集
-                                            </a>
-                                            <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('1AOXE5QW')">
-                                                <i class="bi bi-trash"></i> 削除
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>KOXR70B4</code></td>
-                                        <td>Smartphone 2SHT8</td>
-                                        <td><span class="badge bg-secondary">Home Appliances</span></td>
-                                        <td>¥452</td>
-                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">61</a></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-17</td>
-                                        <td class="action-buttons">
-                                            <a href="/admin/products/JHQ82GFX" class="btn btn-sm btn-outline-info" title="詳細">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                            <a href="/admin/products/KOXR70B4/edit" class="btn btn-sm btn-outline-primary" title="編集">
-                                                <i class="bi bi-pencil"></i> 編集
-                                            </a>
-                                            <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('KOXR70B4')">
-                                                <i class="bi bi-trash"></i> 削除
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>X2D1GWO5</code></td>
-                                        <td>Monitor 5TYRK</td>
-                                        <td><span class="badge bg-info">Clothing</span></td>
-                                        <td>¥27</td>
-                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">40</a></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-16</td>
-                                        <td class="action-buttons">
-                                            <a href="/admin/products/JHQ82GFX" class="btn btn-sm btn-outline-info" title="詳細">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                            <a href="/admin/products/X2D1GWO5/edit" class="btn btn-sm btn-outline-primary" title="編集">
-                                                <i class="bi bi-pencil"></i> 編集
-                                            </a>
-                                            <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('X2D1GWO5')">
-                                                <i class="bi bi-trash"></i> 削除
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>ZKI2USNA</code></td>
-                                        <td>Laptop 56JPR</td>
-                                        <td><span class="badge bg-secondary">Home Appliances</span></td>
-                                        <td>¥204</td>
-                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">91</a></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-15</td>
-                                        <td class="action-buttons">
-                                            <a href="/admin/products/JHQ82GFX" class="btn btn-sm btn-outline-info" title="詳細">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                            <a href="/admin/products/ZKI2USNA/edit" class="btn btn-sm btn-outline-primary" title="編集">
-                                                <i class="bi bi-pencil"></i> 編集
-                                            </a>
-                                            <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('ZKI2USNA')">
-                                                <i class="bi bi-trash"></i> 削除
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>EPKS7ECS</code></td>
-                                        <td>Smartphone UPJGT</td>
-                                        <td><span class="badge bg-info">Clothing</span></td>
-                                        <td>¥176</td>
-                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">48</a></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-14</td>
-                                        <td class="action-buttons">
-                                            <a href="/admin/products/JHQ82GFX" class="btn btn-sm btn-outline-info" title="詳細">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                            <a href="/admin/products/EPKS7ECS/edit" class="btn btn-sm btn-outline-primary" title="編集">
-                                                <i class="bi bi-pencil"></i> 編集
-                                            </a>
-                                            <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('EPKS7ECS')">
-                                                <i class="bi bi-trash"></i> 削除
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>UB8UO1PA</code></td>
-                                        <td>Monitor EFPA6</td>
-                                        <td><span class="badge bg-primary">Electronics</span></td>
-                                        <td>¥424</td>
-                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">31</a></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-13</td>
-                                        <td class="action-buttons">
-                                            <a href="/admin/products/JHQ82GFX" class="btn btn-sm btn-outline-info" title="詳細">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                            <a href="/admin/products/UB8UO1PA/edit" class="btn btn-sm btn-outline-primary" title="編集">
-                                                <i class="bi bi-pencil"></i> 編集
-                                            </a>
-                                            <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('UB8UO1PA')">
-                                                <i class="bi bi-trash"></i> 削除
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>6ID782KK</code></td>
-                                        <td>Monitor 2N5R9</td>
-                                        <td><span class="badge bg-info">Clothing</span></td>
-                                        <td>¥331</td>
-                                        <td><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#stockModal" class="stock-ok text-decoration-underline">41</a></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-12</td>
-                                        <td class="action-buttons">
-                                            <a href="/admin/products/JHQ82GFX" class="btn btn-sm btn-outline-info" title="詳細">
-                                                <i class="bi bi-eye"></i> 詳細
-                                            </a>
-                                            <a href="/admin/products/6ID782KK/edit" class="btn btn-sm btn-outline-primary" title="編集">
-                                                <i class="bi bi-pencil"></i> 編集
-                                            </a>
-                                            <button class="btn btn-sm btn-outline-danger" title="削除" onclick="handleDelete('6ID782KK')">
-                                                <i class="bi bi-trash"></i> 削除
+                                            <button th:if="${product.deletedAt != null}" 
+                                                    type="button" class="btn btn-sm btn-success" 
+                                                    th:data-product-id="${product.id}"
+                                                    th:data-product-name="${product.productName}"
+                                                    onclick="restoreProduct(this)" title="復元">
+                                                <i class="bi bi-arrow-counterclockwise"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -550,39 +250,66 @@
                         </div>
 
                         <!-- ページネーション -->
-                        <nav aria-label="商品ページネーション">
+                        <nav aria-label="商品ページネーション" th:if="${totalPages > 0}">
                             <ul class="pagination justify-content-center">
-                                <li class="page-item disabled">
-                                    <a class="page-link" href="#" tabindex="-1">
+                                <!-- 最初のページ -->
+                                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                    <a class="page-link" 
+                                       th:href="@{/admin/inventory(search=${search}, category=${category}, status=${status}, stock=${stock}, sort=${sort}, includeDeleted=${includeDeleted}, page=0)}"
+                                       th:disabled="${currentPage == 0}">
                                         <i class="bi bi-chevron-double-left"></i> 最初
                                     </a>
                                 </li>
-                                <li class="page-item disabled">
-                                    <a class="page-link" href="#" tabindex="-1">
+                                <!-- 前のページ -->
+                                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                    <a class="page-link" 
+                                       th:href="@{/admin/inventory(search=${search}, category=${category}, status=${status}, stock=${stock}, sort=${sort}, includeDeleted=${includeDeleted}, page=${currentPage - 1})}"
+                                       th:disabled="${currentPage == 0}">
                                         <i class="bi bi-chevron-left"></i> 前へ
                                     </a>
                                 </li>
-                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                <li class="page-item"><a class="page-link" href="#">4</a></li>
-                                <li class="page-item"><a class="page-link" href="#">5</a></li>
-                                <li class="page-item disabled"><a class="page-link" href="#">...</a></li>
-                                <li class="page-item"><a class="page-link" href="#">10</a></li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">
+                                
+                                <!-- ページ番号 -->
+                                <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                                    <li th:if="${i == currentPage}" class="page-item active">
+                                        <a class="page-link" href="javascript:void(0);" th:text="${i + 1}">1</a>
+                                    </li>
+                                    <li th:if="${i != currentPage and (i < 3 or i > totalPages - 4 or (i >= currentPage - 2 and i <= currentPage + 2))}" 
+                                        class="page-item">
+                                        <a class="page-link" 
+                                           th:href="@{/admin/inventory(search=${search}, category=${category}, status=${status}, stock=${stock}, sort=${sort}, includeDeleted=${includeDeleted}, page=${i})}"
+                                           th:text="${i + 1}">1</a>
+                                    </li>
+                                    <li th:if="${i != currentPage and ((i == 3 and currentPage > 5) or (i == totalPages - 4 and currentPage < totalPages - 6))}" 
+                                        class="page-item disabled">
+                                        <a class="page-link" href="javascript:void(0);">...</a>
+                                    </li>
+                                </th:block>
+                                
+                                <!-- 次のページ -->
+                                <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                                    <a class="page-link" 
+                                       th:href="@{/admin/inventory(search=${search}, category=${category}, status=${status}, stock=${stock}, sort=${sort}, includeDeleted=${includeDeleted}, page=${currentPage + 1})}"
+                                       th:disabled="${currentPage == totalPages - 1}">
                                         次へ <i class="bi bi-chevron-right"></i>
                                     </a>
                                 </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">
+                                <!-- 最後のページ -->
+                                <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                                    <a class="page-link" 
+                                       th:href="@{/admin/inventory(search=${search}, category=${category}, status=${status}, stock=${stock}, sort=${sort}, includeDeleted=${includeDeleted}, page=${totalPages - 1})}"
+                                       th:disabled="${currentPage == totalPages - 1}">
                                         最後 <i class="bi bi-chevron-double-right"></i>
                                     </a>
                                 </li>
                             </ul>
                         </nav>
-                        <div class="text-center text-muted">
-                            <small>全200件中 1-20件を表示 (ページ 1/10)</small>
+                        <div class="text-center text-muted" th:if="${totalElements > 0}">
+                            <small>
+                                全<span th:text="${totalElements}">200</span>件中 
+                                <span th:text="${startItem}">1</span>-<span th:text="${endItem}">20</span>件を表示 
+                                (ページ <span th:text="${currentPageNumber}">1</span>/<span th:text="${totalPages}">10</span>)
+                            </small>
                         </div>
                     </div>
                 </div>
@@ -613,37 +340,116 @@
         </div>
     </div>
 
-    <!-- 在庫管理モーダル -->
+    <!-- 在庫編集モーダル -->
     <div class="modal fade" id="stockModal" tabindex="-1" aria-labelledby="stockModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="stockModalLabel">在庫管理</h5>
+                    <h5 class="modal-title" id="stockModalLabel">在庫編集</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <!-- 入庫・出庫選択ラジオボタン -->
+                    <!-- メッセージ表示エリア -->
+                    <div id="stockModalMessage" class="alert d-none" role="alert"></div>
+                    
+                    <!-- 商品情報 -->
                     <div class="mb-3">
-                      <label class="form-label">操作を選択</label>
-                      <div>
-                        <div class="form-check form-check-inline">
-                          <input class="form-check-input" type="radio" name="stockOperation" id="stockIn" value="in" checked>
-                          <label class="form-check-label" for="stockIn">入庫</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                          <input class="form-check-input" type="radio" name="stockOperation" id="stockOut" value="out">
-                          <label class="form-check-label" for="stockOut">出庫</label>
-                        </div>
-                      </div>
+                        <label class="form-label fw-bold">商品名</label>
+                        <p id="stockModalProductName" class="mb-0">-</p>
                     </div>
-                    <!-- 在庫数入力 -->
                     <div class="mb-3">
-                      <label for="stockInput" class="form-label">在庫数を入力</label>
-                      <input type="number" class="form-control" id="stockInput" placeholder="在庫数">
+                        <label class="form-label fw-bold">現在の在庫数</label>
+                        <p id="stockModalCurrentStock" class="h4 mb-0">0</p>
+                    </div>
+                    
+                    <!-- 操作選択ラジオボタン -->
+                    <div class="mb-3">
+                        <label class="form-label">操作を選択</label>
+                        <div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="stockOperation" 
+                                       id="stockIn" value="in" checked>
+                                <label class="form-check-label" for="stockIn">入庫</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="stockOperation" 
+                                       id="stockOut" value="out">
+                                <label class="form-check-label" for="stockOut">出庫</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="stockOperation" 
+                                       id="stockSet" value="set">
+                                <label class="form-check-label" for="stockSet">在庫数設定</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 数量入力 -->
+                    <div class="mb-3">
+                        <label for="stockInput" class="form-label">数量を入力</label>
+                        <input type="number" class="form-control" id="stockInput" 
+                               placeholder="数量を入力" min="0" required>
+                    </div>
+                    
+                    <!-- 備考 -->
+                    <div class="mb-3">
+                        <label for="stockRemarks" class="form-label">備考（任意）</label>
+                        <textarea class="form-control" id="stockRemarks" rows="2" 
+                                  placeholder="入出庫の理由を入力（任意）" maxlength="255"></textarea>
+                    </div>
+                    
+                    <!-- 更新後在庫数（予測） -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">更新後在庫数（予測）</label>
+                        <p id="stockModalPredictedStock" class="h4 mb-0 text-primary">-</p>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">更新</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                    <button type="button" class="btn btn-primary" onclick="submitStockUpdate()">更新</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 在庫履歴モーダル -->
+    <div class="modal fade" id="historyModal" tabindex="-1" aria-labelledby="historyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="historyModalLabel">在庫変動履歴</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- 商品情報 -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">商品名</label>
+                        <p id="historyModalProductName" class="mb-0">-</p>
+                    </div>
+                    
+                    <!-- 履歴テーブル -->
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>日時</th>
+                                    <th>種別</th>
+                                    <th>数量</th>
+                                    <th>変更前</th>
+                                    <th>変更後</th>
+                                    <th>実行者</th>
+                                    <th>備考</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTableBody">
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">読み込み中...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
                 </div>
             </div>
@@ -656,7 +462,7 @@
     <!-- 共通JavaScript -->
     <script src="/js/common.js"></script>
     
-    <!-- 管理者用JavaScript -->
-    <script src="/js/admin-common.js"></script>
+    <!-- 管理者用在庫管理JavaScript -->
+    <script src="/js/admin-inventory.js"></script>
 </body>
 </html>

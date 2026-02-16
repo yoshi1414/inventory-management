@@ -377,4 +377,42 @@ class ProductRepositoryTest {
         assertEquals(2, result.getContent().size());
         assertTrue(result.hasNext());
     }
+
+    /**
+     * 管理者用検索では論理削除済み商品も含まれることを検証
+     */
+    @Test
+    @DisplayName("管理者用検索は論理削除済み商品を含む")
+    void findBySearchConditionsIncludingDeleted_IncludesSoftDeleted() {
+        // Given: product1を論理削除
+        product1.setDeletedAt(LocalDateTime.now());
+        productRepository.save(product1);
+
+        Pageable pageable = PageRequest.of(0, 20);
+
+        // When: 削除済み含む検索を実行
+        Page<Product> result = productRepository.findBySearchConditionsIncludingDeleted(
+                null, null, null, null, null, pageable);
+
+        // Then: 削除済みも含めて3件取得できる
+        assertEquals(3, result.getTotalElements());
+        assertTrue(result.getContent().stream().anyMatch(p -> "TEST001".equals(p.getProductCode())));
+    }
+
+    /**
+     * 管理者用検索で在庫条件が適用されることを検証
+     */
+    @Test
+    @DisplayName("管理者用検索で在庫条件を指定できる")
+    void findBySearchConditionsIncludingDeleted_WithStockRange() {
+        Pageable pageable = PageRequest.of(0, 20);
+
+        // When: 在庫1-20で検索
+        Page<Product> result = productRepository.findBySearchConditionsIncludingDeleted(
+                null, null, null, 1, 20, pageable);
+
+        // Then: 在庫不足の商品のみ取得
+        assertEquals(1, result.getTotalElements());
+        assertEquals("TEST002", result.getContent().get(0).getProductCode());
+    }
 }
