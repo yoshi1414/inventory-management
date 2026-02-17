@@ -12,6 +12,8 @@ let deleteModal = null;
 let currentProductId = null;
 let currentProductName = null;
 let currentStock = null;
+let currentDeleteProductId = null;
+let currentDeleteProductName = null;
 
 // CSRF トークン
 const csrfToken = document.body.getAttribute('data-csrf-token');
@@ -39,13 +41,35 @@ document.addEventListener('DOMContentLoaded', function() {
         deleteModal = new bootstrap.Modal(deleteModalElement);
     }
     
-    // 在庫リンククリックイベント
-    document.querySelectorAll('.stock-link').forEach(link => {
-        link.addEventListener('click', function() {
-            const productId = this.getAttribute('data-product-id');
-            const productName = this.getAttribute('data-product-name');
-            const currentStockValue = this.getAttribute('data-current-stock');
-            openStockModal({ dataset: { productId, productName, currentStock: currentStockValue } });
+    // 在庫編集モーダルトリガー（在庫数リンク・鉛筆ボタン）
+    document.querySelectorAll('.stock-modal-trigger').forEach(trigger => {
+        trigger.addEventListener('click', function(event) {
+            event.preventDefault();
+            openStockModal(this);
+        });
+    });
+
+    // 履歴モーダルトリガー（履歴ボタン）
+    document.querySelectorAll('.history-modal-trigger').forEach(trigger => {
+        trigger.addEventListener('click', function(event) {
+            event.preventDefault();
+            openHistoryModal(this);
+        });
+    });
+
+    // 削除モーダルトリガー（削除ボタン）
+    document.querySelectorAll('.delete-modal-trigger').forEach(trigger => {
+        trigger.addEventListener('click', function(event) {
+            event.preventDefault();
+            openDeleteModal(this);
+        });
+    });
+
+    // 復元トリガー（復元ボタン）
+    document.querySelectorAll('.restore-trigger').forEach(trigger => {
+        trigger.addEventListener('click', function(event) {
+            event.preventDefault();
+            restoreProduct(this);
         });
     });
     
@@ -59,6 +83,24 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('input[name="stockOperation"]').forEach(radio => {
         radio.addEventListener('change', updatePredictedStock);
     });
+    
+    // 在庫編集モーダルの更新ボタンクリック処理
+    const stockModalElement2 = document.getElementById('stockModal');
+    if (stockModalElement2) {
+        const updateButton = stockModalElement2.querySelector('.modal-footer .btn-primary');
+        if (updateButton) {
+            updateButton.addEventListener('click', submitStockUpdate);
+        }
+    }
+    
+    // 削除モーダルの削除ボタンクリック処理
+    const deleteModalElement2 = document.getElementById('deleteModal');
+    if (deleteModalElement2) {
+        const deleteButton = deleteModalElement2.querySelector('.modal-footer .btn-danger');
+        if (deleteButton) {
+            deleteButton.addEventListener('click', confirmDelete);
+        }
+    }
 });
 
 /**
@@ -66,9 +108,13 @@ document.addEventListener('DOMContentLoaded', function() {
  * @param {HTMLElement} button クリックされたボタン要素
  */
 function openStockModal(button) {
+    console.log('openStockModal called', button.dataset);
+    
     currentProductId = button.dataset.productId;
     currentProductName = button.dataset.productName;
     currentStock = parseInt(button.dataset.currentStock);
+    
+    console.log('Product ID:', currentProductId, 'Name:', currentProductName, 'Stock:', currentStock);
     
     // モーダル表示内容を設定
     document.getElementById('stockModalProductName').textContent = currentProductName;
@@ -84,6 +130,9 @@ function openStockModal(button) {
     // モーダルを表示
     if (stockModal) {
         stockModal.show();
+        console.log('Modal shown');
+    } else {
+        console.error('stockModal is not initialized');
     }
 }
 
@@ -124,7 +173,7 @@ function updatePredictedStock() {
 }
 
 /**
- * 在庫更新を実行
+ * 在庫更新を実行（改善版：ユーザー側のパターンを参考）
  */
 async function submitStockUpdate() {
     const operation = document.querySelector('input[name="stockOperation"]:checked').value;
@@ -133,14 +182,31 @@ async function submitStockUpdate() {
     
     // バリデーション
     if (!quantity || quantity < 0) {
-        showStockModalMessage('数量を入力してください', 'danger');
+        showStockModalMessage('数量を入力してください', 'warning');
         return;
     }
     
     if (operation === 'out' && quantity > currentStock) {
-        showStockModalMessage('出庫数が在庫数を超えています', 'danger');
+        showStockModalMessage(
+            '出庫数は現在の在庫数（' + currentStock + '個）以下で入力してください。',
+            'warning'
+        );
         return;
     }
+    
+    if (operation === 'set' && quantity < 0) {
+        showStockModalMessage('在庫数は0以上で入力してください', 'warning');
+        return;
+    }
+    
+    // メッセージを非表示
+    document.getElementById('stockModalMessage').classList.add('d-none');
+    
+    // 更新ボタンを無効化（二重送信防止）
+    const updateButton = document.querySelector('#stockModal .modal-footer .btn-primary');
+    const originalText = updateButton.textContent;
+    updateButton.disabled = true;
+    updateButton.textContent = '更新中...';
     
     try {
         const response = await fetch('/admin/api/inventory/update-stock', {
@@ -153,28 +219,78 @@ async function submitStockUpdate() {
                 productId: parseInt(currentProductId),
                 transactionType: operation,
                 quantity: quantity,
-                remarks: remarks
+                remarks: remarks || ''
             })
         });
         
         const data = await response.json();
         
         if (data.success) {
-            showStockModalMessage(data.message, 'success');
+            // 成功メッセージを表示
+            showStockModalMessage(
+                data.message + ' (新しい在庫数: ' + data.product.stock + '個)',
+                'success'
+            );
             
-            // 2秒後にモーダルを閉じてページをリロード
-            setTimeout(() => {
-                if (stockModal) {
-                    stockModal.hide();
+            // 現在の在庫数を更新
+            currentStock = data.product.stock;
+            
+            // モーダル内の情報を更新
+            document.getElementById('stockModalCurrentStock').textContent = currentStock;
+            
+            // 【DOM更新】ページ上の在庫数表示を更新（リロードなし）
+            const stockLink = document.querySelector('a.stock-link[data-product-id="' + currentProductId + '"]');
+            if (stockLink) {
+                stockLink.setAttribute('data-current-stock', data.product.stock);
+                
+                // ステータスクラスを更新
+                stockLink.className = 'text-decoration-underline stock-link';
+                if (data.product.stock === 0) {
+                    stockLink.classList.add('stock-danger');
+                } else if (data.product.stock <= 20) {
+                    stockLink.classList.add('stock-warning');
+                } else {
+                    stockLink.classList.add('stock-ok');
                 }
-                location.reload();
-            }, 2000);
+                
+                // 内容を更新（アイコンと数値）
+                let content = '';
+                if (data.product.stock === 0) {
+                    content += '<i class="bi bi-x-circle-fill"></i> ';
+                } else if (data.product.stock <= 20) {
+                    content += '<i class="bi bi-exclamation-triangle-fill"></i> ';
+                }
+                content += '<span>' + data.product.stock + '</span>';
+                stockLink.innerHTML = content;
+            }
+            
+            // ボタンを再有効化
+            updateButton.disabled = false;
+            updateButton.textContent = originalText;
+            
+            // 入力フィールドをリセット
+            document.getElementById('stockInput').value = '';
+            document.getElementById('stockRemarks').value = '';
+            document.getElementById('stockIn').checked = true;
+            document.getElementById('stockModalPredictedStock').textContent = '-';
+            
+            // モーダルは閉じずに、入力フィールドをリセットして続行を可能にする
+            // （ユーザー側と同じパターン）
         } else {
-            showStockModalMessage(data.message, 'danger');
+            // エラーメッセージを表示
+            showStockModalMessage('エラー: ' + data.message, 'danger');
+            
+            // ボタンを再有効化
+            updateButton.disabled = false;
+            updateButton.textContent = originalText;
         }
     } catch (error) {
         console.error('在庫更新エラー:', error);
         showStockModalMessage('在庫更新に失敗しました', 'danger');
+        
+        // ボタンを再有効化
+        updateButton.disabled = false;
+        updateButton.textContent = originalText;
     }
 }
 
@@ -274,8 +390,11 @@ async function openHistoryModal(button) {
 function openDeleteModal(button) {
     const productId = button.dataset.productId;
     const productName = button.dataset.productName;
+
+    currentDeleteProductId = productId;
+    currentDeleteProductName = productName;
     
-    document.getElementById('deleteProductId').value = productId;
+    document.getElementById('deleteProductId').textContent = productId;
     document.getElementById('deleteProductName').textContent = productName;
     
     if (deleteModal) {
@@ -287,7 +406,19 @@ function openDeleteModal(button) {
  * 削除を実行
  */
 async function confirmDelete() {
-    const productId = document.getElementById('deleteProductId').value;
+    const productId = currentDeleteProductId;
+
+    if (!productId) {
+        alert('削除対象の商品が選択されていません');
+        return;
+    }
+
+    const deleteButton = document.querySelector('#deleteModal .modal-footer .btn-danger');
+    const originalText = deleteButton ? deleteButton.textContent : '削除する';
+    if (deleteButton) {
+        deleteButton.disabled = true;
+        deleteButton.textContent = '削除中...';
+    }
     
     try {
         const response = await fetch(`/admin/api/inventory/products/${productId}/delete`, {
@@ -305,14 +436,24 @@ async function confirmDelete() {
             if (deleteModal) {
                 deleteModal.hide();
             }
+            currentDeleteProductId = null;
+            currentDeleteProductName = null;
             alert(data.message);
             location.reload();
         } else {
             alert(data.message);
+            if (deleteButton) {
+                deleteButton.disabled = false;
+                deleteButton.textContent = originalText;
+            }
         }
     } catch (error) {
         console.error('削除エラー:', error);
         alert('商品削除に失敗しました');
+        if (deleteButton) {
+            deleteButton.disabled = false;
+            deleteButton.textContent = originalText;
+        }
     }
 }
 

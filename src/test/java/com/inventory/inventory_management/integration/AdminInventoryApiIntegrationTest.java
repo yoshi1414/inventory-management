@@ -184,6 +184,8 @@ class AdminInventoryApiIntegrationTest {
     @WithUserDetails("adminuser")
     @DisplayName("【結合/API】複数回更新が累積反映される")
     void updateStock_MultipleMutations_Cumulative() throws Exception {
+                stockTransactionRepository.deleteByProductId(productA.getId());
+
         mockMvc.perform(post("/admin/api/inventory/update-stock")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -209,7 +211,8 @@ class AdminInventoryApiIntegrationTest {
         List<StockTransaction> transactions = stockTransactionRepository
                 .findByProductIdOrderByTransactionDateDesc(productA.getId());
         assertThat(transactions).hasSize(3);
-        assertThat(transactions.get(0).getRemarks()).isEqualTo("2回目入庫");
+        assertThat(transactions).extracting(StockTransaction::getRemarks)
+                .containsExactlyInAnyOrder("1回目入庫", "1回目出庫", "2回目入庫");
     }
 
     /**

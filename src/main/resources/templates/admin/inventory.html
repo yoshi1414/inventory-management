@@ -190,12 +190,12 @@
                                             ¥<span th:text="${#numbers.formatInteger(product.price, 0, 'COMMA')}">0</span>
                                         </td>
                                         <td>
-                                            <a href="javascript:void(0);"
+                                                          <a href="javascript:void(0);"
                                                th:data-product-id="${product.id}" 
                                                th:data-product-name="${product.productName}"
                                                th:data-current-stock="${product.stock}"
                                                th:classappend="${product.stock == 0} ? 'stock-danger' : (${product.stock <= 20} ? 'stock-warning' : 'stock-ok')"
-                                               class="text-decoration-underline stock-link">
+                                                              class="text-decoration-underline stock-link stock-modal-trigger">
                                                 <i th:if="${product.stock == 0}" 
                                                    class="bi bi-x-circle-fill"></i>
                                                 <i th:if="${product.stock > 0 and product.stock <= 20}" 
@@ -214,35 +214,42 @@
                                         </td>
                                         <td class="action-buttons">
                                             <!-- 在庫編集ボタン -->
-                                            <button type="button" class="btn btn-sm btn-primary" 
+                                                <button type="button" class="btn btn-sm btn-primary stock-modal-trigger" 
                                                     th:data-product-id="${product.id}"
                                                     th:data-product-name="${product.productName}"
                                                     th:data-current-stock="${product.stock}"
-                                                    onclick="openStockModal(this)" title="在庫編集">
+                                                    title="在庫編集">
                                                 <i class="bi bi-pencil"></i>
                                             </button>
                                             <!-- 履歴表示ボタン -->
-                                            <button type="button" class="btn btn-sm btn-info" 
+                                                <button type="button" class="btn btn-sm btn-info history-modal-trigger" 
                                                     th:data-product-id="${product.id}"
                                                     th:data-product-name="${product.productName}"
-                                                    onclick="openHistoryModal(this)" title="履歴">
+                                                    title="履歴">
                                                 <i class="bi bi-clock-history"></i>
                                             </button>
                                             <!-- 削除/復元ボタン -->
                                             <button th:if="${product.deletedAt == null}" 
-                                                    type="button" class="btn btn-sm btn-danger" 
+                                                    type="button"
+                                                    class="btn btn-sm btn-danger delete-modal-trigger"
                                                     th:data-product-id="${product.id}"
                                                     th:data-product-name="${product.productName}"
-                                                    onclick="openDeleteModal(this)" title="削除">
+                                                    title="削除">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                             <button th:if="${product.deletedAt != null}" 
-                                                    type="button" class="btn btn-sm btn-success" 
+                                                    type="button" 
+                                                    class="btn btn-sm btn-success restore-trigger" 
                                                     th:data-product-id="${product.id}"
                                                     th:data-product-name="${product.productName}"
-                                                    onclick="restoreProduct(this)" title="復元">
+                                                    title="復元">
                                                 <i class="bi bi-arrow-counterclockwise"></i>
                                             </button>
+                                            <!-- 詳細表示ボタン -->
+                                            <a th:href="@{/admin/products/{id}(id=${product.id})}"
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i> 詳細
+                                            </a>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -330,11 +337,12 @@
                 <div class="modal-body">
                     <p>この商品を削除してもよろしいですか？</p>
                     <p class="text-muted"><small>※論理削除されるため、データは保持されます。</small></p>
+                    <p><strong>商品名:</strong> <span id="deleteProductName"></span></p>
                     <p><strong>商品ID:</strong> <span id="deleteProductId"></span></p>
                 </div>
                 <div class="modal-footer">
+                    <button type="button" class="btn btn-danger">削除する</button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
-                    <button type="button" class="btn btn-danger" onclick="confirmDelete()">削除する</button>
                 </div>
             </div>
         </div>
@@ -405,8 +413,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
                     <button type="button" class="btn btn-primary" onclick="submitStockUpdate()">更新</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
                 </div>
             </div>
         </div>
@@ -414,7 +422,7 @@
 
     <!-- 在庫履歴モーダル -->
     <div class="modal fade" id="historyModal" tabindex="-1" aria-labelledby="historyModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-lg modal-wide">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="historyModalLabel">在庫変動履歴</h5>
