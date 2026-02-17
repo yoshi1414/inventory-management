@@ -225,6 +225,17 @@ body.admin-login .form-control:focus {
     max-width: 30%;
 }
 
+/* 履歴モーダルを約1.7倍に広げる（30% -> 51%） */
+.modal-dialog.modal-wide {
+    max-width: 51%;
+}
+
+@media (max-width: 768px) {
+    .modal-dialog.modal-wide {
+        max-width: 90%;
+    }
+}
+
 /* エラーページ専用スタイル */
 body.error-page .login-container {
     max-width: 800px;
