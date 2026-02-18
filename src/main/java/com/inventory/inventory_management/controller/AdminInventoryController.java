@@ -1,13 +1,19 @@
 package com.inventory.inventory_management.controller;
 
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.inventory.inventory_management.dto.request.SearchCriteriaDto;
 import com.inventory.inventory_management.entity.Product;
+import com.inventory.inventory_management.entity.StockTransaction;
 import com.inventory.inventory_management.service.AdminInventoryService;
 
 import lombok.RequiredArgsConstructor;
@@ -99,6 +105,65 @@ public class AdminInventoryController {
         } catch (Exception e) {
             log.error("管理者用在庫一覧画面表示時にエラーが発生: error={}", e.getMessage(), e);
             model.addAttribute("errorMessage", "在庫情報の取得に失敗しました。");
+            return "error";
+        }
+    }
+
+    /**
+     * 管理者用商品詳細画面を表示
+     * @param id 商品ID
+     * @param model モデル
+     * @return admin/product-detail.html または error.html
+     */
+    @GetMapping("/inventory/products/{id}")
+    public String showProductDetail(@PathVariable("id") Integer id,
+                                    @RequestParam(value = "from", required = false) String from,
+                                    Model model) {
+        try {
+            log.debug("管理者用商品詳細画面を表示: productId={}", id);
+
+            // 商品IDのバリデーション
+            if (id == null || id <= 0) {
+                log.warn("不正な商品IDが指定されました: id={}", id);
+                model.addAttribute("errorMessage", "不正な商品IDです。");
+                return "error";
+            }
+
+            // 商品情報を取得（削除済み商品も含む）
+            Optional<Product> productOpt = adminInventoryService.getProductById(id);
+            if (productOpt.isEmpty()) {
+                log.warn("商品が見つかりませんでした: productId={}", id);
+                model.addAttribute("errorMessage", "商品が見つかりません。");
+                return "error";
+            }
+
+            Product product = productOpt.get();
+
+            // 入出庫履歴を取得（最新10件）
+            List<StockTransaction> transactions = adminInventoryService.getStockTransactions(id, 10);
+
+            // モデルに追加
+            model.addAttribute("product", product);
+            model.addAttribute("transactions", transactions);
+            // 戻り先（パンくずなど）を設定
+            if (from != null && from.equals("products")) {
+                model.addAttribute("parentLabel", "商品管理");
+                model.addAttribute("parentUrl", "/admin/products");
+            } else {
+                // デフォルトは在庫管理
+                model.addAttribute("parentLabel", "在庫管理");
+                model.addAttribute("parentUrl", "/admin/inventory");
+            }
+
+            log.debug("商品詳細取得成功: productId={}, productName={}, deleted={}", 
+                    id, product.getProductName(), product.getDeletedAt() != null);
+            
+            // 管理者用テンプレートを返す
+            return "admin/inventory-detail";
+
+        } catch (Exception e) {
+            log.error("管理者用商品詳細画面表示時にエラーが発生: productId={}, error={}", id, e.getMessage(), e);
+            model.addAttribute("errorMessage", "商品詳細情報の取得に失敗しました。");
             return "error";
         }
     }

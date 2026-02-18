@@ -35,6 +35,12 @@
       "type": "java.lang.Long",
       "description": "HTTP Strict Transport Security (HSTS) の有効期限（秒単位）。本番環境では31536000秒（1年間）を推奨。",
       "defaultValue": 31536000
+    },
+    {
+      "name": "inventory.page-size",
+      "type": "java.lang.Integer",
+      "description": "在庫管理画面のページサイズ（1ページあたりの表示件数）。",
+      "defaultValue": 20
     }
   ]
 }

@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,7 @@ import org.springframework.ui.Model;
 
 import com.inventory.inventory_management.dto.request.SearchCriteriaDto;
 import com.inventory.inventory_management.entity.Product;
+import com.inventory.inventory_management.entity.StockTransaction;
 import com.inventory.inventory_management.service.AdminInventoryService;
 
 /**
@@ -156,5 +158,103 @@ class AdminInventoryControllerTest {
         Object errorMessage = model.getAttribute("errorMessage");
         assertNotNull(errorMessage);
         assertTrue(errorMessage.toString().contains("在庫情報の取得に失敗しました。"));
+    }
+
+        /**
+         * 商品詳細が正常に表示され、モデルへ商品情報と履歴が設定されることを検証
+         */
+        @Test
+        @DisplayName("正常系: 商品詳細画面が表示されモデルに商品情報が設定される")
+        void showProductDetail_正常系_商品詳細表示成功() {
+                Product product = new Product();
+                product.setId(1);
+                product.setProductName("テスト商品");
+
+                List<StockTransaction> transactions = List.of(new StockTransaction(), new StockTransaction());
+
+                when(adminInventoryService.getProductById(1)).thenReturn(Optional.of(product));
+                when(adminInventoryService.getStockTransactions(1, 10)).thenReturn(transactions);
+
+                Model model = new ExtendedModelMap();
+
+                String viewName = adminInventoryController.showProductDetail(1, null, model);
+
+                assertEquals("admin/inventory-detail", viewName);
+                assertEquals(product, model.getAttribute("product"));
+                assertEquals(transactions, model.getAttribute("transactions"));
+                // デフォルトは在庫管理
+                assertEquals("在庫管理", model.getAttribute("parentLabel"));
+                assertEquals("/admin/inventory", model.getAttribute("parentUrl"));
+        }
+
+        @Test
+        @DisplayName("正常系: from=products の場合は商品管理へ戻る")
+        void showProductDetail_fromProducts_setsProductParent() {
+                Product product = new Product();
+                product.setId(3);
+                product.setProductName("テスト商品3");
+
+                when(adminInventoryService.getProductById(3)).thenReturn(Optional.of(product));
+                when(adminInventoryService.getStockTransactions(3, 10)).thenReturn(List.of());
+
+                Model model = new ExtendedModelMap();
+
+                String viewName = adminInventoryController.showProductDetail(3, "products", model);
+
+                assertEquals("admin/inventory-detail", viewName);
+                assertEquals("商品管理", model.getAttribute("parentLabel"));
+                assertEquals("/admin/products", model.getAttribute("parentUrl"));
+        }
+
+        /**
+         * 不正な商品IDの場合にerror画面へ遷移することを検証
+         */
+        @Test
+        @DisplayName("異常系: 不正な商品IDの場合はerror画面を返す")
+        void showProductDetail_異常系_不正な商品IDはerror() {
+                Model model = new ExtendedModelMap();
+
+                String viewName = adminInventoryController.showProductDetail(0, null, model);
+
+                assertEquals("error", viewName);
+                Object errorMessage = model.getAttribute("errorMessage");
+                assertNotNull(errorMessage);
+                assertTrue(errorMessage.toString().contains("不正な商品IDです。"));
+        }
+
+        /**
+         * 商品が見つからない場合にerror画面へ遷移することを検証
+         */
+        @Test
+        @DisplayName("異常系: 商品未存在の場合はerror画面を返す")
+        void showProductDetail_異常系_商品未存在はerror() {
+                when(adminInventoryService.getProductById(99)).thenReturn(Optional.empty());
+
+                Model model = new ExtendedModelMap();
+
+                String viewName = adminInventoryController.showProductDetail(99, null, model);
+
+                assertEquals("error", viewName);
+                Object errorMessage = model.getAttribute("errorMessage");
+                assertNotNull(errorMessage);
+                assertTrue(errorMessage.toString().contains("商品が見つかりません。"));
+        }
+
+        /**
+         * 例外発生時にerror画面へ遷移することを検証
+         */
+        @Test
+        @DisplayName("異常系: 商品詳細取得で例外発生時はerror画面を返す")
+        void showProductDetail_異常系_例外発生時はerror() {
+                when(adminInventoryService.getProductById(1)).thenThrow(new RuntimeException("DBエラー"));
+
+                Model model = new ExtendedModelMap();
+
+                String viewName = adminInventoryController.showProductDetail(1, null, model);
+
+                assertEquals("error", viewName);
+                Object errorMessage = model.getAttribute("errorMessage");
+                assertNotNull(errorMessage);
+                assertTrue(errorMessage.toString().contains("商品詳細情報の取得に失敗しました。"));
     }
 }

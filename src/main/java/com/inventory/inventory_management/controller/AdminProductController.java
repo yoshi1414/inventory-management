@@ -8,14 +8,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * 管理者用商品管理のコントローラー
  */
 @Slf4j
+@RequiredArgsConstructor
 @Controller
 public class AdminProductController {
+    
 
     /**
      * 管理者用商品一覧画面を表示
@@ -53,24 +57,6 @@ public class AdminProductController {
         }
     }
 
-    /**
-     * 特定商品（ID: JHQ82GFX）の詳細画面を表示
-     * @param model モデル
-     * @return admin/product-detail.html
-     */
-    @GetMapping("/admin/products/JHQ82GFX")
-    public String showProductDetailJHQ82GFX(Model model) {
-        try {
-            log.debug("商品詳細画面を表示: productId=JHQ82GFX");
-            // 商品詳細画面表示（固定ID: JHQ82GFX）
-            model.addAttribute("productId", "JHQ82GFX");
-            model.addAttribute("product", mockProductDetail("JHQ82GFX"));
-            return "admin/product-detail";
-        } catch (Exception e) {
-            log.error("商品詳細画面表示時にエラーが発生: productId=JHQ82GFX, error={}", e.getMessage());
-            throw e;
-        }
-    }
 
     /**
      * 商logger.debug("商品登録フォームを表示");
@@ -157,26 +143,6 @@ public class AdminProductController {
         }
     }
 
-    /**
-     * 商品詳細画面を表示
-     * @param productId 商品ID
-     * @param model モデル
-     * @return admin/product-detail.html
-     */
-    @GetMapping("/admin/products/{productId}")
-    public String showProductDetail(@PathVariable String productId, Model model) {
-        try {
-            log.debug("商品詳細画面を表示: productId={}", productId);
-            // 商品詳細画面表示
-            // 実際にはサービス層から商品データを取得
-            model.addAttribute("productId", productId);
-            model.addAttribute("product", mockProductDetail(productId));
-            return "admin/product-detail";
-        } catch (Exception e) {
-            log.error("商品詳細画面表示時にエラーが発生: productId={}, error={}", productId, e.getMessage());
-            throw e;
-        }
-    }
 
     /**
      * 商品編集フォームを表示
@@ -277,17 +243,6 @@ public class AdminProductController {
      */
     private Object mockProducts() {
         // モックデータ（後でサービス層から取得）
-        return null;
-    }
-
-    /**
-     * モック商品詳細データを返す（開発中）
-     * @param productId 商品ID
-     * @return モック商品詳細データ
-     */
-    private Object mockProductDetail(String productId) {
-        // モックデータ（後でサービス層から取得）
-        // 実際には商品の詳細情報を返す
         return null;
     }
 }

@@ -20,6 +20,7 @@ import com.inventory.inventory_management.repository.StockTransactionRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * 管理者用在庫管理サービス
@@ -34,20 +35,8 @@ public class AdminInventoryService {
     private final ProductRepository productRepository;
     private final StockTransactionRepository stockTransactionRepository;
 
-    /**
-     * 1ページあたりの表示件数
-     */
-    private static final int PAGE_SIZE = 20;
-
-    /**
-     * 在庫不足の閾値（デフォルト）
-     */
-    private static final int DEFAULT_LOW_STOCK_THRESHOLD = 20;
-
-    /**
-     * 在庫切れの閾値（デフォルト）
-     */
-    private static final int DEFAULT_OUT_OF_STOCK_THRESHOLD = 0;
+    @Value("${inventory.page-size}")
+    private int pageSize;
 
     /**
      * 商品を検索（管理者用：削除済み商品含む、ページング対応）
@@ -75,7 +64,7 @@ public class AdminInventoryService {
 
             // ソート条件を設定
             Sort sort = createSort(sortBy);
-            Pageable pageable = PageRequest.of(page, PAGE_SIZE, sort);
+            Pageable pageable = PageRequest.of(page, pageSize, sort);
 
             // 削除済み商品を含むかどうかで検索を分岐
             Page<Product> result;

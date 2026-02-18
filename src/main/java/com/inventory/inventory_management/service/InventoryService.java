@@ -21,6 +21,7 @@ import com.inventory.inventory_management.repository.StockTransactionRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * 在庫管理サービス
@@ -35,10 +36,8 @@ public class InventoryService {
     private final ProductRepository productRepository;
     private final StockTransactionRepository stockTransactionRepository;
 
-    /**
-     * 1ページあたりの表示件数
-     */
-    private static final int PAGE_SIZE = 20;
+    @Value("${inventory.page-size}")
+    private int pageSize;
 
     /**
      * 商品を検索（ページング対応）
@@ -64,7 +63,7 @@ public class InventoryService {
 
             // ソート条件を設定
             Sort sort = createSort(sortBy);
-            Pageable pageable = PageRequest.of(page, PAGE_SIZE, sort);
+            Pageable pageable = PageRequest.of(page, pageSize, sort);
 
             // 在庫状態フィルタに応じて検索
             Page<Product> result;

@@ -56,7 +56,7 @@
         <div class="text-center mt-4 text-muted small">
             <p class="mb-0">お困りの場合は、システム管理者にお問い合わせください。</p>
             <p class="mb-0 mt-1" th:if="${timestamp}">
-                発生日時: <span th:text="${#temporals.format(timestamp, 'yyyy-MM-dd HH:mm:ss')}">2026-02-12 04:12:29</span>
+                発生日時: <span th:text="${timestamp instanceof T(java.time.temporal.TemporalAccessor) ? #temporals.format(timestamp, 'yyyy-MM-dd HH:mm:ss') : #dates.format(timestamp, 'yyyy-MM-dd HH:mm:ss')}">2026-02-12 04:12:29</span>
             </p>
         </div>
     </div>

@@ -490,4 +490,162 @@ class AdminInventoryIntegrationTest {
                 mockMvc.perform(get("/admin/inventory"))
                                 .andExpect(result -> assertThat(result.getResponse().getStatus()).isIn(302, 403));
         }
+
+        /**
+         * 管理者商品詳細画面が正常に表示されることを検証
+         * @throws Exception テスト実行時の例外
+         */
+        @Test
+        @WithUserDetails("adminuser")
+        @DisplayName("【結合】管理者商品詳細画面が正常に表示される")
+        void adminProductDetailPage_DisplaysProductDetails() throws Exception {
+                MvcResult result = mockMvc.perform(get("/admin/inventory/products/{id}", productA.getId()))
+                                .andExpect(status().isOk())
+                                .andExpect(view().name("admin/inventory-detail"))
+                                .andExpect(model().attributeExists("product"))
+                                .andExpect(model().attributeExists("transactions"))
+                                .andReturn();
+
+                Product product = (Product) result.getModelAndView().getModel().get("product");
+                @SuppressWarnings("unchecked")
+                List<StockTransaction> transactions = (List<StockTransaction>) result.getModelAndView().getModel().get("transactions");
+
+                assertThat(product).isNotNull();
+                assertThat(product.getId()).isEqualTo(productA.getId());
+                assertThat(product.getProductCode()).isEqualTo("ADN00001");
+                assertThat(transactions).isNotNull();
+        }
+
+        @Test
+        @WithUserDetails("adminuser")
+        @DisplayName("【結合】在庫一覧から遷移（from=inventory）：パンくずが在庫管理へ戻る")
+        void adminProductDetailPage_FromInventory_ShowsInventoryParent() throws Exception {
+                MvcResult result = mockMvc.perform(get("/admin/inventory/products/{id}", productA.getId()).param("from", "inventory"))
+                                .andExpect(status().isOk())
+                                .andExpect(view().name("admin/inventory-detail"))
+                                .andReturn();
+
+                String content = result.getResponse().getContentAsString();
+                assertThat(content).contains("/admin/inventory").contains("在庫管理");
+        }
+
+        @Test
+        @WithUserDetails("adminuser")
+        @DisplayName("【結合】商品管理から遷移（from=products）：パンくずが商品管理へ戻る")
+        void adminProductDetailPage_FromProducts_ShowsProductsParent() throws Exception {
+                MvcResult result = mockMvc.perform(get("/admin/inventory/products/{id}", productA.getId()).param("from", "products"))
+                                .andExpect(status().isOk())
+                                .andExpect(view().name("admin/inventory-detail"))
+                                .andReturn();
+
+                String content = result.getResponse().getContentAsString();
+                assertThat(content).contains("/admin/products").contains("商品管理");
+        }
+
+        /**
+         * 管理者商品詳細画面で履歴が表示されることを検証
+         * @throws Exception テスト実行時の例外
+         */
+        @Test
+        @WithUserDetails("adminuser")
+        @DisplayName("【結合】管理者商品詳細画面に履歴が表示される")
+        void adminProductDetailPage_DisplaysTransactionHistory() throws Exception {
+                StockTransaction transaction1 = new StockTransaction();
+                transaction1.setProductId(productA.getId());
+                transaction1.setTransactionType("in");
+                transaction1.setQuantity(5);
+                transaction1.setBeforeStock(25);
+                transaction1.setAfterStock(30);
+                transaction1.setUserId("adminuser");
+                transaction1.setTransactionDate(LocalDateTime.now().minusHours(2));
+                transaction1.setRemarks("初期入庫");
+                stockTransactionRepository.save(transaction1);
+
+                StockTransaction transaction2 = new StockTransaction();
+                transaction2.setProductId(productA.getId());
+                transaction2.setTransactionType("out");
+                transaction2.setQuantity(3);
+                transaction2.setBeforeStock(30);
+                transaction2.setAfterStock(27);
+                transaction2.setUserId("adminuser");
+                transaction2.setTransactionDate(LocalDateTime.now().minusHours(1));
+                transaction2.setRemarks("販売");
+                stockTransactionRepository.save(transaction2);
+
+                MvcResult result = mockMvc.perform(get("/admin/inventory/products/{id}", productA.getId()))
+                                .andExpect(status().isOk())
+                                .andExpect(view().name("admin/inventory-detail"))
+                                .andReturn();
+
+                @SuppressWarnings("unchecked")
+                List<StockTransaction> transactions = (List<StockTransaction>) result.getModelAndView().getModel().get("transactions");
+
+                assertThat(transactions).hasSize(2);
+                assertThat(transactions.get(0).getTransactionType()).isEqualTo("out");
+                assertThat(transactions.get(1).getTransactionType()).isEqualTo("in");
+        }
+
+        /**
+         * 不正な商品IDで商品詳細画面にアクセスした場合にエラーが返却されることを検証
+         * @throws Exception テスト実行時の例外
+         */
+        @Test
+        @WithUserDetails("adminuser")
+        @DisplayName("【結合】不正な商品ID (0以下) でエラー画面が表示される")
+        void adminProductDetailPage_InvalidProductId_ReturnsError() throws Exception {
+                mockMvc.perform(get("/admin/inventory/products/{id}", 0))
+                                .andExpect(status().isOk())
+                                .andExpect(view().name("error"))
+                                .andExpect(model().attributeExists("errorMessage"))
+                                .andExpect(model().attribute("errorMessage", org.hamcrest.Matchers.containsString("不正な商品IDです")));
+        }
+
+        /**
+         * 存在しない商品IDで商品詳細画面にアクセスした場合にエラーが返却されることを検証
+         * @throws Exception テスト実行時の例外
+         */
+        @Test
+        @WithUserDetails("adminuser")
+        @DisplayName("【結合】存在しない商品IDでエラー画面が表示される")
+        void adminProductDetailPage_NonExistentProduct_ReturnsError() throws Exception {
+                mockMvc.perform(get("/admin/inventory/products/{id}", 999999))
+                                .andExpect(status().isOk())
+                                .andExpect(view().name("error"))
+                                .andExpect(model().attributeExists("errorMessage"))
+                                .andExpect(model().attribute("errorMessage", org.hamcrest.Matchers.containsString("商品が見つかりません")));
+        }
+
+        /**
+         * 削除済み商品の詳細も管理者は表示できることを検証
+         * @throws Exception テスト実行時の例外
+         */
+        @Test
+        @WithUserDetails("adminuser")
+        @DisplayName("【結合】管理者は削除済み商品の詳細を表示可能")
+        void adminProductDetailPage_DeletedProduct_DisplayableByAdmin() throws Exception {
+                productB.setDeletedAt(LocalDateTime.now());
+                productRepository.save(productB);
+
+                MvcResult result = mockMvc.perform(get("/admin/inventory/products/{id}", productB.getId()))
+                                .andExpect(status().isOk())
+                                .andExpect(view().name("admin/inventory-detail"))
+                                .andExpect(model().attributeExists("product"))
+                                .andReturn();
+
+                Product product = (Product) result.getModelAndView().getModel().get("product");
+                assertThat(product).isNotNull();
+                assertThat(product.getDeletedAt()).isNotNull();
+        }
+
+        /**
+         * 一般ユーザーが商品詳細画面にアクセスできないことを検証
+         * @throws Exception テスト実行時の例外
+         */
+        @Test
+        @WithUserDetails("testuser")
+        @DisplayName("【結合】一般ユーザーは管理者商品詳細へアクセスできない")
+        void adminProductDetailPage_GeneralUser_AccessDenied() throws Exception {
+                mockMvc.perform(get("/admin/inventory/products/{id}", productA.getId()))
+                                .andExpect(result -> assertThat(result.getResponse().getStatus()).isIn(302, 403));
+        }
 }

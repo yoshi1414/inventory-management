@@ -21,7 +21,7 @@ public interface StockTransactionRepository extends JpaRepository<StockTransacti
      * @param productId 商品ID
      * @return 在庫変動履歴リスト
      */
-    @Query("SELECT st FROM StockTransaction st WHERE st.productId = :productId ORDER BY st.transactionDate DESC")
+    @Query("SELECT st FROM StockTransaction st WHERE st.productId = :productId ORDER BY st.transactionDate DESC, st.id DESC")
     List<StockTransaction> findByProductIdOrderByTransactionDateDesc(@Param("productId") Integer productId);
 
     /**
@@ -30,7 +30,7 @@ public interface StockTransactionRepository extends JpaRepository<StockTransacti
      * @param transactionType 取引種別（in/out）
      * @return 在庫変動履歴リスト
      */
-    @Query("SELECT st FROM StockTransaction st WHERE st.productId = :productId AND st.transactionType = :transactionType ORDER BY st.transactionDate DESC")
+    @Query("SELECT st FROM StockTransaction st WHERE st.productId = :productId AND st.transactionType = :transactionType ORDER BY st.transactionDate DESC, st.id DESC")
     List<StockTransaction> findByProductIdAndTransactionType(
         @Param("productId") Integer productId,
         @Param("transactionType") String transactionType
