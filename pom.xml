@@ -110,7 +110,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
-					<argLine>${argLine}</argLine>
+					<argLine>@{argLine}</argLine>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -137,7 +137,8 @@
 							<goal>prepare-agent</goal>
 						</goals>
 						<configuration>
-							<destFile>${basedir}/target/jacoco.exec</destFile>
+							<destFile>${user.home}/.jacoco/inventory-management.exec</destFile>
+							<append>true</append>
 						</configuration>
 					</execution>
 					<execution>
@@ -147,7 +148,7 @@
 							<goal>report</goal>
 						</goals>
 						<configuration>
-							<dataFile>${basedir}/target/jacoco.exec</dataFile>
+							<dataFile>${user.home}/.jacoco/inventory-management.exec</dataFile>
 							<outputDirectory>${basedir}/target/site/jacoco</outputDirectory>
 						</configuration>
 					</execution>

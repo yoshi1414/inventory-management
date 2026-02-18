@@ -20,6 +20,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.inventory.inventory_management.entity.Product;
 import com.inventory.inventory_management.entity.StockTransaction;
@@ -55,6 +56,8 @@ class InventoryServiceTest {
      */
     @BeforeEach
     void setUp() {
+        ReflectionTestUtils.setField(inventoryService, "pageSize", 20);
+
         // テスト商品1: 在庫十分
         product1 = new Product();
         product1.setId(1);
@@ -526,7 +529,7 @@ class InventoryServiceTest {
     void searchProducts_ThrowsException() {
         // Given: モックで例外をスロー
         when(productRepository.findBySearchConditions(
-                anyString(), anyString(), anyString(), any(Pageable.class)))
+                eq("test"), isNull(), isNull(), any(Pageable.class)))
                 .thenThrow(new RuntimeException("Database error"));
 
         // When & Then: RuntimeExceptionがスローされる

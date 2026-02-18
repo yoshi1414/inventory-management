@@ -65,8 +65,7 @@
                 <!-- パンくずリスト -->
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="/admin/menu">ホーム</a></li>
-                        <li class="breadcrumb-item"><a href="/admin/products">商品管理</a></li>
+                        <li class="breadcrumb-item"><a th:href="${parentUrl}" th:text="${parentLabel}">管理画面</a></li>
                         <li class="breadcrumb-item active" aria-current="page">商品詳細</li>
                     </ol>
                 </nav>
@@ -151,8 +150,8 @@
                                     <tr>
                                         <th>ステータス</th>
                                         <td>
-                                            <span th:class="${'badge badge-status-' + product.status}"
-                                                  th:text="${product.status == 'active' ? '販売中' : 'inactive' ? '非公開' : product.status}">ステータス</span>
+                                              <span th:class="${'badge badge-status-' + product.status}"
+                                                  th:text="${product.status == 'active' ? '販売中' : (product.status == 'inactive' ? '非公開' : product.status)}">ステータス</span>
                                         </td>
                                     </tr>
                                     <tr>

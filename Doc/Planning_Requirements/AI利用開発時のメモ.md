@@ -64,7 +64,12 @@ controller
 ＃エラーハンドラーは
 GlobalExceptionHandlerを利用
 
+ーーーーーーーーーーー
+#エラーチェックについて
+additional-spring-configuration-metadata.json に追記して、VS Code の問題点に表示されないようにした。
 
+#カバレッジテストは、以下で達成バーをだしています
+VS Code の Java のカバレッジ表示（Test Runner for Java 系）です。
 
 
 

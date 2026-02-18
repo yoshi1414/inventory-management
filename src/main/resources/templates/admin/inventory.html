@@ -175,7 +175,7 @@
                                             <code th:text="${product.productCode}">JHQ82GFX</code>
                                         </td>
                                         <td>
-                                            <a th:href="@{/admin/products/{id}(id=${product.id})}" 
+                                            <a th:href="@{/admin/inventory/products/{id}(id=${product.id},from='inventory')}" 
                                                th:text="${product.productName}">商品名</a>
                                             <span th:if="${product.deletedAt != null}" 
                                                   class="badge bg-secondary ms-1">削除済み</span>
@@ -246,7 +246,7 @@
                                                 <i class="bi bi-arrow-counterclockwise"></i>
                                             </button>
                                             <!-- 詳細表示ボタン -->
-                                            <a th:href="@{/admin/products/{id}(id=${product.id})}"
+                                            <a th:href="@{/admin/inventory/products/{id}(id=${product.id},from='inventory')}"
                                                class="btn btn-sm btn-outline-primary">
                                                 <i class="bi bi-eye"></i> 詳細
                                             </a>

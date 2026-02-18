@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
@@ -66,7 +67,7 @@ public class UserLoginControllerTest {
      * 管理者としてログイン済みの場合でもログイン画面にアクセスできる
      */
     @Test
-    @WithUserDetails("adminuser")
+    @WithMockUser(username = "adminuser", roles = {"ADMIN"})
     public void 管理者としてログイン済みの場合でもログイン画面にアクセスできる() throws Exception {
         mockMvc.perform(get("/login"))
                .andExpect(status().isOk())

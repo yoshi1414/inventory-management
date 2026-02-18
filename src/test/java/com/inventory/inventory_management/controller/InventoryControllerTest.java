@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
@@ -109,7 +110,7 @@ public class InventoryControllerTest {
      * 管理者として在庫一覧画面が正常に表示される
      */
     @Test
-    @WithUserDetails("adminuser")
+    @WithMockUser(username = "adminuser", roles = {"ADMIN"})
     public void 管理者として在庫一覧画面が正常に表示される() throws Exception {
         mockMvc.perform(get("/inventory"))
                .andExpect(status().isOk())
@@ -813,7 +814,7 @@ public class InventoryControllerTest {
      * 管理者として商品詳細画面が正常に表示される
      */
     @Test
-    @WithUserDetails("adminuser")
+    @WithMockUser(username = "adminuser", roles = {"ADMIN"})
     public void 管理者として商品詳細画面が正常に表示される() throws Exception {
         mockMvc.perform(get("/inventory/products/{id}", testProductId))
                .andExpect(status().isOk())
