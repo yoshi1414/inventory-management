@@ -112,6 +112,32 @@ class AdminInventoryControllerTest {
         assertEquals(0, pageCaptor.getValue());
     }
 
+        /**
+         * includeDeletedがサービスへ正しく伝播されることを検証
+         */
+        @Test
+        @DisplayName("正常系: includeDeleted=true がサービスへ渡される")
+        void showInventory_正常系_includeDeletedを伝播() {
+                SearchCriteriaDto criteria = new SearchCriteriaDto();
+                criteria.setIncludeDeleted(true);
+
+                Page<Product> productPage = new PageImpl<>(List.of());
+                when(adminInventoryService.searchProducts(any(), any(), any(), any(), any(), anyInt(), anyBoolean()))
+                                .thenReturn(productPage);
+                when(adminInventoryService.getLowStockCount()).thenReturn(0L);
+                when(adminInventoryService.getOutOfStockCount()).thenReturn(0L);
+
+                Model model = new ExtendedModelMap();
+                String viewName = adminInventoryController.showInventory(criteria, model);
+
+                assertEquals("admin/inventory", viewName);
+
+                ArgumentCaptor<Boolean> includeDeletedCaptor = ArgumentCaptor.forClass(Boolean.class);
+                verify(adminInventoryService).searchProducts(
+                                any(), any(), any(), any(), any(), anyInt(), includeDeletedCaptor.capture());
+                assertTrue(includeDeletedCaptor.getValue());
+        }
+
     /**
      * 検索キーワードがトリムされてサービスへ渡されることを検証
      */
@@ -206,6 +232,25 @@ class AdminInventoryControllerTest {
                 assertEquals("/admin/products", model.getAttribute("parentUrl"));
         }
 
+        @Test
+        @DisplayName("正常系: fromが未知値の場合は在庫管理へ戻る")
+        void showProductDetail_unknownFrom_setsInventoryParent() {
+                Product product = new Product();
+                product.setId(4);
+                product.setProductName("テスト商品4");
+
+                when(adminInventoryService.getProductById(4)).thenReturn(Optional.of(product));
+                when(adminInventoryService.getStockTransactions(4, 10)).thenReturn(List.of());
+
+                Model model = new ExtendedModelMap();
+
+                String viewName = adminInventoryController.showProductDetail(4, "unknown", model);
+
+                assertEquals("admin/inventory-detail", viewName);
+                assertEquals("在庫管理", model.getAttribute("parentLabel"));
+                assertEquals("/admin/inventory", model.getAttribute("parentUrl"));
+        }
+
         /**
          * 不正な商品IDの場合にerror画面へ遷移することを検証
          */
@@ -215,6 +260,19 @@ class AdminInventoryControllerTest {
                 Model model = new ExtendedModelMap();
 
                 String viewName = adminInventoryController.showProductDetail(0, null, model);
+
+                assertEquals("error", viewName);
+                Object errorMessage = model.getAttribute("errorMessage");
+                assertNotNull(errorMessage);
+                assertTrue(errorMessage.toString().contains("不正な商品IDです。"));
+        }
+
+        @Test
+        @DisplayName("異常系: 商品IDがnullの場合はerror画面を返す")
+        void showProductDetail_異常系_nullIDはerror() {
+                Model model = new ExtendedModelMap();
+
+                String viewName = adminInventoryController.showProductDetail(null, null, model);
 
                 assertEquals("error", viewName);
                 Object errorMessage = model.getAttribute("errorMessage");

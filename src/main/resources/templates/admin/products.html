@@ -14,7 +14,7 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/style.css">
 </head>
-<body>
+<body th:data-csrf-token="${_csrf.token}" th:data-csrf-header="${_csrf.headerName}">
     <!-- ナビゲーションバー（管理者用） -->
     <nav class="navbar navbar-expand-lg navbar-custom-admin fixed-top">
         <div class="container-fluid">
@@ -47,7 +47,8 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <form action="/logout" method="post" class="form-inline">
+                        <form th:action="@{/logout}" method="post" class="form-inline">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                             <button type="submit" class="btn btn-link nav-link btn-link-inline">
                                 <i class="bi bi-box-arrow-right"></i> ログアウト
                             </button>
@@ -86,44 +87,68 @@
                     </p>
                 </div>
 
+                <!-- フラッシュメッセージ -->
+                <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle"></i> <span th:text="${message}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i> <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
                 <!-- 検索パネル -->
                 <div class="search-panel mb-4">
                     <h5 class="mb-3"><i class="bi bi-search"></i> 登録済み商品を検索</h5>
-                    <form id="searchForm">
+                    <form id="searchForm" th:action="@{/admin/products}" method="get">
                         <div class="row g-3">
                             <div class="col-md-4">
-                                <label for="searchKeyword" class="form-label">商品名・商品ID検索</label>
-                                <input type="text" class="form-control" id="searchKeyword" placeholder="商品名または商品IDを入力">
+                                <label for="searchKeyword" class="form-label">商品名・商品コード検索</label>
+                                <input type="text" class="form-control" id="searchKeyword" name="search"
+                                       placeholder="商品名または商品コードを入力"
+                                       th:value="${criteria.search}">
                             </div>
                             <div class="col-md-3">
                                 <label for="categoryFilter" class="form-label">カテゴリ</label>
-                                <select class="form-select" id="categoryFilter">
+                                <select class="form-select" id="categoryFilter" name="category">
                                     <option value="">全て</option>
-                                    <option value="Electronics">Electronics</option>
-                                    <option value="Clothing">Clothing</option>
-                                    <option value="Home Appliances">Home Appliances</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label for="statusFilter" class="form-label">ステータス</label>
-                                <select class="form-select" id="statusFilter">
-                                    <option value="">全て</option>
-                                    <option value="active">販売中</option>
-                                    <option value="inactive">販売停止</option>
+                                    <option th:each="cat : ${categories}"
+                                            th:value="${cat}"
+                                            th:text="${cat}"
+                                            th:selected="${criteria.category == cat}">カテゴリ</option>
                                 </select>
                             </div>
                             <div class="col-md-2">
-                                <label class="form-label">&nbsp;</label>
+                                <label for="statusFilter" class="form-label">ステータス</label>
+                                <select class="form-select" id="statusFilter" name="status">
+                                    <option value="">全て</option>
+                                    <option value="active"   th:selected="${criteria.status == 'active'}">販売中</option>
+                                    <option value="inactive" th:selected="${criteria.status == 'inactive'}">販売停止</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="sortSelect" class="form-label">並び順</label>
+                                <select class="form-select" id="sortSelect" name="sort">
+                                    <option value="name"       th:selected="${criteria.sort == 'name' or criteria.sort == null}">商品名（昇順）</option>
+                                    <option value="name_desc"  th:selected="${criteria.sort == 'name_desc'}">商品名（降順）</option>
+                                    <option value="price"      th:selected="${criteria.sort == 'price'}">価格（安い順）</option>
+                                    <option value="price_desc" th:selected="${criteria.sort == 'price_desc'}">価格（高い順）</option>
+                                    <option value="stock"      th:selected="${criteria.sort == 'stock'}">在庫数（少ない順）</option>
+                                    <option value="stock_desc" th:selected="${criteria.sort == 'stock_desc'}">在庫数（多い順）</option>
+                                    <option value="updated"    th:selected="${criteria.sort == 'updated'}">更新日（新しい順）</option>
+                                </select>
+                            </div>
+                            <div class="col-md-1 d-flex align-items-end">
                                 <button type="submit" class="btn btn-primary w-100">
-                                    <i class="bi bi-search"></i> 検索
+                                    <i class="bi bi-search"></i>
                                 </button>
                             </div>
                         </div>
                         <div class="row mt-2">
                             <div class="col-12">
-                                <button type="reset" class="btn btn-secondary btn-sm">
+                                <a th:href="@{/admin/products}" class="btn btn-secondary btn-sm">
                                     <i class="bi bi-x-circle"></i> クリア
-                                </button>
+                                </a>
                                 <a href="/admin/products/import" class="btn btn-outline-success btn-sm ms-2">
                                     <i class="bi bi-upload"></i> CSV一括登録
                                 </a>
@@ -136,188 +161,214 @@
                 </div>
 
                 <!-- 登録済み商品一覧 -->
-                <div class="card">
-                    <div class="card-header bg-light">
+                <div class="card mb-4">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
                         <h5 class="mb-0"><i class="bi bi-list-ul"></i> 登録済み商品一覧</h5>
+                        <small class="text-muted"
+                               th:text="|全${totalElements}件中 ${startItem}-${endItem}件 (ページ ${currentPageNumber}/${totalPages})|">
+                            全0件
+                        </small>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table table-hover align-middle">
                                 <thead class="table-light">
                                     <tr>
-                                        <th class="w-10">商品ID</th>
-                                        <th class="w-20">商品名</th>
-                                        <th class="w-12">カテゴリ</th>
-                                        <th class="w-10">価格</th>
-                                        <th class="w-8">在庫数</th>
-                                        <th class="w-10">ステータス</th>
-                                        <th class="w-15">更新日</th>
-                                        <th class="w-15">操作</th>
+                                        <th>商品コード</th>
+                                        <th>商品名</th>
+                                        <th>カテゴリ</th>
+                                        <th>価格</th>
+                                        <th>在庫数</th>
+                                        <th>ステータス</th>
+                                        <th>更新日</th>
+                                        <th>操作</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <!-- サンプルデータ1 -->
-                                    <tr>
-                                        <td><code>JHQ82GFX</code></td>
-                                        <td>Monitor XM4P4</td>
-                                        <td><span class="badge bg-info">Clothing</span></td>
-                                        <td>¥15,800</td>
-                                        <td><span class="stock-warning"><i class="bi bi-exclamation-triangle-fill"></i> 3</span></td>
-                                        <td><span class="badge badge-status-inactive">販売停止</span></td>
-                                        <td>2026-01-29</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-primary me-1" onclick="editProduct('JHQ82GFX')" title="編集">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-danger" onclick="handleDelete('JHQ82GFX')" title="削除">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
+                                    <!-- 検索結果なし -->
+                                    <tr th:if="${#lists.isEmpty(products)}">
+                                        <td colspan="8" class="text-center text-muted py-4">
+                                            <i class="bi bi-inbox"></i> 該当する商品が見つかりませんでした。
                                         </td>
                                     </tr>
-                                    <!-- サンプルデータ2 -->
-                                    <tr>
-                                        <td><code>93TGNAY7</code></td>
-                                        <td>Laptop XU5QX</td>
-                                        <td><span class="badge bg-secondary">Home Appliances</span></td>
-                                        <td>¥253</td>
-                                        <td><span class="stock-warning"><i class="bi bi-exclamation-triangle-fill"></i> 3</span></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-29</td>
+                                    <!-- 商品行（動的） -->
+                                    <tr th:each="product : ${products}"
+                                        th:classappend="${product.deletedAt != null} ? 'table-secondary opacity-50' : ''">
+                                        <td><code th:text="${product.productCode}">CODE</code></td>
                                         <td>
-                                            <button class="btn btn-sm btn-primary me-1" onclick="editProduct('93TGNAY7')" title="編集">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-danger" onclick="handleDelete('93TGNAY7')" title="削除">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
+                                            <a th:href="@{/admin/inventory/products/{id}(id=${product.id}, from='products')}"
+                                               th:text="${product.productName}"
+                                               class="text-decoration-none fw-semibold">商品名</a>
+                                            <span th:if="${product.deletedAt != null}"
+                                                  class="badge bg-secondary ms-1">削除済</span>
                                         </td>
-                                    </tr>
-                                    <!-- サンプルデータ3 -->
-                                    <tr>
-                                        <td><code>YTFM1TLG</code></td>
-                                        <td>Smartphone XDVMX</td>
-                                        <td><span class="badge bg-info">Clothing</span></td>
-                                        <td>¥286</td>
-                                        <td><span class="stock-warning"><i class="bi bi-exclamation-triangle-fill"></i> 12</span></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-28</td>
+                                        <td><span class="badge bg-info" th:text="${product.category}">カテゴリ</span></td>
+                                        <td th:text="|¥${#numbers.formatInteger(product.price, 1, 'COMMA')}|">¥0</td>
                                         <td>
-                                            <button class="btn btn-sm btn-primary me-1" onclick="editProduct('YTFM1TLG')" title="編集">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-danger" onclick="handleDelete('YTFM1TLG')" title="削除">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
+                                            <span th:if="${product.outOfStock}"
+                                                  class="stock-danger">
+                                                <i class="bi bi-x-circle-fill"></i>
+                                                <span th:text="${product.stock}">0</span>
+                                            </span>
+                                            <span th:if="${product.lowStock}"
+                                                  class="stock-warning">
+                                                <i class="bi bi-exclamation-triangle-fill"></i>
+                                                <span th:text="${product.stock}">0</span>
+                                            </span>
+                                            <span th:if="${!product.outOfStock and !product.lowStock}"
+                                                  class="stock-ok"
+                                                  th:text="${product.stock}">0</span>
                                         </td>
-                                    </tr>
-                                    <!-- サンプルデータ4 -->
-                                    <tr>
-                                        <td><code>728GCZFU</code></td>
-                                        <td>Laptop 54FAF</td>
-                                        <td><span class="badge bg-secondary">Home Appliances</span></td>
-                                        <td>¥230</td>
-                                        <td><span class="stock-ok">32</span></td>
-                                        <td><span class="badge badge-status-active">販売中</span></td>
-                                        <td>2026-01-26</td>
                                         <td>
-                                            <button class="btn btn-sm btn-primary me-1" onclick="editProduct('728GCZFU')" title="編集">
+                                            <span th:if="${product.status == 'active'}"  class="badge badge-status-active">販売中</span>
+                                            <span th:if="${product.status == 'inactive'}" class="badge badge-status-inactive">販売停止</span>
+                                            <span th:if="${product.status != 'active' and product.status != 'inactive'}"
+                                                  class="badge bg-secondary" th:text="${product.status}">その他</span>
+                                        </td>
+                                        <td th:text="${#temporals.format(product.updatedAt, 'yyyy-MM-dd')}">-</td>
+                                        <td>
+                                            <a th:if="${product.deletedAt == null}"
+                                               th:href="@{/admin/products/{id}/edit(id=${product.id})}"
+                                               class="btn btn-sm btn-primary me-1" title="編集">
                                                 <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-danger" onclick="handleDelete('728GCZFU')" title="削除">
+                                            </a>
+                                            <button th:if="${product.deletedAt == null}"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    th:data-product-id="${product.id}"
+                                                    th:data-product-name="${product.productName}"
+                                                    onclick="openDeleteModal(this)"
+                                                    title="削除">
                                                 <i class="bi bi-trash"></i>
                                             </button>
+                                            <form th:if="${product.deletedAt != null}"
+                                                  th:action="@{/admin/products/{id}/restore(id=${product.id})}"
+                                                  method="post" style="display:inline;">
+                                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                                <button type="submit" class="btn btn-sm btn-outline-success" title="復元">
+                                                    <i class="bi bi-arrow-counterclockwise"></i>
+                                                </button>
+                                            </form>
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
-
-                        <!-- ページネーション -->
-                        <nav aria-label="商品ページネーション" class="mt-4">
+                        <!-- ページネーション（動的） -->
+                        <nav th:if="${totalPages > 1}" aria-label="商品ページネーション" class="mt-4">
                             <ul class="pagination justify-content-center">
-                                <li class="page-item disabled">
-                                    <a class="page-link" href="#" tabindex="-1">
-                                        <i class="bi bi-chevron-double-left"></i> 最初
+                                <!-- 最初のページ -->
+                                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                    <a class="page-link"
+                                       th:href="@{/admin/products(search=${criteria.search}, category=${criteria.category}, status=${criteria.status}, sort=${criteria.sort}, page=0)}">
+                                        <i class="bi bi-chevron-double-left"></i>
                                     </a>
                                 </li>
-                                <li class="page-item disabled">
-                                    <a class="page-link" href="#" tabindex="-1">
-                                        <i class="bi bi-chevron-left"></i> 前へ
+                                <!-- 前のページ -->
+                                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                    <a class="page-link"
+                                       th:href="@{/admin/products(search=${criteria.search}, category=${criteria.category}, status=${criteria.status}, sort=${criteria.sort}, page=${currentPage - 1})}">
+                                        <i class="bi bi-chevron-left"></i>
                                     </a>
                                 </li>
-                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                <li class="page-item"><a class="page-link" href="#">4</a></li>
-                                <li class="page-item"><a class="page-link" href="#">5</a></li>
-                                <li class="page-item disabled"><a class="page-link" href="#">...</a></li>
-                                <li class="page-item"><a class="page-link" href="#">50</a></li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">
-                                        次へ <i class="bi bi-chevron-right"></i>
+                                
+                                <!-- ページ番号 -->
+                                <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                                    <li th:if="${i == currentPage}" class="page-item active">
+                                        <a class="page-link" href="#">
+                                            <span th:text="${i + 1}">1</span>
+                                        </a>
+                                    </li>
+                                    <li th:if="${i != currentPage and (i < 3 or i > totalPages - 4 or (i >= currentPage - 2 and i <= currentPage + 2))}" 
+                                        class="page-item">
+                                        <a class="page-link"
+                                           th:href="@{/admin/products(search=${criteria.search}, category=${criteria.category}, status=${criteria.status}, sort=${criteria.sort}, page=${i})}"
+                                           th:text="${i + 1}">1</a>
+                                    </li>
+                                    <li th:if="${i != currentPage and ((i == 3 and currentPage > 5) or (i == totalPages - 4 and currentPage < totalPages - 6))}" 
+                                        class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                </th:block>
+                                
+                                <!-- 次のページ -->
+                                <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                                    <a class="page-link"
+                                       th:href="@{/admin/products(search=${criteria.search}, category=${criteria.category}, status=${criteria.status}, sort=${criteria.sort}, page=${currentPage + 1})}">
+                                        <i class="bi bi-chevron-right"></i>
                                     </a>
                                 </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">
-                                        最後 <i class="bi bi-chevron-double-right"></i>
+                                <!-- 最後のページ -->
+                                <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                                    <a class="page-link"
+                                       th:href="@{/admin/products(search=${criteria.search}, category=${criteria.category}, status=${criteria.status}, sort=${criteria.sort}, page=${totalPages - 1})}">
+                                        <i class="bi bi-chevron-double-right"></i>
                                     </a>
                                 </li>
                             </ul>
                         </nav>
-                        <div class="text-center text-muted mb-4">
-                            <small>全200件中 1-4件を表示 (ページ 1/50) ※1ページあたり4件表示</small>
-                        </div>
                     </div>
                 </div>
 
-                <!-- 商品入力フォーム -->
+                <!-- 商品クイック登録フォーム -->
                 <div class="card mb-4">
                     <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0"><i class="bi bi-pencil-square"></i> 商品情報入力</h5>
+                        <h5 class="mb-0"><i class="bi bi-pencil-square"></i> 商品クイック登録</h5>
                     </div>
                     <div class="card-body">
-                        <form id="productForm">
+                        <form id="quickForm"
+                              th:action="@{/admin/products/quick-create}"
+                              th:object="${quickForm}"
+                              method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label for="productId" class="form-label">商品ID</label>
-                                    <input type="text" class="form-control" id="productId" name="productId" placeholder="自動生成または手動入力">
-                                    <small class="text-muted">※空欄の場合、自動生成されます</small>
+                                    <label for="productName" class="form-label">商品名 <span class="text-danger">*</span></label>
+                                    <input type="text"
+                                           th:field="*{productName}"
+                                           th:classappend="${#fields.hasErrors('productName')} ? 'is-invalid' : ''"
+                                           class="form-control" id="productName" placeholder="商品名を入力" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('productName')}"
+                                         th:errors="*{productName}">エラー</div>
                                 </div>
                                 <div class="col-md-6">
-                                    <label for="productName" class="form-label">商品名 <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="productName" name="productName" placeholder="商品名を入力" required>
+                                    <label for="category" class="form-label">カテゴリ <span class="text-danger">*</span></label>
+                                    <select th:field="*{category}"
+                                            th:classappend="${#fields.hasErrors('category')} ? 'is-invalid' : ''"
+                                            class="form-select" id="category" required>
+                                        <option value="">選択してください</option>
+                                        <option th:each="cat : ${categories}"
+                                                th:value="${cat}"
+                                                th:text="${cat}">カテゴリ</option>
+                                    </select>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('category')}"
+                                         th:errors="*{category}">エラー</div>
                                 </div>
                             </div>
                             <div class="row g-3 mt-2">
-                                <div class="col-md-4">
-                                    <label for="category" class="form-label">カテゴリ <span class="text-danger">*</span></label>
-                                    <select class="form-select" id="category" name="category" required>
-                                        <option value="">選択してください</option>
-                                        <option value="Electronics">Electronics</option>
-                                        <option value="Clothing">Clothing</option>
-                                        <option value="Home Appliances">Home Appliances</option>
-                                    </select>
-                                </div>
                                 <div class="col-md-4">
                                     <label for="price" class="form-label">価格（円） <span class="text-danger">*</span></label>
-                                    <input type="number" class="form-control" id="price" name="price" placeholder="価格を入力" min="0" required>
+                                    <input type="number"
+                                           th:field="*{price}"
+                                           th:classappend="${#fields.hasErrors('price')} ? 'is-invalid' : ''"
+                                           class="form-control" id="price" placeholder="価格を入力" min="0" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('price')}"
+                                         th:errors="*{price}">エラー</div>
                                 </div>
                                 <div class="col-md-4">
-                                    <label for="stock" class="form-label">在庫数 <span class="text-danger">*</span></label>
-                                    <input type="number" class="form-control" id="stock" name="stock" placeholder="在庫数を入力" min="0" required>
+                                    <label for="stockQuantity" class="form-label">在庫数 <span class="text-danger">*</span></label>
+                                    <input type="number"
+                                           th:field="*{stockQuantity}"
+                                           th:classappend="${#fields.hasErrors('stockQuantity')} ? 'is-invalid' : ''"
+                                           class="form-control" id="stockQuantity" placeholder="在庫数を入力" min="0" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('stockQuantity')}"
+                                         th:errors="*{stockQuantity}">エラー</div>
                                 </div>
-                            </div>
-                            <div class="row g-3 mt-2">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label for="status" class="form-label">ステータス <span class="text-danger">*</span></label>
-                                    <select class="form-select" id="status" name="status" required>
+                                    <select th:field="*{status}" class="form-select" id="status" required>
                                         <option value="active">販売中</option>
                                         <option value="inactive">販売停止</option>
                                     </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="description" class="form-label">商品説明</label>
-                                    <input type="text" class="form-control" id="description" name="description" placeholder="商品の説明（任意）">
                                 </div>
                             </div>
                             <div class="row mt-3">
@@ -328,6 +379,9 @@
                                     <button type="reset" class="btn btn-secondary btn-lg">
                                         <i class="bi bi-x-circle"></i> クリア
                                     </button>
+                                    <a href="/admin/products/create" class="btn btn-outline-primary btn-lg ms-2">
+                                        <i class="bi bi-pencil-square"></i> 詳細入力フォームへ
+                                    </a>
                                 </div>
                             </div>
                         </form>
@@ -349,12 +403,15 @@
                 </div>
                 <div class="modal-body">
                     <p>この商品を削除してもよろしいですか？</p>
-                    <p class="text-muted"><small>※論理削除されるため、データは保持されます。</small></p>
-                    <p><strong>商品ID:</strong> <span id="deleteProductId"></span></p>
+                    <p class="text-muted"><small>※論理削除のため、データは保持されます。一覧上から復元できます。</small></p>
+                    <p><strong>商品名:</strong> <span id="deleteProductName"></span></p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
-                    <button type="button" class="btn btn-danger" onclick="confirmDelete()">削除する</button>
+                    <form id="deleteForm" method="post">
+                        <input type="hidden" id="deleteCsrfToken" name="_csrf" th:value="${_csrf.token}">
+                        <button type="submit" class="btn btn-danger">削除する</button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -362,77 +419,14 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <!-- 共通JavaScript -->
     <script src="/js/common.js"></script>
-    
+
     <!-- 管理者用JavaScript -->
     <script src="/js/admin-common.js"></script>
-    
-    <script>
-        // 商品編集処理
-        function editProduct(productId) {
-            // 商品データをフォームに読み込む（実際にはサーバーからデータを取得）
-            console.log('編集対象商品ID:', productId);
-            
-            // サンプルデータをフォームにセット
-            const sampleData = {
-                'JHQ82GFX': { name: 'Monitor XM4P4', category: 'Clothing', price: 15800, stock: 3, status: 'inactive' },
-                '93TGNAY7': { name: 'Laptop XU5QX', category: 'Home Appliances', price: 253, stock: 3, status: 'active' },
-                'YTFM1TLG': { name: 'Smartphone XDVMX', category: 'Clothing', price: 286, stock: 12, status: 'active' },
-                '728GCZFU': { name: 'Laptop 54FAF', category: 'Home Appliances', price: 230, stock: 32, status: 'active' }
-            };
-            
-            const data = sampleData[productId];
-            if (data) {
-                document.getElementById('productId').value = productId;
-                document.getElementById('productName').value = data.name;
-                document.getElementById('category').value = data.category;
-                document.getElementById('price').value = data.price;
-                document.getElementById('stock').value = data.stock;
-                document.getElementById('status').value = data.status;
-                
-                // フォームまでスクロール
-                document.getElementById('productForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-        }
 
-        // 削除処理
-        function handleDelete(productId) {
-            document.getElementById('deleteProductId').textContent = productId;
-            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-            deleteModal.show();
-        }
-
-        function confirmDelete() {
-            const productId = document.getElementById('deleteProductId').textContent;
-            // 削除処理をここに実装
-            console.log('削除対象商品ID:', productId);
-            alert('商品 ' + productId + ' を削除しました。');
-            const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
-            deleteModal.hide();
-        }
-
-        // フォーム送信処理
-        document.getElementById('productForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = {
-                productId: document.getElementById('productId').value || '自動生成',
-                productName: document.getElementById('productName').value,
-                category: document.getElementById('category').value,
-                price: document.getElementById('price').value,
-                stock: document.getElementById('stock').value,
-                status: document.getElementById('status').value,
-                description: document.getElementById('description').value
-            };
-            
-            console.log('商品情報:', formData);
-            alert('商品を登録しました：' + formData.productName);
-            
-            // フォームをクリア
-            this.reset();
-        });
-    </script>
+    <!-- 商品管理用JavaScript -->
+    <script src="/js/admin-products.js"></script>
 </body>
 </html>
