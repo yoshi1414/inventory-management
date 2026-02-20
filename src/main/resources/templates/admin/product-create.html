@@ -18,7 +18,7 @@
     <!-- ナビゲーションバー（管理者用） -->
     <nav class="navbar navbar-expand-lg navbar-custom-admin fixed-top">
         <div class="container-fluid">
-            <a class="navbar-brand" href="/admin/menu">
+            <a class="navbar-brand" href="/admin/inventory">
                 <i class="bi bi-shield-lock"></i> 商品在庫管理システム <span class="badge admin-badge">管理者</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -42,11 +42,6 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/admin/menu">
-                            <i class="bi bi-house"></i> メニュー
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <form th:action="@{/logout}" method="post" class="form-inline">
                             <button type="submit" class="btn btn-link nav-link btn-link-inline">
                                 <i class="bi bi-box-arrow-right"></i> ログアウト
@@ -65,7 +60,6 @@
                 <!-- パンくずリスト -->
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="/admin/menu">ホーム</a></li>
                         <li class="breadcrumb-item"><a href="/admin/products">商品管理</a></li>
                         <li class="breadcrumb-item active" aria-current="page">商品新規登録</li>
                     </ol>
@@ -106,7 +100,7 @@
                                         <label for="productName" class="form-label">商品名 <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="productName"
                                                th:field="*{productName}" placeholder="商品名を入力" required>
-                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('"'"'productName'"'"')}" th:errors="*{productName}"></div>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('productName')}" th:errors="*{productName}"></div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -116,7 +110,7 @@
                                             <option value="">選択してください</option>
                                             <option th:each="cat : ${categories}" th:value="${cat}" th:text="${cat}"></option>
                                         </select>
-                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('"'"'category'"'"')}" th:errors="*{category}"></div>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('category')}" th:errors="*{category}"></div>
                                     </div>
                                 </div>
                             </div>
@@ -126,7 +120,7 @@
                                         <label for="sku" class="form-label">SKU</label>
                                         <input type="text" class="form-control" id="sku"
                                                th:field="*{sku}" placeholder="SKU（任意）">
-                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('"'"'sku'"'"')}" th:errors="*{sku}"></div>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('sku')}" th:errors="*{sku}"></div>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
@@ -134,7 +128,7 @@
                                         <label for="price" class="form-label">価格（円） <span class="text-danger">*</span></label>
                                         <input type="number" class="form-control" id="price"
                                                th:field="*{price}" placeholder="価格を入力" min="0" step="0.01" required>
-                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('"'"'price'"'"')}" th:errors="*{price}"></div>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></div>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
@@ -142,7 +136,7 @@
                                         <label for="stockQuantity" class="form-label">在庫数 <span class="text-danger">*</span></label>
                                         <input type="number" class="form-control" id="stockQuantity"
                                                th:field="*{stockQuantity}" placeholder="在庫数を入力" min="0" required>
-                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('"'"'stockQuantity'"'"')}" th:errors="*{stockQuantity}"></div>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('stockQuantity')}" th:errors="*{stockQuantity}"></div>
                                     </div>
                                 </div>
                             </div>
@@ -170,7 +164,7 @@
                                 <label for="description" class="form-label">商品説明</label>
                                 <textarea class="form-control" id="description" th:field="*{description}"
                                           placeholder="商品の説明（任意）" rows="3"></textarea>
-                                <div class="invalid-feedback" th:if="${#fields.hasErrors('"'"'description'"'"')}" th:errors="*{description}"></div>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
                             </div>
                             <div class="row">
                                 <div class="col-md-6">
@@ -178,7 +172,7 @@
                                         <label for="dimensions" class="form-label">寸法</label>
                                         <input type="text" class="form-control" id="dimensions"
                                                th:field="*{dimensions}" placeholder="例: 100x200x50mm">
-                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('"'"'dimensions'"'"')}" th:errors="*{dimensions}"></div>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('dimensions')}" th:errors="*{dimensions}"></div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -186,7 +180,7 @@
                                         <label for="variations" class="form-label">バリエーション</label>
                                         <input type="text" class="form-control" id="variations"
                                                th:field="*{variations}" placeholder="例: 色、サイズなど">
-                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('"'"'variations'"'"')}" th:errors="*{variations}"></div>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('variations')}" th:errors="*{variations}"></div>
                                     </div>
                                 </div>
                             </div>
@@ -196,7 +190,7 @@
                                         <label for="warrantyMonths" class="form-label">保証期間（月）</label>
                                         <input type="number" class="form-control" id="warrantyMonths"
                                                th:field="*{warrantyMonths}" placeholder="保証期間" min="0">
-                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('"'"'warrantyMonths'"'"')}" th:errors="*{warrantyMonths}"></div>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('warrantyMonths')}" th:errors="*{warrantyMonths}"></div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -204,7 +198,7 @@
                                         <label for="manufacturingDate" class="form-label">製造日</label>
                                         <input type="date" class="form-control" id="manufacturingDate"
                                                th:field="*{manufacturingDate}">
-                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('"'"'manufacturingDate'"'"')}" th:errors="*{manufacturingDate}"></div>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('manufacturingDate')}" th:errors="*{manufacturingDate}"></div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -212,7 +206,7 @@
                                         <label for="expirationDate" class="form-label">有効期限</label>
                                         <input type="date" class="form-control" id="expirationDate"
                                                th:field="*{expirationDate}">
-                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('"'"'expirationDate'"'"')}" th:errors="*{expirationDate}"></div>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('expirationDate')}" th:errors="*{expirationDate}"></div>
                                     </div>
                                 </div>
                             </div>
@@ -220,7 +214,7 @@
                                 <label for="tags" class="form-label">タグ</label>
                                 <input type="text" class="form-control" id="tags"
                                        th:field="*{tags}" placeholder="カンマ区切りでタグを入力（例: 新製品, セール）">
-                                <div class="invalid-feedback" th:if="${#fields.hasErrors('"'"'tags'"'"')}" th:errors="*{tags}"></div>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('tags')}" th:errors="*{tags}"></div>
                             </div>
                         </div>
                     </div>

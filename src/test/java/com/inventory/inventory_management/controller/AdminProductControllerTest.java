@@ -4,7 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -56,7 +58,7 @@ class AdminProductControllerTest {
 
         Page<Product> page = new PageImpl<>(List.of(new Product()));
         when(adminProductService.validateSearchCriteria(criteria)).thenReturn(criteria);
-        when(adminProductService.searchProducts(any(), any(), any(), any(), anyInt()))
+        when(adminProductService.searchProducts(any(), any(), any(), any(), anyInt(), anyBoolean()))
                 .thenReturn(page);
         when(adminProductService.getAllCategories()).thenReturn(List.of("Books"));
         when(adminProductService.calculatePagingInfo(0, page.getSize(), page.getTotalElements()))
@@ -69,6 +71,30 @@ class AdminProductControllerTest {
         assertEquals("admin/products", view);
         assertNotNull(model.getAttribute("products"));
         assertNotNull(model.getAttribute("quickForm"));
+    }
+
+    @Test
+    @DisplayName("showAdminProducts: includeDeleted=true がサービスに渡される")
+    void showAdminProducts_IncludeDeleted_PassedToService() {
+        ProductSearchCriteriaDto criteria = new ProductSearchCriteriaDto();
+        criteria.setPage(0);
+        criteria.setIncludeDeleted(true);
+
+        Page<Product> page = new PageImpl<>(List.of(new Product()));
+        when(adminProductService.validateSearchCriteria(criteria)).thenReturn(criteria);
+        when(adminProductService.searchProducts(any(), any(), any(), any(), anyInt(), anyBoolean()))
+                .thenReturn(page);
+        when(adminProductService.getAllCategories()).thenReturn(List.of("Books"));
+        when(adminProductService.calculatePagingInfo(0, page.getSize(), page.getTotalElements()))
+                .thenReturn(new int[]{1, 1});
+
+        Model model = new ExtendedModelMap();
+
+        String view = adminProductController.showAdminProducts(criteria, model);
+
+        assertEquals("admin/products", view);
+        assertEquals(true, model.getAttribute("includeDeleted"));
+        verify(adminProductService).searchProducts(any(), any(), any(), any(), anyInt(), eq(true));
     }
 
     @Test
@@ -88,11 +114,13 @@ class AdminProductControllerTest {
     @DisplayName("showCreateForm: detailFormが無ければ初期化")
     void showCreateForm_AddsForm() {
         Model model = new ExtendedModelMap();
+        when(adminProductService.getAllCategories()).thenReturn(List.of("Books", "Electronics"));
 
         String view = adminProductController.showCreateForm(model);
 
         assertEquals("admin/product-create", view);
         assertNotNull(model.getAttribute("detailForm"));
+        assertEquals(List.of("Books", "Electronics"), model.getAttribute("categories"));
     }
 
     @Test
@@ -102,12 +130,14 @@ class AdminProductControllerTest {
         ProductDetailForm existing = new ProductDetailForm();
         existing.setProductName("既存");
         model.addAttribute("detailForm", existing);
+        when(adminProductService.getAllCategories()).thenReturn(List.of("Books"));
 
         String view = adminProductController.showCreateForm(model);
 
         assertEquals("admin/product-create", view);
         ProductDetailForm form = (ProductDetailForm) model.getAttribute("detailForm");
         assertEquals("既存", form.getProductName());
+        assertEquals(List.of("Books"), model.getAttribute("categories"));
     }
 
     @Test

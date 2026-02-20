@@ -43,13 +43,14 @@ public class AdminProductService {
     // =========================================================
 
     /**
-     * 商品を検索（削除済み除外・ページング対応）
+     * 商品を検索（削除済み除外または含む・ページング対応）
      *
-     * @param keyword  商品名キーワード（部分一致）
-     * @param category カテゴリフィルター
-     * @param status   ステータスフィルター（active / inactive）
-     * @param sortBy   ソート順（name / name_desc / price / price_desc / stock / stock_desc / updated）
-     * @param page     ページ番号（0始まり）
+     * @param keyword        商品名キーワード（部分一致）
+     * @param category       カテゴリフィルター
+     * @param status         ステータスフィルター（active / inactive）
+     * @param sortBy         ソート順（name / name_desc / price / price_desc / stock / stock_desc / updated）
+     * @param page           ページ番号（0始まり）
+     * @param includeDeleted 削除済み商品を含めるかどうか
      * @return 検索結果ページ
      */
     public Page<Product> searchProducts(
@@ -57,14 +58,19 @@ public class AdminProductService {
             String category,
             String status,
             String sortBy,
-            int page) {
+            int page,
+            boolean includeDeleted) {
 
         Sort sort = createSort(sortBy);
         Pageable pageable = PageRequest.of(page, pageSize, sort);
 
-        log.debug("商品検索: keyword={}, category={}, status={}, sort={}, page={}",
-                keyword, category, status, sortBy, page);
+        log.debug("商品検索: keyword={}, category={}, status={}, sort={}, page={}, includeDeleted={}",
+                keyword, category, status, sortBy, page, includeDeleted);
 
+        if (includeDeleted) {
+            return productRepository.findBySearchConditionsIncludingDeleted(
+                    keyword, category, status, null, null, pageable);
+        }
         return productRepository.findBySearchConditions(keyword, category, status, pageable);
     }
 

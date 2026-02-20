@@ -18,7 +18,7 @@
     <!-- ナビゲーションバー（管理者用） -->
     <nav class="navbar navbar-expand-lg navbar-custom-admin fixed-top">
         <div class="container-fluid">
-            <a class="navbar-brand" href="/admin/menu">
+            <a class="navbar-brand" href="/admin/inventory">
                 <i class="bi bi-shield-lock"></i> 商品在庫管理システム <span class="badge admin-badge">管理者</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -39,11 +39,6 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/admin/users">
                             <i class="bi bi-people"></i> ユーザー管理
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin/menu">
-                            <i class="bi bi-house"></i> メニュー
                         </a>
                     </li>
                     <li class="nav-item">
@@ -83,7 +78,6 @@
                     <p class="mb-0">
                         この画面では、商品情報を1件ずつ入力・編集できます。
                         <strong>在庫数の確認や一括表示は<a href="/admin/inventory" class="alert-link">在庫管理画面</a></strong>をご利用ください。
-                        <strong>複数商品の一括登録は<a href="/admin/products/import" class="alert-link">CSVインポート</a></strong>をご利用ください。
                     </p>
                 </div>
 
@@ -138,22 +132,22 @@
                                     <option value="updated"    th:selected="${criteria.sort == 'updated'}">更新日（新しい順）</option>
                                 </select>
                             </div>
-                            <div class="col-md-1 d-flex align-items-end">
-                                <button type="submit" class="btn btn-primary w-100">
-                                    <i class="bi bi-search"></i>
-                                </button>
-                            </div>
+                            <div class="col-md-1"></div>
                         </div>
                         <div class="row mt-2">
-                            <div class="col-12">
-                                <a th:href="@{/admin/products}" class="btn btn-secondary btn-sm">
+                            <div class="col-12 col-md-11 pe-md-0 d-flex justify-content-end align-items-center">
+                                <div class="form-check me-3 mb-0">
+                                    <input class="form-check-input" type="checkbox" name="includeDeleted"
+                                           id="includeDeleted" th:checked="${includeDeleted}">
+                                    <label class="form-check-label" for="includeDeleted">
+                                        削除済み商品を含める
+                                    </label>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-search"></i> 検索
+                                </button>
+                                <a th:href="@{/admin/products}" class="btn btn-secondary ms-2">
                                     <i class="bi bi-x-circle"></i> クリア
-                                </a>
-                                <a href="/admin/products/import" class="btn btn-outline-success btn-sm ms-2">
-                                    <i class="bi bi-upload"></i> CSV一括登録
-                                </a>
-                                <a href="/admin/products/export" class="btn btn-outline-primary btn-sm ms-2">
-                                    <i class="bi bi-download"></i> CSVエクスポート
                                 </a>
                             </div>
                         </div>
@@ -233,10 +227,10 @@
                                                 <i class="bi bi-pencil"></i>
                                             </a>
                                             <button th:if="${product.deletedAt == null}"
-                                                    class="btn btn-sm btn-outline-danger"
+                                                    type="button"
+                                                    class="btn btn-sm btn-outline-danger product-delete-trigger"
                                                     th:data-product-id="${product.id}"
                                                     th:data-product-name="${product.productName}"
-                                                    onclick="openDeleteModal(this)"
                                                     title="削除">
                                                 <i class="bi bi-trash"></i>
                                             </button>
@@ -259,14 +253,14 @@
                                 <!-- 最初のページ -->
                                 <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
                                     <a class="page-link"
-                                       th:href="@{/admin/products(search=${criteria.search}, category=${criteria.category}, status=${criteria.status}, sort=${criteria.sort}, page=0)}">
+                                       th:href="@{/admin/products(search=${criteria.search}, category=${criteria.category}, status=${criteria.status}, sort=${criteria.sort}, includeDeleted=${includeDeleted}, page=0)}">
                                         <i class="bi bi-chevron-double-left"></i>
                                     </a>
                                 </li>
                                 <!-- 前のページ -->
                                 <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
                                     <a class="page-link"
-                                       th:href="@{/admin/products(search=${criteria.search}, category=${criteria.category}, status=${criteria.status}, sort=${criteria.sort}, page=${currentPage - 1})}">
+                                       th:href="@{/admin/products(search=${criteria.search}, category=${criteria.category}, status=${criteria.status}, sort=${criteria.sort}, includeDeleted=${includeDeleted}, page=${currentPage - 1})}">
                                         <i class="bi bi-chevron-left"></i>
                                     </a>
                                 </li>
@@ -281,7 +275,7 @@
                                     <li th:if="${i != currentPage and (i < 3 or i > totalPages - 4 or (i >= currentPage - 2 and i <= currentPage + 2))}" 
                                         class="page-item">
                                         <a class="page-link"
-                                           th:href="@{/admin/products(search=${criteria.search}, category=${criteria.category}, status=${criteria.status}, sort=${criteria.sort}, page=${i})}"
+                                           th:href="@{/admin/products(search=${criteria.search}, category=${criteria.category}, status=${criteria.status}, sort=${criteria.sort}, includeDeleted=${includeDeleted}, page=${i})}"
                                            th:text="${i + 1}">1</a>
                                     </li>
                                     <li th:if="${i != currentPage and ((i == 3 and currentPage > 5) or (i == totalPages - 4 and currentPage < totalPages - 6))}" 
@@ -293,14 +287,14 @@
                                 <!-- 次のページ -->
                                 <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
                                     <a class="page-link"
-                                       th:href="@{/admin/products(search=${criteria.search}, category=${criteria.category}, status=${criteria.status}, sort=${criteria.sort}, page=${currentPage + 1})}">
+                                       th:href="@{/admin/products(search=${criteria.search}, category=${criteria.category}, status=${criteria.status}, sort=${criteria.sort}, includeDeleted=${includeDeleted}, page=${currentPage + 1})}">
                                         <i class="bi bi-chevron-right"></i>
                                     </a>
                                 </li>
                                 <!-- 最後のページ -->
                                 <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
                                     <a class="page-link"
-                                       th:href="@{/admin/products(search=${criteria.search}, category=${criteria.category}, status=${criteria.status}, sort=${criteria.sort}, page=${totalPages - 1})}">
+                                       th:href="@{/admin/products(search=${criteria.search}, category=${criteria.category}, status=${criteria.status}, sort=${criteria.sort}, includeDeleted=${includeDeleted}, page=${totalPages - 1})}">
                                         <i class="bi bi-chevron-double-right"></i>
                                     </a>
                                 </li>
@@ -372,15 +366,17 @@
                                 </div>
                             </div>
                             <div class="row mt-3">
-                                <div class="col-12">
-                                    <button type="submit" class="btn btn-success btn-lg me-2">
-                                        <i class="bi bi-check-circle"></i> 登録
-                                    </button>
-                                    <button type="reset" class="btn btn-secondary btn-lg">
-                                        <i class="bi bi-x-circle"></i> クリア
-                                    </button>
-                                    <a href="/admin/products/create" class="btn btn-outline-primary btn-lg ms-2">
-                                        <i class="bi bi-pencil-square"></i> 詳細入力フォームへ
+                                <div class="col-12 d-flex align-items-center">
+                                    <div>
+                                        <button type="submit" class="btn btn-success btn-lg me-2">
+                                            <i class="bi bi-check-circle"></i> 登録
+                                        </button>
+                                        <button type="reset" class="btn btn-secondary btn-lg">
+                                            <i class="bi bi-x-circle"></i> クリア
+                                        </button>
+                                    </div>
+                                    <a href="/admin/products/create" class="btn btn-success btn-lg ms-auto">
+                                        <i class="bi bi-plus-circle"></i> 新規商品登録
                                     </a>
                                 </div>
                             </div>
@@ -409,7 +405,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
                     <form id="deleteForm" method="post">
-                        <input type="hidden" id="deleteCsrfToken" name="_csrf" th:value="${_csrf.token}">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                         <button type="submit" class="btn btn-danger">削除する</button>
                     </form>
                 </div>

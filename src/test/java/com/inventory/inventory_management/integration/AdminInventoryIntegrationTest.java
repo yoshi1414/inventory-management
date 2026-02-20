@@ -526,7 +526,10 @@ class AdminInventoryIntegrationTest {
                                 .andReturn();
 
                 String content = result.getResponse().getContentAsString();
-                assertThat(content).contains("/admin/inventory").contains("在庫管理");
+                assertThat(content)
+                                .contains("/admin/inventory")
+                                .contains("在庫管理に戻る")
+                                .doesNotContain("商品管理に戻る");
         }
 
         @Test
@@ -539,7 +542,10 @@ class AdminInventoryIntegrationTest {
                                 .andReturn();
 
                 String content = result.getResponse().getContentAsString();
-                assertThat(content).contains("/admin/products").contains("商品管理");
+                assertThat(content)
+                                .contains("/admin/products")
+                                .contains("商品管理に戻る")
+                                .doesNotContain("在庫管理に戻る");
         }
 
         /**

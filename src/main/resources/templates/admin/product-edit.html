@@ -18,7 +18,7 @@
     <!-- ナビゲーションバー（管理者用） -->
     <nav class="navbar navbar-expand-lg navbar-custom-admin fixed-top">
         <div class="container-fluid">
-            <a class="navbar-brand" href="/admin/menu">
+            <a class="navbar-brand" href="/admin/inventory">
                 <i class="bi bi-shield-lock"></i> 商品在庫管理システム <span class="badge admin-badge">管理者</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -42,11 +42,6 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/admin/menu">
-                            <i class="bi bi-house"></i> メニュー
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <form th:action="@{/logout}" method="post" class="form-inline">
                             <button type="submit" class="btn btn-link nav-link btn-link-inline">
                                 <i class="bi bi-box-arrow-right"></i> ログアウト
@@ -65,7 +60,6 @@
                 <!-- パンくずリスト -->
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="/admin/menu">ホーム</a></li>
                         <li class="breadcrumb-item"><a href="/admin/products">商品管理</a></li>
                         <li class="breadcrumb-item active" aria-current="page">商品編集</li>
                     </ol>

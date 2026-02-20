@@ -26,4 +26,7 @@ public class ProductSearchCriteriaDto {
 
     /** ページ番号（0始まり） */
     private int page = 0;
+
+    /** 削除済み商品を含めるかどうか */
+    private boolean includeDeleted = false;
 }
