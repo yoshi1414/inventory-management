@@ -2,6 +2,7 @@ package com.inventory.inventory_management.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -208,6 +209,7 @@ class AdminInventoryControllerTest {
                 assertEquals("admin/inventory-detail", viewName);
                 assertEquals(product, model.getAttribute("product"));
                 assertEquals(transactions, model.getAttribute("transactions"));
+                assertNull(model.getAttribute("from"));
                 // デフォルトは在庫管理
                 assertEquals("在庫管理", model.getAttribute("parentLabel"));
                 assertEquals("/admin/inventory", model.getAttribute("parentUrl"));
@@ -228,6 +230,7 @@ class AdminInventoryControllerTest {
                 String viewName = adminInventoryController.showProductDetail(3, "products", model);
 
                 assertEquals("admin/inventory-detail", viewName);
+                assertEquals("products", model.getAttribute("from"));
                 assertEquals("商品管理", model.getAttribute("parentLabel"));
                 assertEquals("/admin/products", model.getAttribute("parentUrl"));
         }
@@ -247,6 +250,7 @@ class AdminInventoryControllerTest {
                 String viewName = adminInventoryController.showProductDetail(4, "unknown", model);
 
                 assertEquals("admin/inventory-detail", viewName);
+                assertEquals("unknown", model.getAttribute("from"));
                 assertEquals("在庫管理", model.getAttribute("parentLabel"));
                 assertEquals("/admin/inventory", model.getAttribute("parentUrl"));
         }

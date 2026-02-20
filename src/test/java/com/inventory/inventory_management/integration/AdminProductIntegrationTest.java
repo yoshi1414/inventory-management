@@ -1,10 +1,13 @@
 package com.inventory.inventory_management.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -20,7 +23,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.test.context.support.WithUserDetails;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
@@ -72,7 +75,7 @@ class AdminProductIntegrationTest {
      * @throws Exception テスト実行時の例外
      */
     @Test
-    @WithUserDetails("adminuser")
+    @WithMockUser(username = "adminuser", roles = {"ADMIN"})
     @DisplayName("【結合】管理者商品一覧を表示できる")
     void showAdminProducts_Success() throws Exception {
         mockMvc.perform(get("/admin/products"))
@@ -87,11 +90,64 @@ class AdminProductIntegrationTest {
     }
 
     /**
+     * includeDeleted 未指定時は削除済み商品が一覧に表示されないことを検証
+     * @throws Exception テスト実行時の例外
+     */
+    @Test
+    @WithMockUser(username = "adminuser", roles = {"ADMIN"})
+    @DisplayName("【結合】商品一覧はデフォルトで削除済み商品を含めない")
+    void showAdminProducts_DefaultExcludesDeleted() throws Exception {
+        Product deletedProduct = createProduct("PRD00002", "削除済み統合商品", "Books", "IT-SKU-DEL-01", 980, 3, "active");
+        deletedProduct.setDeletedAt(LocalDateTime.now().minusDays(1));
+        productRepository.save(deletedProduct);
+
+        mockMvc.perform(get("/admin/products"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/products"))
+                .andExpect(content().string(not(containsString("削除済み統合商品"))));
+    }
+
+    /**
+     * includeDeleted=true 指定時は削除済み商品が一覧に表示されることを検証
+     * @throws Exception テスト実行時の例外
+     */
+    @Test
+    @WithMockUser(username = "adminuser", roles = {"ADMIN"})
+    @DisplayName("【結合】商品一覧で削除済み商品を含めるチェック指定時に削除済み商品が表示される")
+    void showAdminProducts_WithIncludeDeleted_ShowsDeletedProducts() throws Exception {
+        Product deletedProduct = createProduct("PRD00003", "削除済み表示商品", "Books", "IT-SKU-DEL-02", 1080, 5, "active");
+        deletedProduct.setDeletedAt(LocalDateTime.now().minusDays(1));
+        productRepository.save(deletedProduct);
+
+        mockMvc.perform(get("/admin/products")
+                        .param("includeDeleted", "true"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/products"))
+                .andExpect(content().string(containsString("削除済み表示商品")))
+                .andExpect(content().string(containsString("削除済")));
+    }
+
+        /**
+         * 商品新規登録画面が正常表示されることを検証
+         * @throws Exception テスト実行時の例外
+         */
+        @Test
+        @WithMockUser(username = "adminuser", roles = {"ADMIN"})
+        @DisplayName("【結合】商品新規登録画面を表示できる")
+        void showCreateForm_Success() throws Exception {
+                mockMvc.perform(get("/admin/products/create"))
+                                .andExpect(status().isOk())
+                                .andExpect(view().name("admin/product-create"))
+                                .andExpect(model().attributeExists("detailForm"))
+                                .andExpect(model().attributeExists("categories"));
+        }
+
+    /**
      * クイック登録で商品がDBに保存されることを検証
      * @throws Exception テスト実行時の例外
      */
     @Test
-    @WithUserDetails("adminuser")
+    @WithMockUser(username = "adminuser", roles = {"ADMIN"})
     @DisplayName("【結合】クイック登録で商品がDBへ保存される")
     void createProductQuick_Success() throws Exception {
         long beforeCount = productRepository.count();
@@ -122,7 +178,7 @@ class AdminProductIntegrationTest {
      * @throws Exception テスト実行時の例外
      */
     @Test
-    @WithUserDetails("adminuser")
+    @WithMockUser(username = "adminuser", roles = {"ADMIN"})
     @DisplayName("【結合】詳細登録で全項目がDBへ保存される")
     void createProductDetail_Success() throws Exception {
         mockMvc.perform(post("/admin/products/create")
@@ -160,7 +216,7 @@ class AdminProductIntegrationTest {
      * @throws Exception テスト実行時の例外
      */
     @Test
-    @WithUserDetails("adminuser")
+    @WithMockUser(username = "adminuser", roles = {"ADMIN"})
     @DisplayName("【結合】編集画面表示で既存商品情報を取得できる")
     void showEditForm_Success() throws Exception {
         mockMvc.perform(get("/admin/products/{id}/edit", baseProduct.getId()))
@@ -176,7 +232,7 @@ class AdminProductIntegrationTest {
      * @throws Exception テスト実行時の例外
      */
     @Test
-    @WithUserDetails("adminuser")
+    @WithMockUser(username = "adminuser", roles = {"ADMIN"})
     @DisplayName("【結合】商品更新でDBが更新される")
     void updateProduct_Success() throws Exception {
         mockMvc.perform(post("/admin/products/{id}/edit", baseProduct.getId())
@@ -210,7 +266,7 @@ class AdminProductIntegrationTest {
      * @throws Exception テスト実行時の例外
      */
     @Test
-    @WithUserDetails("adminuser")
+    @WithMockUser(username = "adminuser", roles = {"ADMIN"})
     @DisplayName("【結合】商品削除でdeletedAtが設定される")
     void deleteProduct_Success() throws Exception {
         mockMvc.perform(post("/admin/products/{id}/delete", baseProduct.getId())
@@ -223,11 +279,69 @@ class AdminProductIntegrationTest {
     }
 
     /**
+     * 論理削除済み商品を再度削除しようとした場合にエラーリダイレクトされることを検証
+     * @throws Exception テスト実行時の例外
+     */
+    @Test
+    @WithMockUser(username = "adminuser", roles = {"ADMIN"})
+    @DisplayName("【結合】論理削除済み商品を再削除するとエラーリダイレクトされる")
+    void deleteProduct_AlreadyDeleted_RedirectsWithError() throws Exception {
+        baseProduct.setDeletedAt(LocalDateTime.now().minusDays(1));
+        productRepository.save(baseProduct);
+
+        mockMvc.perform(post("/admin/products/{id}/delete", baseProduct.getId())
+                .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/products"));
+
+        // deletedAt は変わらず設定されたままであること
+        Product product = productRepository.findById(baseProduct.getId()).orElseThrow();
+        assertThat(product.getDeletedAt()).isNotNull();
+    }
+
+    /**
+     * CSRFトークンなしで削除リクエストすると403が返ることを検証
+     * @throws Exception テスト実行時の例外
+     */
+    @Test
+    @WithMockUser(username = "adminuser", roles = {"ADMIN"})
+    @DisplayName("【結合】CSRFトークンなしの削除リクエストは403になる")
+    void deleteProduct_WithoutCsrf_Forbidden() throws Exception {
+        MvcResult result = mockMvc.perform(post("/admin/products/{id}/delete", baseProduct.getId()))
+            .andReturn();
+
+        assertThat(result.getResponse().getStatus()).isIn(302, 403);
+
+        // DBは変更されていないこと
+        Product product = productRepository.findById(baseProduct.getId()).orElseThrow();
+        assertThat(product.getDeletedAt()).isNull();
+    }
+
+    /**
+     * 一般ユーザーが削除エンドポイントを叩いても実行されないことを検証
+     * @throws Exception テスト実行時の例外
+     */
+    @Test
+    @WithMockUser(username = "testuser", roles = {"USER"})
+    @DisplayName("【結合】一般ユーザーによる削除リクエストはリダイレクト/拒否される")
+    void deleteProduct_UnauthorizedUser_Forbidden() throws Exception {
+        MvcResult result = mockMvc.perform(post("/admin/products/{id}/delete", baseProduct.getId())
+                .with(csrf()))
+                .andReturn();
+
+        assertThat(result.getResponse().getStatus()).isIn(302, 403);
+
+        // DBは変更されていないこと
+        Product product = productRepository.findById(baseProduct.getId()).orElseThrow();
+        assertThat(product.getDeletedAt()).isNull();
+    }
+
+    /**
      * 論理削除済み商品を復元できることを検証
      * @throws Exception テスト実行時の例外
      */
     @Test
-    @WithUserDetails("adminuser")
+    @WithMockUser(username = "adminuser", roles = {"ADMIN"})
     @DisplayName("【結合】商品復元でdeletedAtが解除される")
     void restoreProduct_Success() throws Exception {
         baseProduct.setDeletedAt(LocalDateTime.now());
@@ -247,7 +361,7 @@ class AdminProductIntegrationTest {
      * @throws Exception テスト実行時の例外
      */
     @Test
-    @WithUserDetails("testuser")
+    @WithMockUser(username = "testuser", roles = {"USER"})
     @DisplayName("【結合】一般ユーザーは管理者商品画面へアクセス不可")
     void adminProducts_GeneralUser_AccessDenied() throws Exception {
         MvcResult result = mockMvc.perform(get("/admin/products"))

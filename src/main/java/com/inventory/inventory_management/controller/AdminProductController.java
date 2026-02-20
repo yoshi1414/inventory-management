@@ -61,7 +61,8 @@ public class AdminProductController {
                     criteria.getCategory(),
                     criteria.getStatus(),
                     criteria.getSort(),
-                    criteria.getPage());
+                    criteria.getPage(),
+                    criteria.isIncludeDeleted());
 
             List<String> categories = adminProductService.getAllCategories();
 
@@ -73,6 +74,7 @@ public class AdminProductController {
             model.addAttribute("products",            productPage.getContent());
             model.addAttribute("categories",          categories);
             model.addAttribute("criteria",            criteria);
+            model.addAttribute("includeDeleted",      criteria.isIncludeDeleted());
             model.addAttribute("currentPage",         criteria.getPage());
             model.addAttribute("totalPages",          productPage.getTotalPages());
             model.addAttribute("totalElements",       productPage.getTotalElements());
@@ -114,6 +116,7 @@ public class AdminProductController {
         if (!model.containsAttribute("detailForm")) {
             model.addAttribute("detailForm", new ProductDetailForm());
         }
+        model.addAttribute("categories", adminProductService.getAllCategories());
         return "admin/product-create";
     }
 

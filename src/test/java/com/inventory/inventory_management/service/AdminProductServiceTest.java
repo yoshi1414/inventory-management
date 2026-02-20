@@ -60,12 +60,30 @@ class AdminProductServiceTest {
         when(productRepository.findBySearchConditions(anyString(), anyString(), anyString(), any(PageRequest.class)))
                 .thenReturn(expected);
 
-        Page<Product> actual = adminProductService.searchProducts("test", "Electronics", "active", "name", 0);
+        Page<Product> actual = adminProductService.searchProducts(
+            "test", "Electronics", "active", "name", 0, false);
 
         assertEquals(expected, actual);
         verify(productRepository, times(1))
                 .findBySearchConditions(anyString(), anyString(), anyString(), any(PageRequest.class));
     }
+
+        @Test
+        @DisplayName("searchProducts: includeDeleted=true の場合は削除済み含む検索を使う")
+        void searchProducts_WithIncludeDeleted_DelegatesToIncludingDeletedRepository() {
+        Page<Product> expected = new PageImpl<>(List.of(new Product()));
+        when(productRepository.findBySearchConditionsIncludingDeleted(
+            anyString(), anyString(), anyString(), any(), any(), any(PageRequest.class)))
+            .thenReturn(expected);
+
+        Page<Product> actual = adminProductService.searchProducts(
+            "test", "Electronics", "active", "name", 0, true);
+
+        assertEquals(expected, actual);
+        verify(productRepository, times(1))
+            .findBySearchConditionsIncludingDeleted(
+                anyString(), anyString(), anyString(), any(), any(), any(PageRequest.class));
+        }
 
     @Test
     @DisplayName("getProductById: リポジトリ結果を返す")

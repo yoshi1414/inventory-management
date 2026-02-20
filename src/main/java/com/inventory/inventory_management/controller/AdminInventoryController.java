@@ -145,6 +145,8 @@ public class AdminInventoryController {
             // モデルに追加
             model.addAttribute("product", product);
             model.addAttribute("transactions", transactions);
+            // 遷移元パラメータをテンプレートで使用するために追加
+            model.addAttribute("from", from);
             // 戻り先（パンくずなど）を設定
             if (from != null && from.equals("products")) {
                 model.addAttribute("parentLabel", "商品管理");

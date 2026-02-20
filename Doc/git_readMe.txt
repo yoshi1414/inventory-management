@@ -62,6 +62,12 @@ git checkout -b feature/other
 ##開発ブランチ 在庫(管理者)
 git checkout -b feature/AdminInventory
 
+##開発ブランチ 商品(管理者)
+git checkout -b feature/product
+
+##開発ブランチ 在庫(管理者)
+git checkout -b feature/AdminUsers
+
 ーーーーーーーーーーーーー
 ##作成しながら、ブランチ切り替え
 git checkout -b requirements-definition-1
@@ -76,45 +82,6 @@ git branch
 git push -u origin requirements-definition-1
 
 --------------------------------------------
-mainへマージあとに、ローカルリポジトリを最新にするには
-##mainブランチへ切り替え
-git checkout main
-
-##リモートリポジトリの最新情報を取得（originはリモートの最新:git remote -v で確認できる）
-git fetch origin
-
-##リモートの main をローカルの main にマージ
-##リモート追跡ブランチ（origin/main）の最新状態をローカルの main ブランチにマージします。
-git merge origin/main
-
-以上で最新化が可能です。
-コンフリクトが起きると、マージできないです。
-ローカルのみのファイルは消されないが、一時退避「git stash」やローカルコミット「git add とgit commit」をしておくとよい
-　　　　↓　以下がstushありの例
-ーーーーーーーーーーーーーーーーーーーーーーーーーー
-#ローカルファイルの保持
-# 1. 現在の変更を一時退避
-git stash
-
-# 2. mainブランチへ切り替え
-git checkout main
-
-# 3. リモートリポジトリの最新情報を取得
-git fetch origin
-
-# 4. リモートの main をローカルの main にマージ
-git merge origin/main
-
-# 5. 一時退避した変更を戻す
-git stash pop
-
---------
-補足
-・git stash list を実行して、スタッシュがまだ存在しているか確認できます。
-・git stash drop で手動で削除できます
-・git stash clear ですべてのスタッシュを削除ができます
-
-ーーーーーーーーーーーーーーーーーーーーーーーーーー
 #ローカルブランチの削除手順
 ##現在のブランチを確認
 #削除対象のブランチでないことを確認する
@@ -139,18 +106,39 @@ git branch -D requirements-definition-1
 git branch -D requirements-definition-2
 
 ーーーーーーーーーーーーーーーーーーーーーーーーーー
+mainへマージあとに、ローカルリポジトリを最新にするには
+##mainブランチへ切り替え
+git checkout main
+
+##リモートリポジトリの最新情報を取得（originはリモートの最新:git remote -v で確認できる）
+git fetch origin
+
+##リモートの main をローカルの main にマージ
+##リモート追跡ブランチ（origin/main）の最新状態をローカルの main ブランチにマージします。
+git merge origin/main
+
+以上で最新化が可能です。
+コンフリクトが起きると、マージできないです。
+ローカルのみのファイルは消されないが、一時退避「git stash」やローカルコミット「git add とgit commit」をしておくとよい
+　　　　↓　以下がstushありの例
+ーーーーーーーーーーーーーーーーーーーーーーーーーー
 #ローカルファイルの保持
-1.現在の変更を確認
+# 1. 現在の変更を確認
 git status
 
-2.変更を一時退避（必要に応じて）
+# 2. 現在の変更を一時退避
 git stash
-これにより、ローカルの変更を一時的に保存できます。
 
-3.ブランチを作成して切り替え
-git checkout -b system-design-view-user origin/system-design-view-user
+# 3. mainブランチへ切り替え
+git checkout main
 
-4.退避した変更を戻す（必要に応じて）
+# 4. リモートリポジトリの最新情報を取得
+git fetch origin
+
+# 5. リモートの main をローカルの main にマージ
+git merge origin/main
+
+# 6. 一時退避した変更を戻す
 git stash pop
 
 --------
@@ -158,17 +146,6 @@ git stash pop
 ・git stash list を実行して、スタッシュがまだ存在しているか確認できます。
 ・git stash drop で手動で削除できます
 ・git stash clear ですべてのスタッシュを削除ができます
-
-ーーーーーーーーーーーーーーーーーーーーーーーーーー
-ローカル環境にマージするには
-1.取り込み
-git fetch
-
-2.main ブランチに切り替え
-git checkout main
-
-3.リモートの main をローカルの main にマージ
-git merge origin/main
 
 ーーーーーーーーーーーーーーーーーーーーーーーーーー
 ブランチ内容がすべて取り込まれているかの確認
@@ -188,7 +165,7 @@ git log main..feature/inventory
 git fetch --prune
 リモートリポジトリの最新状態を取得し、ローカルで追跡している削除済みのリモートブランチを整理します。
 
-git branch -vv:
+git branch -vv
 ローカルブランチとリモートブランチの対応状況を表示します。
 gone と表示されるブランチは、リモートで削除されているがローカルに残っているものです。
 
