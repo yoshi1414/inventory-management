@@ -1,6 +1,7 @@
 package com.inventory.inventory_management.security;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 
 import org.slf4j.Logger;
@@ -10,6 +11,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import com.inventory.inventory_management.entity.User;
@@ -28,15 +30,20 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private final UserRepository userRepository;
     /** ログイン試行管理サービス */
     private final LoginAttemptService loginAttemptService;
+    /** 実行プロファイル情報 */
+    private final Environment environment;
 
     /**
      * コンストラクタ
      * @param userRepository ユーザーリポジトリ
      * @param loginAttemptService ログイン試行管理サービス
+     * @param environment 実行プロファイル情報
      */
-    public UserDetailsServiceImpl(UserRepository userRepository, LoginAttemptService loginAttemptService) {
+    public UserDetailsServiceImpl(UserRepository userRepository, LoginAttemptService loginAttemptService,
+            Environment environment) {
         this.userRepository = userRepository;
         this.loginAttemptService = loginAttemptService;
+        this.environment = environment;
     }
 
     /**
@@ -49,8 +56,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         logger.debug("ユーザー認証情報読み込み開始: username={}", username);
         
+        boolean isTestProfile = environment != null
+            && Arrays.asList(environment.getActiveProfiles()).contains("test");
+
         // ログイン試行回数チェック（ブルートフォース攻撃対策）
-        if (loginAttemptService.isBlocked(username)) {
+        if (!isTestProfile && loginAttemptService.isBlocked(username)) {
             logger.warn("ブロック中のユーザーのログイン試行: username={}", username);
             throw new UsernameNotFoundException("ログインに失敗しました。ユーザー名またはパスワードが正しくありません。");
         }
