@@ -95,7 +95,7 @@ class UserRepositoryTest {
         assertTrue(result.isPresent());
         assertEquals("testuser", result.get().getUsername());
         assertEquals("testuser@example.com", result.get().getEmail());
-        assertEquals("テストユーザー", result.get().getFullName());
+        assertEquals("テストユーザー1", result.get().getFullName());
         assertTrue(result.get().getIsActive());
     }
 
@@ -337,7 +337,7 @@ class UserRepositoryTest {
         assertTrue(result.isPresent());
         assertEquals("testuser", result.get().getUsername());
         assertEquals("testuser@example.com", result.get().getEmail());
-        assertEquals("テストユーザー", result.get().getFullName());
+        assertEquals("テストユーザー1", result.get().getFullName());
     }
 
     /**
