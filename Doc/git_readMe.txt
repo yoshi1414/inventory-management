@@ -68,6 +68,9 @@ git checkout -b feature/product
 ##開発ブランチ 在庫(管理者)
 git checkout -b feature/AdminUsers
 
+##テストブランチ 在庫
+git checkout -b test/system_test_execution
+
 ーーーーーーーーーーーーー
 ##作成しながら、ブランチ切り替え
 git checkout -b requirements-definition-1
