@@ -142,6 +142,41 @@ class AdminProductIntegrationTest {
                                 .andExpect(model().attributeExists("categories"));
         }
 
+                    /**
+                     * 商品管理画面（新規登録/編集）にログアウトモーダル要素が描画されることを検証
+                     * @throws Exception テスト実行時の例外
+                     */
+                    @Test
+                    @WithMockUser(username = "adminuser", roles = {"ADMIN"})
+                    @DisplayName("【結合】商品管理画面でログアウトモーダルが表示される")
+                    void productPages_RenderLogoutModal() throws Exception {
+                    String createHtml = mockMvc.perform(get("/admin/products/create"))
+                        .andExpect(status().isOk())
+                        .andExpect(view().name("admin/product-create"))
+                        .andReturn()
+                        .getResponse()
+                        .getContentAsString();
+
+                    assertThat(createHtml)
+                        .contains("data-bs-target=\"#logoutModal\"")
+                        .contains("id=\"logoutModal\"")
+                        .contains("action=\"/logout\"")
+                        .contains("name=\"_csrf\"");
+
+                    String editHtml = mockMvc.perform(get("/admin/products/{id}/edit", baseProduct.getId()))
+                        .andExpect(status().isOk())
+                        .andExpect(view().name("admin/product-edit"))
+                        .andReturn()
+                        .getResponse()
+                        .getContentAsString();
+
+                    assertThat(editHtml)
+                        .contains("data-bs-target=\"#logoutModal\"")
+                        .contains("id=\"logoutModal\"")
+                        .contains("action=\"/logout\"")
+                        .contains("name=\"_csrf\"");
+                    }
+
     /**
      * クイック登録で商品がDBに保存されることを検証
      * @throws Exception テスト実行時の例外

@@ -51,11 +51,9 @@
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <form th:action="@{/logout}" method="post" class="form-inline">
-                            <button type="submit" class="btn btn-link nav-link btn-link-inline">
-                                <i class="bi bi-box-arrow-right"></i> ログアウト
-                            </button>
-                        </form>
+                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                            <i class="bi bi-box-arrow-right"></i> ログアウト
+                        </a>
                     </li>
                 </ul>
             </div>
@@ -245,6 +243,32 @@
                 </form>
             </div>
         </div>
+    </div>
+
+    <!-- ログアウト確認モーダル -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="logoutModalLabel">
+              <i class="bi bi-box-arrow-right"></i> ログアウト確認
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p class="mb-0">ログアウトしますか？</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+            <form action="/logout" method="post" class="form-inline">
+              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+              <button type="submit" class="btn btn-danger">
+                <i class="bi bi-box-arrow-right"></i> ログアウト
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Bootstrap JS -->

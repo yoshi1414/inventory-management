@@ -47,6 +47,7 @@ public class GlobalExceptionHandler {
         model.addAttribute("message", "お探しのページは存在しないか、移動した可能性があります。");
         model.addAttribute("path", request.getRequestURI());
         model.addAttribute("timestamp", LocalDateTime.now());
+        model.addAttribute("isAdmin", request.isUserInRole("ROLE_ADMIN"));
 
         return "error";
     }
@@ -76,6 +77,7 @@ public class GlobalExceptionHandler {
         model.addAttribute("message", "このページにアクセスする権限がありません。");
         model.addAttribute("path", request.getRequestURI());
         model.addAttribute("timestamp", LocalDateTime.now());
+        model.addAttribute("isAdmin", request.isUserInRole("ROLE_ADMIN"));
 
         return "error";
     }
@@ -103,6 +105,7 @@ public class GlobalExceptionHandler {
         model.addAttribute("message", ex.getMessage() != null ? ex.getMessage() : "不正なリクエストです。");
         model.addAttribute("path", request.getRequestURI());
         model.addAttribute("timestamp", LocalDateTime.now());
+        model.addAttribute("isAdmin", request.isUserInRole("ROLE_ADMIN"));
 
         return "error";
     }
@@ -131,6 +134,7 @@ public class GlobalExceptionHandler {
         model.addAttribute("message", "システムエラーが発生しました。しばらく時間をおいてから再度お試しください。");
         model.addAttribute("path", request.getRequestURI());
         model.addAttribute("timestamp", LocalDateTime.now());
+        model.addAttribute("isAdmin", request.isUserInRole("ROLE_ADMIN"));
 
         // 開発環境のみスタックトレースを表示（本番環境では非表示にする）
         // model.addAttribute("trace", ex.getStackTrace());

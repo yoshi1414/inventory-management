@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
@@ -119,6 +120,41 @@ class AdminInventoryIntegrationTest {
 
         assertThat(lowStockCount).isEqualTo(1L);
         assertThat(outOfStockCount).isEqualTo(0L);
+    }
+
+    /**
+     * 管理者在庫画面にログアウトモーダル要素が描画されることを検証
+     * @throws Exception テスト実行時の例外
+     */
+    @Test
+    @WithUserDetails("adminuser")
+    @DisplayName("【結合】管理者在庫画面でログアウトモーダルが表示される")
+    void adminInventoryPages_RenderLogoutModal() throws Exception {
+        String inventoryHtml = mockMvc.perform(get("/admin/inventory"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/inventory"))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        assertThat(inventoryHtml)
+                .contains("data-bs-target=\"#logoutModal\"")
+                .contains("id=\"logoutModal\"")
+                .contains("action=\"/logout\"")
+                .contains("name=\"_csrf\"");
+
+        String detailHtml = mockMvc.perform(get("/admin/inventory/products/{id}", productA.getId()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/inventory-detail"))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        assertThat(detailHtml)
+                .contains("data-bs-target=\"#logoutModal\"")
+                .contains("id=\"logoutModal\"")
+                .contains("action=\"/logout\"")
+                .contains("name=\"_csrf\"");
     }
 
     /**
@@ -653,5 +689,18 @@ class AdminInventoryIntegrationTest {
         void adminProductDetailPage_GeneralUser_AccessDenied() throws Exception {
                 mockMvc.perform(get("/admin/inventory/products/{id}", productA.getId()))
                                 .andExpect(result -> assertThat(result.getResponse().getStatus()).isIn(302, 403));
+        }
+
+        /**
+         * 管理者がログアウト後、/admin/login?logout にリダイレクトされることを検証
+         * @throws Exception テスト実行時の例外
+         */
+        @Test
+        @WithUserDetails("adminuser")
+        @DisplayName("【結合】管理者ログアウト後、/admin/login?logout にリダイレクト")
+        void adminLogout_RedirectsToAdminLoginPage() throws Exception {
+                mockMvc.perform(post("/logout").with(csrf()))
+                                .andExpect(status().is3xxRedirection())
+                                .andExpect(redirectedUrl("/admin/login?logout"));
         }
 }

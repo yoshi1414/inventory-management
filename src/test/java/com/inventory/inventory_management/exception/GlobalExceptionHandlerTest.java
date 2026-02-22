@@ -177,6 +177,42 @@ class GlobalExceptionHandlerTest {
     }
 
     /**
+     * 管理者ユーザー時にisAdminがtrueとなることを検証するテスト
+     * <p>
+     * エラー画面の「ログイン画面へ」ボタンが管理者ログイン画面へ遷移するための判定値を確認します。
+     * </p>
+     *
+     * @throws Exception テスト実行時の例外
+     */
+    @Test
+    @DisplayName("管理者ユーザーでエラー時にisAdminがtrueになる")
+    @WithMockUser(roles = "ADMIN")
+    void testIsAdminAttributeForAdminUser() throws Exception {
+        mockMvc.perform(get("/test/illegal-argument"))
+                .andExpect(status().isBadRequest())
+                .andExpect(view().name("error"))
+                .andExpect(model().attribute("isAdmin", true));
+    }
+
+    /**
+     * 一般ユーザー時にisAdminがfalseとなることを検証するテスト
+     * <p>
+     * エラー画面の「ログイン画面へ」ボタンが一般ユーザーログイン画面へ遷移するための判定値を確認します。
+     * </p>
+     *
+     * @throws Exception テスト実行時の例外
+     */
+    @Test
+    @DisplayName("一般ユーザーでエラー時にisAdminがfalseになる")
+    @WithMockUser(roles = "USER")
+    void testIsAdminAttributeForUser() throws Exception {
+        mockMvc.perform(get("/test/illegal-argument"))
+                .andExpect(status().isBadRequest())
+                .andExpect(view().name("error"))
+                .andExpect(model().attribute("isAdmin", false));
+    }
+
+    /**
      * テスト用のダミーコントローラー
      * <p>
      * 各種例外をスローして、GlobalExceptionHandlerの動作を検証するために使用します。

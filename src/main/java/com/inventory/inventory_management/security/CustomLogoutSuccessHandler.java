@@ -25,7 +25,9 @@ public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
     /**
      * ログアウト成功時の処理
      * <p>
-     * ユーザー情報をログに記録し、ログイン画面にリダイレクトします。
+     * ユーザー情報をログに記録し、ロール情報に基づいて適切なログイン画面にリダイレクトします。
+     * 管理者（ROLE_ADMIN）→ /admin/login
+     * 一般ユーザー（ROLE_USER）→ /login
      * </p>
      * 
      * @param request HTTPリクエスト
@@ -38,16 +40,28 @@ public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response,
                                 Authentication authentication) throws IOException, ServletException {
         try {
+            String redirectUrl = "/login?logout";  // デフォルト: 一般ユーザーログイン画面
+            
             if (authentication != null && authentication.getName() != null) {
                 log.info("ログアウト成功: ユーザー={}, セッションID={}", 
                         authentication.getName(), 
                         request.getSession(false) != null ? request.getSession(false).getId() : "なし");
+                
+                // ロール情報を確認して、管理者の場合は /admin/login にリダイレクト
+                boolean isAdmin = authentication.getAuthorities().stream()
+                    .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+                
+                if (isAdmin) {
+                    redirectUrl = "/admin/login?logout";
+                    log.debug("管理者ログアウト: {} -> {}", authentication.getName(), redirectUrl);
+                } else {
+                    log.debug("ユーザーログアウト: {} -> {}", authentication.getName(), redirectUrl);
+                }
             } else {
                 log.debug("認証情報なしでログアウト処理が実行されました");
             }
             
-            // ログイン画面にリダイレクト
-            response.sendRedirect("/login?logout");
+            response.sendRedirect(redirectUrl);
             
         } catch (Exception e) {
             log.error("ログアウト成功処理中にエラーが発生: error={}", e.getMessage(), e);

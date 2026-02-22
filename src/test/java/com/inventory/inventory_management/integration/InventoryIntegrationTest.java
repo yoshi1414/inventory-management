@@ -1909,4 +1909,17 @@ public class InventoryIntegrationTest {
         assertThat(displayInCount).isEqualTo(dbInCount);
         assertThat(displayOutCount).isEqualTo(dbOutCount);
     }
+
+    /**
+     * 一般ユーザーがログアウト後、/login?logout にリダイレクトされることを検証
+     * @throws Exception テスト実行時の例外
+     */
+    @Test
+    @WithUserDetails("testuser")
+    @DisplayName("【結合】ユーザーログアウト後、/login?logout にリダイレクト")
+    void userLogout_RedirectsToUserLoginPage() throws Exception {
+        mockMvc.perform(post("/logout").with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login?logout"));
+    }
 }
