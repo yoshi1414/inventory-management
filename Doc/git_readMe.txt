@@ -201,21 +201,22 @@ gone と表示されるブランチは、リモートで削除されているが
 
 ーーーーーーーーーーーーー
 下記はコミットコメント例です。
-管理者用在庫管理画面および商品管理関連設計書を追加 #10
-- 管理者用在庫管理画面設計書を作成
-- 商品管理画面設計書を作成
-- 商品詳細画面設計書を作成
+システムテスト仕様書・実装チェックリスト・変換スクリプトを追加
+目的: テスト仕様の整備と Markdown 表の XLSX 変換ツールを追加
+追加: システムテスト仕様書 — system_test_specification.md
+追加: 実装状況チェックリスト — implementation_check.md
+追加: Markdown 表→Excel 変換スクリプト — md_tables_to_xlsx.py
+追加/更新: プロジェクト README（簡易） — git_readMe.txt
 
 コミットコメント例のようにして、添付内容のコミットコメントを考えて
 ーーーーーーーーーーーーー
 
-ログアウト機能実装とテスト、エラー画面制御、システムテスト仕様書作成 
+システムテスト仕様書のExcel生成スクリプト追加と実施結果反映
 
-- CustomLogoutSuccessHandlerを実装し、ロール情報に基づいたリダイレクト処理を追加
-- GlobalExceptionHandlerでHTTPエラー（404/403/400/500）を統一的に処理
-- error.htmlエラーテンプレートを作成（ユーザー/管理者兼用）
-- ログアウト成功ハンドラーの単体テスト（CustomLogoutSuccessHandlerTest）を実装
-- グローバル例外ハンドラーの統合テスト（GlobalExceptionHandlerTest）を実装
-- 管理者テンプレートのログアウトモーダル検証テスト（AdminLogoutTemplateTest）を実装
-- システムテスト仕様書を作成（一般ユーザー・管理ユーザーシナリオ・エラーハンドリング）
-- 管理者用ユーザ管理機能の追加（一覧・登録・更新・削除）
+追加: create_custom_workbook.py — Markdown から Excel（XLSX）を生成するシェル/スクリプトを追加
+追加: system_test_specification_tables.xlsx — 生成済みのシステムテスト仕様書（Excel）
+更新: system_test_specification.md — 表をタブ区切りに変換、実施手順と結果を追記
+追加: login_post_response.txt — ログイン POST の 302 リダイレクト証跡を保存
+追加: 補助スクリプト add_selection_to_xlsx.py, aggregate_sections_to_sheets.py, repair_workbook_from_converted_md.py, inspect_xlsx.py
+更新: LoginAttemptService.java — ログイン試行の詳細デバッグログを追加（ログ確認を容易化）
+
