@@ -211,12 +211,12 @@ gone と表示されるブランチは、リモートで削除されているが
 コミットコメント例のようにして、添付内容のコミットコメントを考えて
 ーーーーーーーーーーーーー
 
-システムテスト仕様書のExcel生成スクリプト追加と実施結果反映
+アクセス拒否ページのカスタム実装と在庫更新制約対応を追加・修正
+目的: 管理者ページへの権限エラー時に分かりやすい案内を出し、在庫更新処理で発生していたDB制約違反を防止する
 
-追加: create_custom_workbook.py — Markdown から Excel（XLSX）を生成するシェル/スクリプトを追加
-追加: system_test_specification_tables.xlsx — 生成済みのシステムテスト仕様書（Excel）
-更新: system_test_specification.md — 表をタブ区切りに変換、実施手順と結果を追記
-追加: login_post_response.txt — ログイン POST の 302 リダイレクト証跡を保存
-追加: 補助スクリプト add_selection_to_xlsx.py, aggregate_sections_to_sheets.py, repair_workbook_from_converted_md.py, inspect_xlsx.py
-更新: LoginAttemptService.java — ログイン試行の詳細デバッグログを追加（ログ確認を容易化）
+追加:Custom AccessDeniedHandler: CustomAccessDeniedHandler.java — アクセス拒否時に元リクエストURIを保持して /access-denied にフォワードし、表示メッセージを設定
+追加:AccessDeniedController: AccessDeniedController.java — requestedUri に応じて戻り先を切り替え（/admin からの拒否は /admin/login へ）
+追加:テンプレート: access-denied.html — 動的戻り先ボタンを追加（ログアウトリンク削除）
+変更:SecurityConfig.java: カスタムハンドラを accessDeniedHandler として登録
+変更:AdminInventoryService.java: transactionType='set' を在庫の増減方向に応じて DB の許容値 'in' / 'out' に変換するロジックを追加（DB の CHECK 制約違反を回避）
 

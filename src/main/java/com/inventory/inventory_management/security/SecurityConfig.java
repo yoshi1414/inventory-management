@@ -49,6 +49,9 @@ public class SecurityConfig {
     private CustomLogoutSuccessHandler logoutSuccessHandler;
 
     @Autowired
+    private CustomAccessDeniedHandler customAccessDeniedHandler;
+
+    @Autowired
     private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     /**
@@ -79,7 +82,7 @@ public class SecurityConfig {
             )
             .exceptionHandling((exception) -> exception
                 .authenticationEntryPoint(customAuthenticationEntryPoint)  // カスタム認証エントリーポイント
-                .accessDeniedPage("/error?status=403")  // アクセス拒否時のページ
+                .accessDeniedHandler(customAccessDeniedHandler)  // カスタムアクセス拒否ハンドラ
             )
             .formLogin((form) -> form
                 .loginPage("/admin/login")  // 管理者用ログイン画面
@@ -165,7 +168,7 @@ public class SecurityConfig {
            )
            .exceptionHandling((exception) -> exception
                .authenticationEntryPoint(customAuthenticationEntryPoint)  // カスタム認証エントリーポイント
-               .accessDeniedPage("/error?status=403")  // アクセス拒否時のページ
+               .accessDeniedHandler(customAccessDeniedHandler)  // カスタムアクセス拒否ハンドラ
            )
            .formLogin((form) -> form
                .loginPage("/login")  // 一般ユーザー用ログイン画面のURL

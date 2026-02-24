@@ -285,7 +285,22 @@ public class AdminInventoryService {
             // 在庫変動履歴を記録
             StockTransaction transaction = new StockTransaction();
             transaction.setProductId(productId);
-            transaction.setTransactionType(transactionType);
+            
+            // transaction_type='set'の場合、在庫増減方向で'in'/'out'に変換
+            String transactionTypeForDb = transactionType;
+            if ("set".equals(transactionType)) {
+                if (afterStock > beforeStock) {
+                    transactionTypeForDb = "in";
+                } else if (afterStock < beforeStock) {
+                    transactionTypeForDb = "out";
+                } else {
+                    log.warn("在庫変更なし: productId={}, beforeStock={}, afterStock={}", productId, beforeStock, afterStock);
+                    transactionTypeForDb = "in"; // デフォルト
+                }
+                log.debug("transaction_type変換: set -> {}", transactionTypeForDb);
+            }
+            
+            transaction.setTransactionType(transactionTypeForDb);
             transaction.setQuantity(quantity);
             transaction.setBeforeStock(beforeStock);
             transaction.setAfterStock(afterStock);
