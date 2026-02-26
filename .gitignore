@@ -34,3 +34,21 @@ build/
 src/main/resources/application.properties
 Doc/諸々情報.txt
 src/main/resources/schema.sql.sample
+
+# Local development overrides and secrets
+src/main/resources/application-dev.properties
+src/main/resources/application-prod.properties
+.env
+.env.local
+src/main/resources/data.sql
+
+# Build artifacts and reports
+target/
+target/site/
+target/test-classes/
+
+# Keystores and certs
+*.jks
+*.keystore
+*.p12
+*.pem
