@@ -71,6 +71,9 @@ git checkout -b feature/AdminUsers
 ##テストブランチ 在庫
 git checkout -b test/system_test_execution
 
+##ポートフォリオ作成
+git checkout -b docs/portfolio-update
+
 ーーーーーーーーーーーーー
 ##作成しながら、ブランチ切り替え
 git checkout -b requirements-definition-1
