@@ -1,21 +1,34 @@
+# AI 利用メモ（GitHub 表示向け）
 
-#ER図の設計について
- GitHub Copilotで以下コマンドで作成する。
- ーーー
- draw.io (diagrams.net) に直接インポートできる形式として、
- Mermaid（マーメイド） 記法でコードを作成してください。
+このファイルは、開発時に利用した AI 活用のメモ・プロンプト・運用方針をまとめたものです。GitHub 上で読みやすいように整理しています。
 
- そして、コピー内容をdraw.ioへペースト
- draw.io画面上でイメージ図の出力で出力OK
+---
 
-#データベース設計書について
- ClaudeのWebにて、以下プロントと設計書.mdを添付して作成してもらいます
- エクセル形式でDB設計書を作成してください
+## 1) ER図の設計について
 
-ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-＜＜＜プロンプト＞＞＞
+- GitHub Copilot や LLM で Mermaid 記法のコードを生成し、draw.io（diagrams.net）へ貼り付けて図を作成する運用を行っています。
+- 手順（簡易）:
+  1. Mermaid のコードを生成
+  2. draw.io を開き「Arrange > Insert > Advanced > Mermaid」へ貼り付け
+  3. 必要に応じてレイアウト調整・エクスポート
 
-#依頼
+---
+
+## 2) データベース設計書の自動生成運用
+
+- Claude や別の LLM に設計書の草案（仕様・ER図・テーブル定義）を作らせ、Excel 形式で出力を＃依頼する運用を行いました。
+- 生成物は必ず手動でレビューし、最終的なDDLや制約は担当者が確定します。
+
+---
+
+## 3) 代表的なプロンプト（抜粋）
+
+以下は運用で用いたプロンプトの抜粋です（機密情報は除外）。そのまま GitHub 上に掲載できるよう、各＃依頼を個別の fenced code block にしています。
+
+### ログイン処理（Spring Security）プロンプト
+
+```text
+＃依頼
 spring securityを利用したログイン処理を作成してください。
 html作成はしないでください。
 管理者ログイン処理の作成はしないでください。
@@ -29,13 +42,16 @@ UserDetails
 
 ＃参考情報
 参考処理として、以下を保存しておりますが、こちらをもとに修正してください。
-/src/main/java/com/inventory/inventory_management/security/UserDetailsImpl.java)
+/src/main/java/com/inventory/inventory_management/security/UserDetailsImpl.java
 /src/main/java/com/inventory/inventory_management/security/UserDetailsServiceImpl.java
 
 それでは、作成してください
+```
 
-ーーーーーーーーーーーー
-#依頼
+### 商品管理画面プロンプト
+
+```text
+＃依頼
 商品管理画面の作成してください。
 products.htmlの静的な記載は、動的な処理へ修正する
 
@@ -48,9 +64,12 @@ controller
 ＃参考情報
 画面イメージとして、products.htmlをもとに作成してください。
 controllerの参考として、AdminInventoryControllerを利用
+```
 
-ーーーーーーーーーーーー
-#依頼
+### 在庫詳細画面プロンプト
+
+```text
+＃依頼
 在庫詳細画面の作成してください。
 html作成はしないでください。
 管理者の商品詳細画面とは別での作成となります。
@@ -63,9 +82,12 @@ controller
 
 ＃参考情報
 画面イメージとして、product-detail.htmlをもとに作成してください。
+```
 
-ーーーーーーーーーーーー
-#依頼
+### ユーザ一覧画面プロンプト
+
+```text
+＃依頼
 ユーザ一覧画面を作成してください。
 ユーザ一覧画面で、ユーザ一覧から削除アイコン、編集アイコンを
 選択して、それぞれの処理を行うようにしてください。
@@ -83,9 +105,11 @@ controller
 
 ＃注意事項
 テストケース作成、テスト実行は不要です。
+```
 
-ーーーーーーーーーーー
-＃管理者用のホーム画面へ表示したい内容
+### 管理者ホーム画面に表示する指標（要望）
+
+```text
 ・総会員数
 ・無料会員数
 ・有料会員数
@@ -99,23 +123,20 @@ controller
 ＃エラーハンドラーは
 GlobalExceptionHandlerを利用
 
-ーーーーーーーーーーー
-#エラーチェックについて
+## 4) そのほか
+
+### エラーチェックについて
+```text
 additional-spring-configuration-metadata.json に追記して、VS Code の問題点に表示されないようにした。
 
-#カバレッジテストは、以下で達成バーをだしています
+### カバレッジテストについて
+```text
+カバレッジテストは、以下で達成バーをだしています
 VS Code の Java のカバレッジ表示（Test Runner for Java 系）です。
 
 
 
-
-
-
-
-
-
-
-完全なテスト構成（Web開発 フルセット）
+### 完全なテスト構成（Web開発 フルセット）
 ┌─────────────────────────────────────────────────────┐
 │ ① 単体テスト（Unit Test）                           
 │   ・JUnit ／ Mockito（Java: Service, Repository）   

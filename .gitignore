@@ -34,6 +34,7 @@ build/
 src/main/resources/application.properties
 Doc/諸々情報.txt
 src/main/resources/schema.sql.sample
+Doc/portfolio/
 
 # Local development overrides and secrets
 src/main/resources/application-dev.properties
@@ -52,3 +53,6 @@ target/test-classes/
 *.keystore
 *.p12
 *.pem
+Doc/portfolio/sample/portfolio1.md
+Doc/portfolio/sample/portfolio2.md
+Doc/portfolio/portfolio.md
