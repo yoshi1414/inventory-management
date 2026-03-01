@@ -1,6 +1,6 @@
 # Inventory Management System（在庫管理システム）
 
-![開発イメージ](https://github.com/yoshi1414/inventory-management/tree/main/Doc/assets/inventory.jpg)
+![開発イメージ](Doc/assets/inventory.jpg)/inventory.jpg)
 
 ## サービス概要
 
