@@ -151,7 +151,7 @@
 
 ## ER図
 
-![ER図](Doc/assets/er_diagram.jpg)
+![ER図](Doc/assets/ER.jpg)
 
 (図：主要テーブルとリレーションの概要)
 
