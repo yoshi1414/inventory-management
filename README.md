@@ -98,19 +98,20 @@
 - `prod` 起動時は必須プロパティの存在チェックを実施
 
 ### 6. セキュリティ対策（防御一覧）
-
-- 認証・パスワード保護（BCrypt(12)、Remember-Me 署名鍵は環境変数）
-- 権限検査（二重：URLレベル / Serviceレベル）
-- ブルートフォース対策（ログイン失敗回数制限）
-- CSRF 保護（全フォーム・状態変更リクエスト）
-- XSS 対策（出力エスケープ、CSP、入力バリデーション）
-- SQL インジェクション対策（JPA+パラメタ化クエリ）
-- 安全な HTTP ヘッダの適用（HSTS 等）
-- Cookie/セッション保護（Secure/HttpOnly/SameSite、署名付き Remember-Me）
-- 監査ログ・操作履歴（`stock_transactions` に履歴保存）
-- エラーハンドリング（詳細非表示、適切なログ出力）
-- 最小権限の原則（ロール分離、サービス層での権限制御）
-- API 保護（認証・認可、必要に応じてレート制限）
+| カテゴリ | 対策・技術 |
+| --- | --- |
+| 認証・パスワード保護 | BCrypt(12) ハッシュ、Remember-Me 署名鍵は環境変数で管理、セッション固定化対策 |
+| 権限検査 | URL レベルと Service レベルの二重チェック（/admin/** 制限） |
+| ブルートフォース対策 | `LoginAttemptService` による失敗回数制限（5回でロック） |
+| CSRF 保護 | 全フォームおよび状態変更リクエストで CSRF トークン検証（`CsrfConfig`） |
+| XSS 対策 | Thymeleaf の自動エスケープ、入力バリデーション、Content Security Policy（CSP） |
+| SQL インジェクション対策 | Spring Data JPA とパラメタ化クエリを利用、動的 SQL の直接組立てを回避 |
+| 安全な HTTP ヘッダ | HSTS、X-Content-Type-Options、X-Frame-Options などを適用 |
+| Cookie / セッション保護 | `Secure` / `HttpOnly` / `SameSite` の適用、署名付き Remember-Me クッキー |
+| 監査ログ・操作履歴 | 在庫更新は `stock_transactions` に永続化し、誰がいつ行ったかを追跡可能にする |
+| エラーハンドリング | `GlobalExceptionHandler` で詳細を非表示にしつつ適切にログ出力 |
+| 最小権限の原則 | ロールの分離とサービス層での細かい権限制御を設計に組み込む |
+| API 保護 | REST API に対する認証・認可を必須化、必要に応じてレート制限を適用 |
 
 
 ---
