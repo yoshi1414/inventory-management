@@ -161,20 +161,22 @@
 - `products`: 商品マスタ（論理削除対応）
 - `stock_transactions`: 在庫入出庫履歴
 
---
+
  
 ## 開発の流れ、作成ドキュメント、開発マスタスケジュール
 
 開発は次の順序で進め、各工程に対応するドキュメントを作成・管理しました（主要ファイルを併記）。必要に応じて各ドキュメントの最新版は [こちら](Doc/) に保管しています。
-- テーマ決定（開発テーマ / テーマ概要） — [開発テーマドキュメント資料](Doc/Planning_Requirements/テーマ決定ドキュメント資料/theme_overview.md)
+- テーマ決定（商品在庫管理システム） — 在庫の可視化と運用効率化を目的とし、リアルタイム在庫表示・入出庫履歴管理・自動計算・CSV入出力を主要機能とする — [テーマ決定ドキュメント資料](Doc/Planning_Requirements/テーマ決定ドキュメント資料/theme_overview.md)
 - 要件定義（ユーザー要件の整理・優先度付け） — [要件定義資料](Doc/Planning_Requirements/要件定義資料/requirements_definition.md)
 - 設計（画面・API・DB設計） — [設計書フォルダ](Doc/SystemDesign)
-- 製造（実装）WBS に基づくタスク分割と実行 — [AI利用開発時のメモ](Doc/Planning_Requirements/AI利用開発時のメモ.md)
+- 製造（コーディング） — [AI利用開発プロンプト](Doc/Planning_Requirements/AI利用開発プロンプト.md)
+- テスト（開発段階：単体・結合テスト） — [テストフォルダ](src/test/java/com/inventory/inventory_management/)
+- テスト（本番想定：システムテスト） — [テストドキュメント](Doc/Testing/system_test_specification_tables.xlsx)
 
-事前に機能WBSおよび開発マスタスケジュールを作成し、これらに従って進捗管理・レビューを実施しました。WBS図は下記を参照してください。
+事前に開発マスタスケジュールおよび機能開発WBSを作成し、これらに従って進捗管理・レビューを実施しました。WBS図は下記を参照。
 
-![機能WBS（開発工程）](Doc/assets/feature_WBS.jpg)
-
+![開発マスタスケジュール（全体）](Doc/assets/Inventory_MasterSchedule.jpg)
+![開発WBS](Doc/assets/feature_WBS.jpg)
 ---
 
 ## 今後の改善予定
