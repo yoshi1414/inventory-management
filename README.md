@@ -143,23 +143,17 @@
 
 ## システム構成
 
-```text
-[Browser]
-   ↓
-[Controller]
-   ↓
-[Service]
-   ↓
-[Repository]
-   ↓
-[MySQL]
-```
+![システム構成図](Doc/assets/inventory.jpg)
+
+（図：アプリケーションの主要レイヤーとデータフロー）
 
 ---
 
 ## ER図
 
-詳細は `Doc/SystemDesign/データベース設計書_ER図.md` を参照してください。
+![ER図](Doc/assets/er_diagram.jpg)
+
+(図：主要テーブルとリレーションの概要)
 
 主要テーブル:
 
