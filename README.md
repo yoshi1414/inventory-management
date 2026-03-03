@@ -143,11 +143,9 @@
 
 ## システム構成
 
-![システム構成図](Doc/assets/Gemini_Generated_SystemImage.png)
+![開発システム構成図](Doc/assets/Gemini_Generated_SystemImage.png)
 
 （図：アプリケーションの主要レイヤーとデータフロー）
-
-2026年3月中にAWS上へサーバを構築する予定です。
 
 ---
 
@@ -164,17 +162,21 @@
 - `stock_transactions`: 在庫入出庫履歴
 
 --
-## 開発ストーリー
+ 
+## 開発の流れ、作成ドキュメント、開発マスタスケジュール
 
-開発の流れと関連ドキュメントへのリンクを以下にまとめます。
+開発は次の順序で進め、各工程に対応するドキュメントを作成・管理しました（主要ファイルを併記）。必要に応じて各ドキュメントの最新版は [こちら](Doc/) に保管しています。
+- テーマ決定（開発テーマ / テーマ概要） — [開発テーマドキュメント資料](Doc/Planning_Requirements/テーマ決定ドキュメント資料/theme_overview.md)
+- 要件定義（ユーザー要件の整理・優先度付け） — [要件定義資料](Doc/Planning_Requirements/要件定義資料/requirements_definition.md)
+- 設計（画面・API・DB設計） — [設計書フォルダ](Doc/SystemDesign)
+- 製造（実装）WBS に基づくタスク分割と実行 — [AI利用開発時のメモ](Doc/Planning_Requirements/AI利用開発時のメモ.md)
 
-- **開発テーマ（決定）**: [Doc/Planning_Requirements/テーマ決定ドキュメント資料/theme_overview.md](Doc/Planning_Requirements/テーマ決定ドキュメント資料/theme_overview.md) — テーマ設定の背景・差別化ポイント・優先度など。
-- **要件定義書**: [Doc/Planning_Requirements/要件定義資料/requirements_definition.md](Doc/Planning_Requirements/要件定義資料/requirements_definition.md) — 業務フロー、必須・非機能要件をまとめています。
-- **設計書一式（システム設計）**: [Doc/SystemDesign/データベース設計書_ER図.md](Doc/SystemDesign/データベース設計書_ER図.md) — ER図・テーブル設計を中心に、他の設計書群は [Doc/SystemDesign](Doc/SystemDesign) フォルダに格納しています。
+事前に機能WBSおよび開発マスタスケジュールを作成し、これらに従って進捗管理・レビューを実施しました。WBS図は下記を参照してください。
 
-上記ドキュメントは作成→レビュー→反映のサイクルで更新しています。必要であれば該当箇所へPRや日付、レビューメモを追記できます。
+![機能WBS（開発工程）](Doc/assets/feature_WBS.jpg)
 
--
+---
+
 ## 今後の改善予定
 
 - 在庫アラート通知（メール/画面通知）
@@ -182,10 +184,10 @@
 - 商品カテゴリ管理機能
 - REST API 拡充 + OpenAPI ドキュメント整備
 - Docker 化 + CI/CD パイプライン整備
+- フロントのリッチ化（React導入を想定、まずは管理画面で検証）
+　※2026年4月中にAWS上へサーバを構築する予定です。
 
 ---
-
-2026年3月中にAWS上へサーバを構築する予定です。
 
 ## ひとこと
 
