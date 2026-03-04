@@ -1,5 +1,5 @@
 # Inventory Management System
-
+サービスURL：2026年4月中にAWS上へサーバ構築する予定。
 ![開発イメージ](Doc/assets/inventory.jpg)
 
 ## サービス概要
@@ -66,6 +66,31 @@
 
 ---
 
+## 画面デモ
+
+### ログイン
+
+| ログイン画面 |
+| :---: |
+| <img src="Doc/assets/loginScreen.gif" width="640"> |
+| <p align="left">ユーザー名・パスワードを入力してログイン。Remember-Me（24時間）対応。ブルートフォース対策（5回失敗で24時間ロック）を実装。</p> |
+
+### 一般ユーザー：在庫管理
+
+| 在庫一覧・詳細 | 在庫更新（入庫 / 出庫） |
+| :---: | :---: |
+| <img src="Doc/assets/inventoryScreen.gif" width="480"> | <img src="Doc/assets/inventoryAddScreen.gif" width="480"> |
+| <p align="left">キーワード・カテゴリ・在庫状態で絞り込み。低在庫バッジ（欠品・不足件数）を一覧上部に表示。在庫数リンクから詳細・更新履歴を確認。</p> | <p align="left">在庫更新モーダルから入庫 / 出庫 / 数量設定が可能。更新と同時に stock_transactions へ履歴を記録。</p> |
+
+### 管理者：在庫管理
+
+| 管理者在庫管理画面 |
+| :---: |
+| <img src="Doc/assets/adminInventoryScreen.gif" width="640"> |
+| <p align="left">管理者は商品の編集・削除・詳細確認・在庫履歴の閲覧が可能。新規商品登録ボタンから登録フローへ遷移。商品 CRUD・ユーザー管理も管理者メニューから一元操作。</p> |
+
+---
+
 ## 設計・実装で重視したポイント
 
 ### 1. 権限管理の二重防御（安全性）
@@ -121,6 +146,7 @@
 - 単体テスト: Service 層（JUnit 5 / Mockito）
 - コントローラーテスト: MockMvc
 - 統合テスト: `@SpringBootTest` + H2（MySQL互換モード）
+- システムテスト：想定ケースシナリオを作成して、WEB画面操作での動作確認
 
 テストプロファイルで本番 DB 非依存の検証を行い、`@Transactional` によるロールバックでテスト独立性を確保しています。  
 カバレッジ目標は 80% 以上（JaCoCo）です。
@@ -159,24 +185,23 @@
 
 - `users`: ユーザー情報・ロール管理
 - `products`: 商品マスタ（論理削除対応）
-- `stock_transactions`: 在庫入出庫履歴
+- `stock_transactions`: 在庫入出庫履歴 
 
+---
 
- 
 ## 開発の流れ、作成ドキュメント、開発マスタスケジュール
 
 開発は次の順序で進め、各工程に対応するドキュメントを作成・管理しました（主要ファイルを併記）。必要に応じて各ドキュメントの最新版は [こちら](Doc/) に保管しています。
-- テーマ決定（商品在庫管理システム） — 在庫の可視化と運用効率化を目的とし、リアルタイム在庫表示・入出庫履歴管理・自動計算・CSV入出力を主要機能とする — [テーマ決定ドキュメント資料](Doc/Planning_Requirements/テーマ決定ドキュメント資料/theme_overview.md)
+- 開発テーマ（商品在庫管理システム） — 在庫の可視化と運用効率化を目的とし、リアルタイム在庫表示・入出庫履歴管理・自動計算・CSV入出力を主要機能とする — [開発テーマ資料](Doc/Planning_Requirements/開発テーマドキュメント資料/theme_overview.md)
 - 要件定義（ユーザー要件の整理・優先度付け） — [要件定義資料](Doc/Planning_Requirements/要件定義資料/requirements_definition.md)
 - 設計（画面・API・DB設計） — [設計書フォルダ](Doc/SystemDesign)
 - 製造（コーディング） — [AI利用開発プロンプト](Doc/Planning_Requirements/AI利用開発プロンプト.md)
 - テスト（開発段階：単体・結合テスト） — [テストフォルダ](src/test/java/com/inventory/inventory_management/)
-- テスト（本番想定：システムテスト） — [テストドキュメント](Doc/Testing/system_test_specification_tables.xlsx)
+- テスト（本番想定：システムテスト） — [ドキュメントフォルダ](Doc/Testing/)
 
 事前に開発マスタスケジュールおよび機能開発WBSを作成し、これらに従って進捗管理・レビューを実施しました。WBS図は下記を参照。
 
 ![開発マスタスケジュール（全体）](Doc/assets/Inventory_MasterSchedule.jpg)
-![開発WBS](Doc/assets/feature_WBS.jpg)
 ---
 
 ## 今後の改善予定
@@ -187,7 +212,7 @@
 - REST API 拡充 + OpenAPI ドキュメント整備
 - Docker 化 + CI/CD パイプライン整備
 - フロントのリッチ化（React導入を想定、まずは管理画面で検証）
-　※2026年4月中にAWS上へサーバを構築する予定です。
+- 2026年4月中にAWS上へサーバを構築する予定です。
 
 ---
 
