@@ -138,10 +138,7 @@
 カバレッジ目標は 80% 以上（JaCoCo）で、今回実測値（Line Coverage）は **88.80%**（1395/1571）です。
 
 詳細レポートはリポジトリ内に保存しています（ローカルで開いて確認してください）：
-
-- JaCoCo HTML レポート: [Doc/Testing/jacoco-report/index.html](Doc/Testing/jacoco-report/index.html)
 - JaCoCo CSV: [Doc/Testing/jacoco-report/jacoco.csv](Doc/Testing/jacoco-report/jacoco.csv)
-- JaCoCo XML: [Doc/Testing/jacoco-report/jacoco.xml](Doc/Testing/jacoco-report/jacoco.xml)
 
 ---
 
