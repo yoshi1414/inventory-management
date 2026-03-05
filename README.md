@@ -69,10 +69,10 @@
 
 | ログイン画面 | 在庫一覧・詳細 |
 | :---: | :---: |
-| <img src="Doc/assets/loginScreen.gif" width="320"> | <img src="Doc/assets/inventoryScreen.gif" width="320"> |
+| <img src="https://raw.githubusercontent.com/yoshi1414/inventory-management/main/Doc/assets/loginScreen.gif" width="320"> | <img src="https://raw.githubusercontent.com/yoshi1414/inventory-management/main/Doc/assets/inventoryScreen.gif" width="320"> |
 | <p align="left">ユーザー名・パスワードを入力してログイン。Remember-Me（24時間）対応。ブルートフォース対策（5回失敗で24時間ロック）を実装。</p> | <p align="left">キーワード・カテゴリ・在庫状態で絞り込み。低在庫バッジ（欠品・不足件数）を一覧上部に表示。在庫数リンクから詳細・更新履歴を確認。</p> |
 | 在庫更新（入庫 / 出庫） | 管理者在庫管理画面 |
-| <img src="Doc/assets/inventoryAddScreen.gif" width="320"> | <img src="Doc/assets/adminInventoryScreen.gif" width="320"> |
+| <img src="https://raw.githubusercontent.com/yoshi1414/inventory-management/main/Doc/assets/inventoryAddScreen.gif" width="320"> | <img src="https://raw.githubusercontent.com/yoshi1414/inventory-management/main/Doc/assets/adminInventoryScreen.gif" width="320"> |
 | <p align="left">在庫更新モーダルから入庫 / 出庫 / 数量設定が可能。更新と同時に stock_transactions へ履歴を記録。</p> | <p align="left">管理者は商品の編集・削除・詳細確認・在庫履歴の閲覧が可能。新規商品登録ボタンから登録フローへ遷移。商品 CRUD・ユーザー管理も管理者メニューから一元操作。</p> |
 
 ---
