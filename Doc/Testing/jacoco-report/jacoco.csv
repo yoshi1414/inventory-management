@@ -1,9 +1,3 @@
-ファイル: jacoco.csv:1（JaCoCo 生CSV）
-行合計: 1571（カバー 1395、未カバー 176）→ 行カバレッジ = 1395 / 1571 = 88.80%
-命令（Instruction）合計: 7568（カバー 6681、未カバー 887）→ 命令カバレッジ = 6681 / 7568 = 88.28%
-分岐（Branch）: 314 / 398 = 78.89%
-複雑度（Complexity）: 335 / 424 = 78.96%
-メソッド: 205 / 213 = 96.24%
 グループ,パッケージ,クラス,命令未カバー,命令カバー,分岐未カバー,分岐カバー,行未カバー,行カバー,複雑度未カバー,複雑度カバー,メソッド未カバー,メソッドカバー
 inventory-management,com.inventory.inventory_management.exception,GlobalExceptionHandler,2,238,2,2,0,44,2,6,0,6
 inventory-management,com.inventory.inventory_management.controller,PasswordChangeController,14,113,3,11,4,30,3,7,0,3
