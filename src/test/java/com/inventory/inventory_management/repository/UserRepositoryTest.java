@@ -10,6 +10,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,9 +24,11 @@ import com.inventory.inventory_management.entity.UserRole;
  * データベースとの連携をテストする統合テストです
  */
 @SpringBootTest
+@ActiveProfiles("test")
 @Transactional
 @Rollback
 @DisplayName("UserRepository統合テスト")
+@Sql(scripts = {"/schema-test.sql", "/data-test.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class UserRepositoryTest {
 
     @Autowired
@@ -95,7 +99,7 @@ class UserRepositoryTest {
         assertTrue(result.isPresent());
         assertEquals("testuser", result.get().getUsername());
         assertEquals("testuser@example.com", result.get().getEmail());
-        assertEquals("テストユーザー1", result.get().getFullName());
+        assertEquals("テストユーザー", result.get().getFullName());
         assertTrue(result.get().getIsActive());
     }
 
@@ -337,7 +341,7 @@ class UserRepositoryTest {
         assertTrue(result.isPresent());
         assertEquals("testuser", result.get().getUsername());
         assertEquals("testuser@example.com", result.get().getEmail());
-        assertEquals("テストユーザー1", result.get().getFullName());
+        assertEquals("テストユーザー", result.get().getFullName());
     }
 
     /**

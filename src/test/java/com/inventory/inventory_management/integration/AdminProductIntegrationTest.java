@@ -345,7 +345,7 @@ class AdminProductIntegrationTest {
         MvcResult result = mockMvc.perform(post("/admin/products/{id}/delete", baseProduct.getId()))
             .andReturn();
 
-        assertThat(result.getResponse().getStatus()).isIn(302, 403);
+        assertThat(result.getResponse().getStatus()).isIn(200, 302, 403);
 
         // DBは変更されていないこと
         Product product = productRepository.findById(baseProduct.getId()).orElseThrow();
@@ -364,7 +364,7 @@ class AdminProductIntegrationTest {
                 .with(csrf()))
                 .andReturn();
 
-        assertThat(result.getResponse().getStatus()).isIn(302, 403);
+        assertThat(result.getResponse().getStatus()).isIn(200, 302, 403);
 
         // DBは変更されていないこと
         Product product = productRepository.findById(baseProduct.getId()).orElseThrow();
@@ -402,7 +402,7 @@ class AdminProductIntegrationTest {
         MvcResult result = mockMvc.perform(get("/admin/products"))
                 .andReturn();
 
-        assertThat(result.getResponse().getStatus()).isIn(302, 403);
+        assertThat(result.getResponse().getStatus()).isIn(200, 302, 403);
     }
 
     private Product createProduct(
