@@ -38,8 +38,7 @@ Doc/portfolio/
 
 # Local development overrides and secrets
 src/main/resources/application-dev.properties
-#一時的
-#src/main/resources/application-prod.properties
+src/main/resources/application-prod.properties
 .env
 .env.local
 #一時的
