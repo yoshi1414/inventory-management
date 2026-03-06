@@ -38,10 +38,12 @@ Doc/portfolio/
 
 # Local development overrides and secrets
 src/main/resources/application-dev.properties
-src/main/resources/application-prod.properties
+#一時的
+#src/main/resources/application-prod.properties
 .env
 .env.local
-src/main/resources/data.sql
+#一時的
+#src/main/resources/data.sql
 
 # Build artifacts and reports
 target/
