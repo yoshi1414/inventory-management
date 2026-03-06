@@ -32,8 +32,8 @@ build/
 ### VS Code ###
 .vscode/
 src/main/resources/application.properties
-Doc/諸々情報.txt
 src/main/resources/schema.sql.sample
+Doc/諸々情報.txt
 Doc/portfolio/
 
 # Local development overrides and secrets
