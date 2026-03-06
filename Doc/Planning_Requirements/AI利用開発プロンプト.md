@@ -129,6 +129,9 @@ GlobalExceptionHandlerを利用
 ```text
 additional-spring-configuration-metadata.json に追記して、VS Code の問題点に表示されないようにした。
 
+### スペルチェックについて
+ファイル自体をスペルチェック対象外にするか、アイコン選択で除外する
+
 ### カバレッジテストについて
 ```text
 カバレッジテストは、以下で達成バーをだしています
