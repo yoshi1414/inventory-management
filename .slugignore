@@ -1,0 +1,7 @@
+Doc/
+target/
+update_stock.sql
+mvnw
+mvnw.cmd
+README.md
+src/test/

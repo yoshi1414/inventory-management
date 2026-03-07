@@ -153,6 +153,26 @@ DB_PASSWORD を設定
 heroku config:set DB_PASSWORD=AAAAAAAA
 ```
 
+サーバ停止
+```bash
+heroku ps:scale web=0 -a inventory
+```
+
+現在の Dyno の状態を確認
+```bash
+heroku ps -a
+```
+
+アプリを再開（Dyno を 1 にスケール）
+```bash
+heroku ps:scale web=1 -a inventory
+```
+
+ログ出力
+```bash
+ heroku logs --tail
+```
+
 ## まとめ
 
 Herokuへデプロイする前には以下の準備が必要である。
