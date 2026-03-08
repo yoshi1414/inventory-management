@@ -122,7 +122,10 @@ heroku addons:create jawsdb-maria:kitefin
 ```
 
 herokuのDB情報（コマンド：`heroku config:get JAWSDB_MARIA_URL`）
-
+全ての設定を出す
+heroku config
+全ての情報を出す
+heroku info
 ```
 mysql://XXXXXXXXX:AAAAAAAA@er7lx9km02rjyf3n.cbetxkdyhwsb.us-east-1.rds.amazonaws.com:3306/mrgwzv3mt1zoj6f9
 ↓
@@ -153,6 +156,13 @@ DB_PASSWORD を設定
 heroku config:set DB_PASSWORD=AAAAAAAA
 ```
 
+＜＜＜Herokuにデプロイする＞＞＞
+
+```bash
+git push heroku main
+```
+
+
 サーバ停止
 ```bash
 heroku ps:scale web=0 -a inventory
@@ -160,7 +170,7 @@ heroku ps:scale web=0 -a inventory
 
 現在の Dyno の状態を確認
 ```bash
-heroku ps -a
+heroku ps -a inventory
 ```
 
 アプリを再開（Dyno を 1 にスケール）
@@ -171,6 +181,11 @@ heroku ps:scale web=1 -a inventory
 ログ出力
 ```bash
  heroku logs --tail
+```
+
+herokuにアクセス
+```bash
+heroku run bash -a inventory
 ```
 
 ## まとめ
