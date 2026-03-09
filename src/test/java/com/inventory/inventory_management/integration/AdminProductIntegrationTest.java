@@ -405,6 +405,126 @@ class AdminProductIntegrationTest {
         assertThat(result.getResponse().getStatus()).isIn(200, 302, 403);
     }
 
+    /**
+     * product-detail.htmlが正常にレンダリングされることを検証（管理者から商品管理経由でアクセス）
+     * CSRFトークン、削除ボタン属性、JavaScriptファイルなどを確認
+     * @throws Exception テスト実行時の例外
+     */
+    @Test
+    @WithMockUser(username = "adminuser", roles = {"ADMIN"})
+    @DisplayName("【結合】product-detail.htmlが正常にレンダリングされる")
+    void productDetailPage_RendersCorrectly() throws Exception {
+        String productDetailHtml = mockMvc.perform(get("/admin/inventory/products/{id}", baseProduct.getId())
+                .param("from", "products"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/inventory-detail"))
+                .andExpect(model().attributeExists("product"))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        // 削除ボタンのCSP対応確認（delete-modal-triggerクラスがあること）
+        assertThat(productDetailHtml)
+                .contains("class=\"btn btn-outline-danger delete-modal-trigger\"")
+                .contains("data-product-id=")
+                .contains("data-product-name=")
+                .doesNotContain("onclick=");
+
+        // JavaScriptファイルの読み込み確認
+        assertThat(productDetailHtml)
+                .contains("src=\"/js/common.js\"")
+                .contains("src=\"/js/admin-common.js\"")
+                .contains("src=\"/js/admin-inventory.js\"");
+
+        // 削除モーダルの存在確認
+        assertThat(productDetailHtml)
+                .contains("id=\"deleteModal\"")
+                .contains("id=\"deleteProductName\"")
+                .contains("商品名:")
+                .contains("商品コード:");
+
+        // ログアウトモーダルの存在確認
+        assertThat(productDetailHtml)
+                .contains("id=\"logoutModal\"")
+                .contains("action=\"/logout\"")
+                .contains("name=\"_csrf\"");
+    }
+
+    /**
+     * inventory-detail.htmlが正常にレンダリングされることを検証
+     * CSRFトークン、削除ボタン属性、JavaScriptファイル（admin-inventory.js）などを確認
+     * @throws Exception テスト実行時の例外
+     */
+    @Test
+    @WithMockUser(username = "adminuser", roles = {"ADMIN"})
+    @DisplayName("【結合】inventory-detail.htmlが正常にレンダリングされる")
+    void inventoryDetailPage_RendersCorrectly() throws Exception {
+        String inventoryDetailHtml = mockMvc.perform(get("/admin/inventory/products/{id}", baseProduct.getId()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/inventory-detail"))
+                .andExpect(model().attributeExists("product"))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        // bodyタグのCSRFトークン確認（Thymeleafレンダリング後の属性名はth:なしになる）
+        assertThat(inventoryDetailHtml)
+                .contains("data-csrf-token=")
+                .contains("data-csrf-header=");
+
+        // 削除ボタンのCSP対応確認（data属性を使用していることを確認）
+        assertThat(inventoryDetailHtml)
+                .contains("class=\"btn btn-outline-danger delete-modal-trigger\"")
+                .contains("data-product-id=")
+                .contains("data-product-name=")
+                .doesNotContain("onclick=");
+
+        // JavaScriptファイルの読み込み確認
+        assertThat(inventoryDetailHtml)
+                .contains("src=\"/js/common.js\"")
+                .contains("src=\"/js/admin-common.js\"")
+                .contains("src=\"/js/admin-inventory.js\"");
+
+        // 削除モーダルの存在確認
+        assertThat(inventoryDetailHtml)
+                .contains("id=\"deleteModal\"")
+                .contains("id=\"deleteProductName\"")
+                .contains("id=\"deleteProductId\"")
+                .contains("商品名:")
+                .contains("商品コード:");
+
+        // ログアウトモーダルの存在確認
+        assertThat(inventoryDetailHtml)
+                .contains("id=\"logoutModal\"")
+                .contains("action=\"/logout\"")
+                .contains("name=\"_csrf\"");
+    }
+
+    /**
+     * inventory-detail.htmlで削除ボタンがdata属性を保有していることを検証
+     * JavaScriptで正しく取得できるようにdata属性が設定されていることを確認
+     * @throws Exception テスト実行時の例外
+     */
+    @Test
+    @WithMockUser(username = "adminuser", roles = {"ADMIN"})
+    @DisplayName("【結合】inventory-detail.htmlの削除ボタンがdata属性を正しく保有する")
+    void inventoryDetailDeleteButton_HasCorrectDataAttributes() throws Exception {
+        String inventoryDetailHtml = mockMvc.perform(get("/admin/inventory/products/{id}", baseProduct.getId()))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        // 削除ボタンのdata属性が正しく設定されていることを確認
+        assertThat(inventoryDetailHtml)
+                .contains("data-product-id=\"")
+                .contains("data-product-name=\"管理者商品A\"");
+
+        // 削除モーダルにproductName要素が存在することを確認
+        assertThat(inventoryDetailHtml)
+                .matches("(?s).*<span\\s+id=\"deleteProductName\">.*</span>.*");
+    }
+
     private Product createProduct(
             String productCode,
             String productName,
