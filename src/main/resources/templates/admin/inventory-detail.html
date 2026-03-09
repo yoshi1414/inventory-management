@@ -14,7 +14,7 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/style.css">
 </head>
-<body>
+<body th:data-csrf-token="${_csrf.token}" th:data-csrf-header="${_csrf.headerName}">
     <!-- ナビゲーションバー（管理者用） -->
     <nav class="navbar navbar-expand-lg navbar-custom-admin fixed-top">
         <div class="container-fluid">
@@ -79,10 +79,12 @@
                         <span th:if="${product != null and product.deletedAt != null}" class="badge bg-danger ms-2">削除済み</span>
                     </h2>
                     <div>
-                        <a th:href="@{/admin/products/{code}/edit(code=${product.productCode})}" class="btn btn-primary me-2">
+                        <a th:href="@{/admin/products/{id}/edit(id=${product.id})}" class="btn btn-primary me-2">
                             <i class="bi bi-pencil"></i> 編集
                         </a>
-                        <button class="btn btn-outline-danger" th:data-code="${product.productCode}" onclick="handleDelete(this.getAttribute('data-code'))">
+                        <button class="btn btn-outline-danger delete-modal-trigger"
+                                th:data-product-id="${product.id}"
+                                th:data-product-name="${product.productName}">
                             <i class="bi bi-trash"></i> 削除
                         </button>
                     </div>
@@ -303,11 +305,13 @@
                 <div class="modal-body">
                     <p>この商品を削除してもよろしいですか？</p>
                     <p class="text-muted"><small>※論理削除されるため、データは保持されます。</small></p>
-                    <p><strong>商品コード:</strong> <span id="deleteProductId" th:text="${product.productCode}">PRD001</span></p>
+                    <p><strong>商品名:</strong> <span id="deleteProductName"></span></p>
+                    <p><strong>商品コード:</strong> <span th:text="${product.productCode}">PRD001</span></p>
+                    <span id="deleteProductId" class="d-none"></span>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
-                    <button type="button" class="btn btn-danger" onclick="confirmDelete()">削除する</button>
+                    <button type="button" class="btn btn-danger">削除する</button>
                 </div>
             </div>
         </div>
@@ -347,22 +351,6 @@
     
     <!-- 管理者用JavaScript -->
     <script src="/js/admin-common.js"></script>
-    
-    <script>
-        // 削除処理
-        function handleDelete(productId) {
-            document.getElementById('deleteProductId').textContent = productId;
-            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-            deleteModal.show();
-        }
-
-        function confirmDelete() {
-            const productCode = document.getElementById('deleteProductId').textContent;
-            // 削除処理をここに実装（将来的にはAPI呼び出し）
-            console.log('削除対象商品コード:', productCode);
-            alert('商品 ' + productCode + ' を削除しました。');
-            window.location.href = '/admin/inventory';
-        }
-    </script>
+    <script src="/js/admin-inventory.js"></script>
 </body>
 </html>

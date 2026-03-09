@@ -74,6 +74,9 @@ git checkout -b test/system_test_execution
 ##ポートフォリオ作成
 git checkout -b docs/portfolio-update
 
+##開発ブランチ 在庫一覧画面の改修
+git checkout -b feature/inventory_list_update
+
 ーーーーーーーーーーーーー
 ##作成しながら、ブランチ切り替え
 git checkout -b requirements-definition-1
@@ -214,6 +217,7 @@ gone と表示されるブランチは、リモートで削除されているが
 追加/更新: プロジェクト README（簡易） — git_readMe.txt
 
 コミットコメント例のようにして、添付内容のコミットコメントを考えて
+上記コミットコメントで登録をお願いします。
 ーーーーーーーーーーーーー
 gh issue を登録してください
 改行には、`を利用してください

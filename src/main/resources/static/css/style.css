@@ -172,6 +172,17 @@ body.admin-login .form-control:focus {
     color: white !important;
 }
 
+/* ハンバーガーメニュー（三本線）を白色に */
+.navbar-custom .navbar-toggler-icon,
+.navbar-custom-admin .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255%2C 255%2C 255%2C 0.85%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+.navbar-custom .navbar-toggler,
+.navbar-custom-admin .navbar-toggler {
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
 /* Adjust alignment and spacing for navbar items */
 .navbar-custom .nav-item,
 .navbar-custom-admin .nav-item {
@@ -353,4 +364,9 @@ body.error-page .login-container {
 .password-strength-text {
     font-size: 0.875rem;
     margin-top: 0.25rem;
+}
+
+/* 商品行のホバー効果 */
+.clickable-row:hover {
+    cursor: pointer;
 }
