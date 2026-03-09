@@ -10,8 +10,8 @@
 
 ## デプロイ・アクセス
 
-**動作テスト環境（Heroku）:** <a href="https://inventory-0543a8a3f8cf.herokuapp.com/login" target="_blank" rel="noopener">https://inventory-0543a8a3f8cf.herokuapp.com/login</a>  
-テスト環境サーバは、午前9時～午後7時のみ起動しています。  
+**動作テスト環境（Heroku）:** https://inventory-0543a8a3f8cf.herokuapp.com/login  
+テスト環境サーバは、午前9時～午後7時のみ起動しています。
 テスト環境のデータはすべてテスト用データのため、新規登録・更新・削除はすべて問題ありません。
 
 ### テストアカウント
@@ -84,10 +84,10 @@
 
 | ログイン画面 | 在庫一覧・詳細 |
 | :---: | :---: |
-| <a href="https://raw.githubusercontent.com/yoshi1414/inventory-management/main/Doc/assets/loginScreen.gif" target="_blank" rel="noopener"><img src="https://raw.githubusercontent.com/yoshi1414/inventory-management/main/Doc/assets/loginScreen.gif" width="320"></a> | <a href="https://raw.githubusercontent.com/yoshi1414/inventory-management/main/Doc/assets/inventoryScreen.gif" target="_blank" rel="noopener"><img src="https://raw.githubusercontent.com/yoshi1414/inventory-management/main/Doc/assets/inventoryScreen.gif" width="320"></a> |
+| <img src="https://raw.githubusercontent.com/yoshi1414/inventory-management/main/Doc/assets/loginScreen.gif" width="320"> | <img src="https://raw.githubusercontent.com/yoshi1414/inventory-management/main/Doc/assets/inventoryScreen.gif" width="320"> |
 | <p align="left">ユーザー名・パスワードを入力してログイン。Remember-Me（24時間）対応。ブルートフォース対策（5回失敗で24時間ロック）を実装。</p> | <p align="left">キーワード・カテゴリ・在庫状態で絞り込み。低在庫バッジ（欠品・不足件数）を一覧上部に表示。在庫数リンクから詳細・更新履歴を確認。</p> |
 | 在庫更新（入庫 / 出庫） | 管理者在庫管理画面 |
-| <a href="https://raw.githubusercontent.com/yoshi1414/inventory-management/main/Doc/assets/inventoryAddScreen.gif" target="_blank" rel="noopener"><img src="https://raw.githubusercontent.com/yoshi1414/inventory-management/main/Doc/assets/inventoryAddScreen.gif" width="320"></a> | <a href="https://raw.githubusercontent.com/yoshi1414/inventory-management/main/Doc/assets/adminInventoryScreen.gif" target="_blank" rel="noopener"><img src="https://raw.githubusercontent.com/yoshi1414/inventory-management/main/Doc/assets/adminInventoryScreen.gif" width="320"></a> |
+| <img src="https://raw.githubusercontent.com/yoshi1414/inventory-management/main/Doc/assets/inventoryAddScreen.gif" width="320"> | <img src="https://raw.githubusercontent.com/yoshi1414/inventory-management/main/Doc/assets/adminInventoryScreen.gif" width="320"> |
 | <p align="left">在庫更新モーダルから入庫 / 出庫 / 数量設定が可能。更新と同時に stock_transactions へ履歴を記録。</p> | <p align="left">管理者は商品の編集・削除・詳細確認・在庫履歴の閲覧が可能。新規商品登録ボタンから登録フローへ遷移。商品 CRUD・ユーザー管理も管理者メニューから一元操作。</p> |
 
 ---
@@ -153,8 +153,8 @@
 カバレッジ目標は 80% 以上（JaCoCo）で、今回実測値（Line Coverage）は **88.80%**（1395/1571）です。
 
 詳細レポートはリポジトリ内に保存しています
-- JaCoCo カバレッジ結果の説明: <a href="Doc/Testing/jacoco-report/jacoco.md" target="_blank" rel="noopener">Doc/Testing/jacoco-report/jacoco.md</a>
-- JaCoCo カバレッジデータ（CSV）: <a href="Doc/Testing/jacoco-report/jacoco.csv" target="_blank" rel="noopener">Doc/Testing/jacoco-report/jacoco.csv</a>
+- JaCoCo カバレッジ結果の説明: [Doc/Testing/jacoco-report/jacoco.md](Doc/Testing/jacoco-report/jacoco.md)
+- JaCoCo カバレッジデータ（CSV）: [Doc/Testing/jacoco-report/jacoco.csv](Doc/Testing/jacoco-report/jacoco.csv)
 
 ---
 
@@ -213,13 +213,13 @@ Service 層の単体テストには Mockito でモックを活用し、外部依
 
 ## 開発の流れ、作成ドキュメント、開発マスタスケジュール
 
-開発は次の順序で進め、各工程に対応するドキュメントを作成・管理しました（主要ファイルを併記）。必要に応じて各ドキュメントの最新版は <a href="Doc/" target="_blank" rel="noopener">こちら</a> に保管しています。
-- 開発テーマ（商品在庫管理システム） — 在庫の可視化と運用効率化を目的とし、リアルタイム在庫表示・入出庫履歴管理・自動計算・CSV入出力を主要機能とする — <a href="Doc/Planning_Requirements/開発テーマドキュメント資料/theme_overview.md" target="_blank" rel="noopener">開発テーマ資料</a>
-- 要件定義（ユーザー要件の整理・優先度付け） — <a href="Doc/Planning_Requirements/要件定義資料/requirements_definition.md" target="_blank" rel="noopener">要件定義資料</a>
-- 設計（画面・API・DB設計） — <a href="Doc/SystemDesign" target="_blank" rel="noopener">設計書フォルダ</a>
-- 製造（コーディング） — <a href="Doc/Planning_Requirements/AI利用開発プロンプト.md" target="_blank" rel="noopener">AI利用開発プロンプト</a>
-- テスト（開発段階：単体・結合テスト） — <a href="src/test/java/com/inventory/inventory_management/" target="_blank" rel="noopener">テストフォルダ</a>
-- テスト（本番想定：システムテスト） — <a href="Doc/Testing/" target="_blank" rel="noopener">ドキュメントフォルダ</a>
+開発は次の順序で進め、各工程に対応するドキュメントを作成・管理しました（主要ファイルを併記）。必要に応じて各ドキュメントの最新版は [こちら](Doc/) に保管しています。
+- 開発テーマ（商品在庫管理システム） — 在庫の可視化と運用効率化を目的とし、リアルタイム在庫表示・入出庫履歴管理・自動計算・CSV入出力を主要機能とする — [開発テーマ資料](Doc/Planning_Requirements/開発テーマドキュメント資料/theme_overview.md)
+- 要件定義（ユーザー要件の整理・優先度付け） — [要件定義資料](Doc/Planning_Requirements/要件定義資料/requirements_definition.md)
+- 設計（画面・API・DB設計） — [設計書フォルダ](Doc/SystemDesign)
+- 製造（コーディング） — [AI利用開発プロンプト](Doc/Planning_Requirements/AI利用開発プロンプト.md)
+- テスト（開発段階：単体・結合テスト） — [テストフォルダ](src/test/java/com/inventory/inventory_management/)
+- テスト（本番想定：システムテスト） — [ドキュメントフォルダ](Doc/Testing/)
 
 事前に開発マスタスケジュールおよび機能開発WBSを作成し、これらに従って進捗管理・レビューを実施しました。WBS図は下記を参照。
 
