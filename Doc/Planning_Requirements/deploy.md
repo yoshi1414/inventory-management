@@ -188,23 +188,6 @@ herokuにアクセス
 heroku run bash -a inventory
 ```
 
-### サーバ停止・起動の時間設定
-
-herokuスケジュールアドオンを設定
-
-```bash
-heroku addons:create scheduler:standard -a inventory
-```
-
-herokuのWeb画面より、
-inventory＞Resources＞Heroku Scheduler
-を選択して、スケジュール画面を出して、ジョブ追加で設定する
-
-```bash
-heroku ps:scale web=1 -a inventory
-heroku ps:scale web=0 -a inventory
-```
-
 ## まとめ
 
 Herokuへデプロイする前には以下の準備が必要である。
@@ -214,6 +197,5 @@ Herokuへデプロイする前には以下の準備が必要である。
 - `Procfile` を作成し、アプリ起動コマンドを定義
 - `system.properties` を作成してJavaバージョンを指定
 - HerokuにCLIでログインして、諸情報を設定
-- Herokuに停止・起動のスケジュールを設定
 
 
