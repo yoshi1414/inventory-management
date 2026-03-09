@@ -2,10 +2,10 @@
 -- パスワード: password (BCryptハッシュ化済み)
 
 INSERT IGNORE INTO users (username, password, email, full_name, is_active) VALUES
-('testuser', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'testuser@example.com', 'テストユーザー', TRUE);
+('testuser', '$2a$12$7Q/623mBF5YqneVsnKhtresIIRlJL1eZK1Dz50tYlR1vkOPN9cSAW', 'testuser@example.com', 'テストユーザー', TRUE);
 
 INSERT IGNORE INTO users (username, password, email, full_name, is_active) VALUES
-('adminuser', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'admintestuser@example.com', '管理テストユーザー', TRUE);
+('adminuser', '$2a$12$7Q/623mBF5YqneVsnKhtresIIRlJL1eZK1Dz50tYlR1vkOPN9cSAW', 'admintestuser@example.com', '管理テストユーザー', TRUE);
 
 
 -- テストユーザーに一般ユーザーロールを付与
