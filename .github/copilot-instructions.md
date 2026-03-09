@@ -268,4 +268,12 @@ Write-Utf8NoBom -Path $file -Content ($old+"`nYOUR_TEXT_HERE`n")
 - **実施日と担当者**: いつ、誰が削除したか
 - **承認状況**: テスト削除を承認したプロジェクトリードの名前
 
+---
+
+## コミット例
+
+### README.md の外部リンク・画像を新しいタブで開くように修正
+目的: ポートフォリオの UX 向上 — 外部リンク・デモ画像を新しいタブで開く  
+更新: README.md — Heroku テスト環境 URL、画面デモ（4つの画像）、JaCoCo カバレッジレポート、ドキュメント関連リンクを HTML タグ（target="_blank" rel="noopener"）で統一
+
 
